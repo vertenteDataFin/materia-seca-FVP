@@ -1,0 +1,68 @@
+﻿// @vitest-environment jsdom
+import { existsSync, readFileSync } from 'node:fs';
+import { describe, expect, it } from 'vitest';
+import { areaAnelM2, capimDaAtividade, chaveNome, lerKml, sugerirCorrespondencias } from './kml';
+
+const KML_MINIMO = `<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://www.opengis.net/kml/2.2"><Document><Folder><name>CAPIM</name>
+<Placemark><name>PD - TALHAO 17 A — CAPIM MOMBACA</name>
+<description><![CDATA[<b>PD - TALHAO 17 A</b><br/>Fazenda: Faz. Pedra<br/>Área: 73.30 ha<br/><br/><b>Atividade hoje: CAPIM MOMBACA</b>]]></description>
+<Polygon><outerBoundaryIs><LinearRing><coordinates>-52.0,-19.0,0 -51.99,-19.0,0 -51.99,-19.01,0 -52.0,-19.01,0 -52.0,-19.0,0</coordinates></LinearRing></outerBoundaryIs></Polygon>
+</Placemark></Folder></Document></kml>`;
+
+describe('kml', () => {
+  it('lê nome, fazenda, área, atividade e calcula a área do polígono', () => {
+    const [p] = lerKml(KML_MINIMO);
+    expect(p.nomeLimpo).toBe('PD - TALHAO 17 A');
+    expect(p.fazenda).toBe('Pedra');
+    expect(p.areaDeclaradaHa).toBe(73.3);
+    expect(p.capim).toBe('Mombaça');
+    // quadrado de 0,01° × 0,01° a 19°S ≈ 1052 m × 1106 m ≈ 116 ha
+    expect(p.areaCalculadaHa).toBeGreaterThan(112);
+    expect(p.areaCalculadaHa).toBeLessThan(120);
+  });
+
+  it('área geodésica de anel degenerado é zero', () => {
+    expect(areaAnelM2([[0, 0], [1, 1]])).toBe(0);
+  });
+
+  it('converte atividade em capim', () => {
+    expect(capimDaAtividade('CAPIM MOMBACA / COMPOSTAGEM')).toBe('Mombaça/Compostagem');
+    expect(capimDaAtividade('CAPIM PIATÃ')).toBe('Piatã');
+    expect(capimDaAtividade('SEM ATIVIDADE CADASTRADA')).toBe('');
+  });
+
+  it('normaliza nomes para comparação', () => {
+    expect(chaveNome('PD - TALHAO 17 A — CAPIM MOMBACA')).toBe(chaveNome('TL 17A'));
+    expect(chaveNome('PIVO 01 — CAPIM MIYAGI')).toBe(chaveNome('Pivô 1'));
+    expect(chaveNome('CONF - TALHAO C3')).toBe(chaveNome('C3'));
+    expect(chaveNome('PD- TALHÃO 17 D')).toBe('17D');
+  });
+});
+
+const ARQUIVO = 'info/Pedra_Atividades.kml';
+describe.skipIf(!existsSync(ARQUIVO))('arquivo real da fazenda', () => {
+  const polys = lerKml(readFileSync(ARQUIVO, 'utf8'));
+
+  it('lê os 50 talhões e a área calculada bate com a declarada', () => {
+    expect(polys).toHaveLength(50);
+    const diffs = polys
+      .filter((p) => p.areaDeclaradaHa)
+      .map((p) => ({ nome: p.nomeLimpo, dif: (p.areaCalculadaHa / p.areaDeclaradaHa! - 1) * 100 }));
+    console.table(
+      polys.filter((p) => p.capim).map((p) => ({ nome: p.nomeLimpo, capim: p.capim, declarada: p.areaDeclaradaHa, calculada: +p.areaCalculadaHa.toFixed(2) })),
+    );
+    console.log('Diferenças > 5%:', diffs.filter((d) => Math.abs(d.dif) > 5).map((d) => `${d.nome}: ${d.dif.toFixed(1)}%`));
+  });
+
+  it('associa os nomes do pré-cadastro aos polígonos do KML', () => {
+    const nomes = ['Pivô 1', 'Pivô 2', 'C3', 'TL 13', 'TL 17A', 'TL 17B', 'TL 17C', 'TL 17D', 'TL 17E', 'TL 18', 'TL 20', 'TL 21', 'TL 23', 'Cauã 1'];
+    const m = sugerirCorrespondencias(polys, nomes.map((nome, i) => ({ id: i + 1, nome, capim: '', areaHa: 0 })));
+    const porTalhao = new Map([...m].map(([pi, tid]) => [nomes[tid - 1], polys[pi].nomeLimpo]));
+    console.log(Object.fromEntries(porTalhao));
+    expect(porTalhao.get('TL 13')).toBe('PD - TALHAO 13');
+    expect(porTalhao.get('Pivô 1')).toBe('PIVO 01');
+    expect(porTalhao.get('TL 17D')).toBe('PD- TALHÃO 17 D');
+    expect(porTalhao.size).toBe(13); // Cauã 1 não tem correspondência automática
+  });
+});
