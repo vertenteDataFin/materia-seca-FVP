@@ -5,6 +5,7 @@ import Painel from './pages/Painel';
 import Mapa from './pages/Mapa';
 import Talhoes from './pages/Talhoes';
 import Coletas from './pages/Coletas';
+import NovaColeta from './pages/NovaColeta';
 import ColetaDetalhe from './pages/ColetaDetalhe';
 import Config from './pages/Config';
 
@@ -54,6 +55,7 @@ export default function App() {
           <Route path="/mapa" element={<Mapa />} />
           <Route path="/talhoes" element={<Talhoes />} />
           <Route path="/coletas" element={<Coletas />} />
+          <Route path="/coletas/nova" element={<NovaColeta />} />
           <Route path="/coletas/:id" element={<ColetaDetalhe />} />
           <Route path="/config" element={<Config />} />
         </Routes>

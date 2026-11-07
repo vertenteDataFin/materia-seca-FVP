@@ -50,7 +50,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
           {t.nome} {t.fazenda && <small className="mudo">· Faz. {t.fazenda}</small>}
         </h2>
         <div className="acoes">
-          <Link className="botao" to={`/coletas?talhao=${t.id}`}>+ Nova coleta</Link>
+          <Link className="botao" to={`/coletas/nova?talhao=${t.id}`}>+ Nova coleta</Link>
           <button onClick={() => aoEditar(t)}>Editar</button>
           <button onClick={aoFechar} aria-label="Fechar">✕</button>
         </div>

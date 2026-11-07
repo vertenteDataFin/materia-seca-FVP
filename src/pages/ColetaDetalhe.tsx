@@ -5,7 +5,7 @@ import { db, excluirColeta, type Amostra, type Coleta, type Talhao } from '../db
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade } from '../calc';
 import { CampoNumero, Indicador, SeloMS } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
-import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
+import MapaTalhoes, { nomeCurto, type Marcador } from '../MapaTalhoes';
 import { fmt, lerParametros } from '../util';
 
 export default function ColetaDetalhe() {
@@ -17,6 +17,7 @@ export default function ColetaDetalhe() {
   const [parametros] = useState(lerParametros);
   const [capturando, setCapturando] = useState<number | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
+  const [mostrarMapa, setMostrarMapa] = useState(false);
 
   if (coleta === null) {
     return (
@@ -72,7 +73,7 @@ export default function ColetaDetalhe() {
   return (
     <>
       <div className="titulo-linha">
-        <h1>Coleta — {talhao?.nome ?? 'talhão removido'}</h1>
+        <h1>Coleta — {talhao ? nomeCurto(talhao.nome) : 'talhão removido'}</h1>
         <Link to="/coletas">← Coletas</Link>
       </div>
 
@@ -160,9 +161,11 @@ export default function ColetaDetalhe() {
 
       {!!talhao?.geometria?.length && (
         <div className="cartao">
-          <h2>Mapa dos pontos</h2>
-          <MapaTalhoes talhoes={[talhao]} marcadores={marcadores} altura={340} />
-          {!marcadores.length && <p className="dica">Os pontos aparecem aqui conforme forem capturados.</p>}
+          <div className="cabecalho-cartao">
+            <h2>Mapa dos pontos</h2>
+            <button onClick={() => setMostrarMapa((v) => !v)}>{mostrarMapa ? 'Ocultar mapa' : `Ver no mapa (${marcadores.length} ponto(s))`}</button>
+          </div>
+          {mostrarMapa && <MapaTalhoes talhoes={[talhao]} marcadores={marcadores} altura={340} />}
         </div>
       )}
 

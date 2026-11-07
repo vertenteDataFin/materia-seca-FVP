@@ -59,7 +59,7 @@ export function MenuTalhao({
       </div>
       <div className="acoes">
         <button onClick={aoRegistros}>Registros</button>
-        <Link className="botao primario" to={`/coletas?talhao=${talhao.id}`}>Nova coleta</Link>
+        <Link className="botao primario" to={`/coletas/nova?talhao=${talhao.id}`}>Nova coleta</Link>
         <button onClick={aoFechar} aria-label="Fechar">✕</button>
       </div>
     </div>
