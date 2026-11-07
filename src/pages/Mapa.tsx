@@ -35,6 +35,24 @@ export default function Mapa() {
   if (!dados) return null;
   const selecionado = dados.talhoes.find((t) => t.id === selecionadoId) ?? null;
 
+  if (selecionado) {
+    const u = ultimaPorTalhao.get(selecionado.id!);
+    return (
+      <>
+        <h1>Talhão escolhido</h1>
+        <div className="cartao">
+          <MenuTalhao talhao={selecionado} aoRegistros={() => navigate(`/talhoes?talhao=${selecionado.id}`)} />
+          <p className="dica" style={{ marginTop: '0.75rem' }}>
+            {u ? `Última coleta: ${new Date(u.c.data + 'T00:00').toLocaleDateString('pt-BR')}${u.msPct != null ? ` · MS ${fmt(u.msPct, 1)}%` : ''}` : 'Sem coleta registrada ainda.'}
+          </p>
+          <div className="acoes">
+            <button onClick={() => setSelecionadoId(null)}>← Voltar ao mapa</button>
+          </div>
+        </div>
+      </>
+    );
+  }
+
   return (
     <>
       <h1>Mapa — escolha o talhão</h1>
@@ -50,11 +68,7 @@ export default function Mapa() {
             return { cor: s ? COR_STATUS[s] : u ? '#9aa59a' : undefined, rotuloExtra: u?.msPct != null ? `${fmt(u.msPct, 0)}% MS` : t.capim };
           }}
         />
-        {selecionado ? (
-          <MenuTalhao talhao={selecionado} aoRegistros={() => navigate(`/talhoes?talhao=${selecionado.id}`)} aoFechar={() => setSelecionadoId(null)} />
-        ) : (
-          <p className="dica">Toque no talhão para ver os registros ou iniciar uma nova coleta.</p>
-        )}
+        <p className="dica">Toque no talhão para ver os registros ou iniciar uma nova coleta.</p>
         <p className="dica">
           <span className="selo" style={{ background: COR_STATUS.baixo, color: '#fff' }}>MS baixa</span>{' '}
           <span className="selo" style={{ background: COR_STATUS.ideal, color: '#fff' }}>ponto de ensilagem</span>{' '}

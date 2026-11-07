@@ -44,7 +44,7 @@ export function MenuTalhao({
 }: {
   talhao: { id?: number; nome: string; capim: string; areaHa: number; fazenda?: string };
   aoRegistros: () => void;
-  aoFechar: () => void;
+  aoFechar?: () => void;
 }) {
   return (
     <div className="menu-talhao" role="dialog" aria-label={`Talhão ${talhao.nome}`}>
@@ -60,7 +60,7 @@ export function MenuTalhao({
       <div className="acoes">
         <button onClick={aoRegistros}>Registros</button>
         <Link className="botao primario" to={`/coletas/nova?talhao=${talhao.id}`}>Nova coleta</Link>
-        <button onClick={aoFechar} aria-label="Fechar">✕</button>
+        {aoFechar && <button onClick={aoFechar} aria-label="Fechar">✕</button>}
       </div>
     </div>
   );
