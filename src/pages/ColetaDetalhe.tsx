@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, excluirColeta, type Amostra, type Coleta, type Talhao } from '../db';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade } from '../calc';
-import { CampoNumero, Indicador, SeloMS, useCelular } from '../components';
+import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
 import MapaTalhoes, { nomeCurto, type Marcador } from '../MapaTalhoes';
 import { fmt, lerParametros } from '../util';
@@ -103,6 +103,7 @@ export default function ColetaDetalhe() {
         <h1>Coleta — {talhao ? nomeCurto(talhao.nome) : 'talhão removido'}</h1>
         <Link to="/coletas">← Coletas</Link>
       </div>
+      <PassosColeta coletaId={coletaId} atual={4} />
 
       <CabecalhoColeta coleta={coleta} talhoes={talhoes} />
 
@@ -114,9 +115,8 @@ export default function ColetaDetalhe() {
           </button>
         </div>
         <p className="dica">
-          Em cada ponto, toque em <strong>Novo ponto aqui</strong>: o app grava a posição GPS e abre a linha para lançar o
-          peso verde (massa cortada no quadro de {fmt(coleta.areaAmostralM2, 2)} m²) e, se houver, a subamostra de umidade (pesos
-          úmido e seco já sem a tara).
+          Lance aqui a subamostra de umidade de cada ponto (pesos <strong>úmido</strong> e <strong>seco</strong>, já sem a tara) para obter a MS.
+          Peso verde = massa cortada no quadro de {fmt(coleta.areaAmostralM2, 2)} m². <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
         {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use ↻ para tentar de novo.</p>}
         {nFora > 0 && <p className="aviso">{nFora} ponto(s) com GPS fora do contorno do talhão (marcados em vermelho). Confira o talhão da coleta.</p>}

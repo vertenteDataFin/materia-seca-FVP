@@ -2,13 +2,11 @@ import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db } from '../db';
+import { CHAVE_QUADRO, CHAVE_RESP, criarColeta, lembrarUltimos } from '../coletas';
 import { fmt, hoje, parseNum } from '../util';
 import { nomeCurto } from '../MapaTalhoes';
 
-const CHAVE_RESP = 'silagem-ms:ultimo-responsavel';
-const CHAVE_QUADRO = 'silagem-ms:ultimo-quadro';
-
-/** Página de registro de uma nova coleta (sem mapa — o talhão vem escolhido do Mapa ou da lista). */
+/** Registro de uma nova coleta pela lista (sem mapa). Depois segue para a etapa de pontos. */
 export default function NovaColeta() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
@@ -18,33 +16,18 @@ export default function NovaColeta() {
     data: hoje(),
     responsavel: localStorage.getItem(CHAVE_RESP) ?? '',
     area: localStorage.getItem(CHAVE_QUADRO) ?? '1',
-    pontos: '0',
   });
   const [erro, setErro] = useState('');
 
   async function criar(e: FormEvent) {
     e.preventDefault();
     const areaAmostralM2 = parseNum(form.area);
-    const nPontos = Math.max(0, Math.min(100, Math.round(parseNum(form.pontos) ?? 0)));
     if (!form.talhaoId) return setErro('Selecione o talhão.');
     if (!form.data) return setErro('Informe a data.');
     if (areaAmostralM2 == null || areaAmostralM2 <= 0) return setErro('Informe a área do quadro amostral (m²).');
-    localStorage.setItem(CHAVE_RESP, form.responsavel.trim());
-    localStorage.setItem(CHAVE_QUADRO, form.area);
-    const id = await db.transaction('rw', db.coletas, db.amostras, async () => {
-      const id = await db.coletas.add({
-        talhaoId: Number(form.talhaoId),
-        data: form.data,
-        responsavel: form.responsavel.trim(),
-        areaAmostralM2,
-        observacoes: '',
-      });
-      await db.amostras.bulkAdd(
-        Array.from({ length: nPontos }, (_, i) => ({ coletaId: id, ponto: i + 1, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null })),
-      );
-      return id;
-    });
-    navigate(`/coletas/${id}`, { replace: true });
+    lembrarUltimos(form.responsavel, areaAmostralM2);
+    const id = await criarColeta(Number(form.talhaoId), { data: form.data, responsavel: form.responsavel.trim(), areaAmostralM2 });
+    navigate(`/coletas/${id}/pontos`, { replace: true });
   }
 
   if (!talhoes) return null;
@@ -97,14 +80,9 @@ export default function NovaColeta() {
           Área do quadro amostral (m²)
           <input inputMode="decimal" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
         </label>
-        <label>
-          Pontos pré-criados (opcional)
-          <input inputMode="numeric" value={form.pontos} onChange={(e) => setForm({ ...form, pontos: e.target.value })} />
-          <small className="mudo">Deixe 0 para criar cada ponto em campo com o GPS ("Novo ponto aqui").</small>
-        </label>
         {erro && <p className="erro largo">{erro}</p>}
         <div className="acoes largo">
-          <button type="submit" className="primario">Iniciar coleta</button>
+          <button type="submit" className="primario">Iniciar coleta → marcar pontos</button>
           <Link className="botao" to="/mapa">Cancelar</Link>
         </div>
       </form>

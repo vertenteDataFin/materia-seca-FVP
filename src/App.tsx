@@ -7,6 +7,8 @@ import Talhoes from './pages/Talhoes';
 import Coletas from './pages/Coletas';
 import NovaColeta from './pages/NovaColeta';
 import ColetaDetalhe from './pages/ColetaDetalhe';
+import ColetaPontos from './pages/ColetaPontos';
+import ColetaPesos from './pages/ColetaPesos';
 import Config from './pages/Config';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
@@ -56,6 +58,8 @@ export default function App() {
           <Route path="/talhoes" element={<Talhoes />} />
           <Route path="/coletas" element={<Coletas />} />
           <Route path="/coletas/nova" element={<NovaColeta />} />
+          <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
+          <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
           <Route path="/coletas/:id" element={<ColetaDetalhe />} />
           <Route path="/config" element={<Config />} />
         </Routes>

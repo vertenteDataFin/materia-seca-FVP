@@ -28,7 +28,13 @@ interface Props {
   estilo?: (t: Talhao) => EstiloTalhao;
   /** Pontos a desenhar (ex.: amostras com GPS). */
   marcadores?: Marcador[];
+  /** Toque/clique num lugar vazio do mapa (ex.: marcar onde um ponto foi coletado). */
+  aoClicarMapa?: (lat: number, lng: number) => void;
+  /** Toque num marcador (índice em `marcadores`). */
+  aoClicarMarcador?: (indice: number) => void;
   altura?: number | string;
+  /** Zoom máximo ao enquadrar (padrão 16; use 17–18 para um talhão só). */
+  zoomMax?: number;
 }
 
 const SATELITE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -54,10 +60,12 @@ function estiloPath(sel: boolean, e: EstiloTalhao): L.PathOptions {
 }
 
 /** Mapa com imagem de satélite e os contornos dos talhões, legendados como na foto da fazenda. */
-export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, estilo, marcadores, altura = 480 }: Props) {
+export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, estilo, marcadores, aoClicarMapa, aoClicarMarcador, altura = 480, zoomMax = 16 }: Props) {
   const divRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const camadaRef = useRef<L.LayerGroup | null>(null);
+  const clicarRef = useRef(aoClicarMapa);
+  clicarRef.current = aoClicarMapa;
   const comGeo = talhoes.filter((t) => t.geometria?.length);
 
   // Cria o mapa uma vez
@@ -66,6 +74,7 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
     const map = L.map(divRef.current, { zoomControl: true, attributionControl: true, zoomSnap: 0.25 });
     L.tileLayer(SATELITE, { maxZoom: 18, attribution: 'Imagens © Esri, Maxar, Earthstar Geographics' }).addTo(map);
     camadaRef.current = L.layerGroup().addTo(map);
+    map.on('click', (e: L.LeafletMouseEvent) => clicarRef.current?.(e.latlng.lat, e.latlng.lng));
     mapRef.current = map;
     return () => {
       map.remove();
@@ -106,22 +115,24 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
       if (aoSelecionar) marcador.on('click', () => aoSelecionar(t));
     }
 
-    for (const m of marcadores ?? []) {
-      L.circleMarker([m.lat, m.lng], {
-        radius: 7,
+    (marcadores ?? []).forEach((m, i) => {
+      const cm = L.circleMarker([m.lat, m.lng], {
+        radius: aoClicarMarcador ? 9 : 7,
         color: '#fff',
         weight: 2,
         fillColor: m.alerta ? '#ff3b30' : '#ff7a00',
         fillOpacity: 1,
-        interactive: false,
+        interactive: !!aoClicarMarcador,
+        bubblingMouseEvents: false, // o toque no ponto não vira um toque no mapa
       })
         .bindTooltip(m.rotulo, { permanent: true, direction: 'top', offset: [0, -8], className: `tooltip-ponto ${m.alerta ? 'alerta' : ''}` })
         .addTo(camada);
+      if (aoClicarMarcador) cm.on('click', () => aoClicarMarcador(i));
       limites.extend([m.lat, m.lng]);
-    }
+    });
 
     if (primeiraVez && limites.isValid()) {
-      map.fitBounds(limites, { padding: [16, 16], maxZoom: 16 });
+      map.fitBounds(limites, { padding: [16, 16], maxZoom: zoomMax });
       (map as unknown as { _ajustado?: boolean })._ajustado = true;
     }
   });
@@ -131,7 +142,7 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
   }
 
   return (
-    <div className="mapa">
+    <div className={`mapa ${aoClicarMapa ? 'clicavel' : ''}`}>
       <div ref={divRef} style={{ height: altura, width: '100%' }} aria-label="Mapa dos talhões" />
       {talhoes.length > comGeo.length && <p className="dica">{talhoes.length - comGeo.length} talhão(ões) sem contorno não aparecem no mapa.</p>}
     </div>

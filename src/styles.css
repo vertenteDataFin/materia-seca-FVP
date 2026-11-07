@@ -154,6 +154,32 @@ tr.linha-sel td { background: var(--verde-claro); }
 
 .topo nav a .icone { margin-right: 0.3rem; }
 
+/* Etapas da coleta */
+.passos { display: flex; gap: 0.3rem; margin: 0 0 0.75rem; }
+.passos a {
+  flex: 1; display: flex; align-items: center; justify-content: center; gap: 0.4rem;
+  padding: 0.45rem 0.4rem; border: 1px solid var(--borda); border-radius: 8px;
+  background: white; color: var(--mudo); text-decoration: none; font-weight: 600; font-size: 0.9rem; white-space: nowrap;
+}
+.passos a.feito { color: var(--verde); border-color: var(--verde); }
+.passos a.ativo { background: var(--verde); color: white; border-color: var(--verde); }
+.passo-n { display: inline-flex; width: 1.35rem; height: 1.35rem; border-radius: 50%; align-items: center; justify-content: center; background: var(--fundo); color: var(--texto); font-size: 0.78rem; }
+.passos a.feito .passo-n { background: var(--verde); color: white; }
+.passos a.ativo .passo-n { background: white; color: var(--verde); }
+.mapa.clicavel .leaflet-container { cursor: crosshair; }
+
+/* Lista de pontos (etapa 2) e pesos (etapa 3) */
+.lista-pontos { list-style: none; padding: 0; margin: 0; display: grid; gap: 0.4rem; }
+.lista-pontos li { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; padding: 0.5rem 0.7rem; border: 1px solid var(--borda); border-radius: 8px; background: var(--fundo); }
+.lista-pontos li.fora { border-color: var(--perigo); }
+.lista-pontos .espaco { flex: 1; }
+.pesos { display: grid; gap: 0.5rem; }
+.peso-linha { display: grid; grid-template-columns: 1fr auto auto; align-items: center; gap: 0.75rem; padding: 0.55rem 0.75rem; border: 1px solid var(--borda); border-radius: 8px; background: var(--fundo); }
+.peso-linha.fora { border-color: var(--perigo); }
+.peso-linha label { font-size: 0.75rem; }
+.peso-linha input.num { width: 7rem; font-size: 1.15rem; }
+.peso-linha .n { min-width: 6rem; }
+
 /* Pontos da coleta em cartões (celular) */
 .pontos { display: grid; gap: 0.6rem; }
 .ponto { border: 1px solid var(--borda); border-radius: 10px; padding: 0.7rem 0.8rem; background: var(--fundo); }
@@ -188,6 +214,10 @@ tr.linha-sel td { background: var(--verde-claro); }
   }
   .topo nav a { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.35rem 0.1rem; font-size: 0.68rem; border-radius: 8px; }
   .topo nav a .icone { font-size: 1.3rem; line-height: 1; margin: 0; }
+
+  .passos a { font-size: 0.78rem; padding: 0.4rem 0.2rem; gap: 0.25rem; }
+  .peso-linha { grid-template-columns: 1fr auto; }
+  .peso-linha .n { grid-column: 1 / -1; text-align: left; min-width: 0; }
 
   /* Alvos de toque */
   button:not(.mini):not(.link), .botao { padding: 0.65rem 0.9rem; min-height: 44px; }
