@@ -4,3 +4,6 @@ dev-dist
 *.local
 .claude/
 capturas/
+info/*.xlsx
+info/*.docx
+info/~$*

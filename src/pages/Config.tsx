@@ -2,6 +2,7 @@ import { useRef, useState } from 'react';
 import { db } from '../db';
 import { PARAMETROS_PADRAO, producaoPonto, teorMS, teorUmidade, type Parametros } from '../calc';
 import { baixarArquivo, hoje, lerParametros, numParaTexto, parseNum, salvarParametros } from '../util';
+import { exportarExcel } from '../exportarExcel';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -16,7 +17,20 @@ export default function Config() {
     return Object.fromEntries(CAMPOS.map((c) => [c.chave, numParaTexto(p[c.chave])])) as Record<keyof Parametros, string>;
   });
   const [mensagem, setMensagem] = useState('');
+  const [exportando, setExportando] = useState(false);
   const arquivo = useRef<HTMLInputElement>(null);
+
+  async function exportarXlsx() {
+    setExportando(true);
+    setMensagem('');
+    try {
+      await exportarExcel();
+    } catch (e) {
+      setMensagem(`Falha ao gerar o Excel: ${(e as Error).message}`);
+    } finally {
+      setExportando(false);
+    }
+  }
 
   function salvar() {
     const p = { ...PARAMETROS_PADRAO };
@@ -103,11 +117,13 @@ export default function Config() {
         <h2>Dados e backup</h2>
         <p className="dica">
           Os dados ficam salvos neste navegador/dispositivo. Faça backups regulares e use-os para transferir dados entre
-          aparelhos (ex.: do celular usado em campo para o computador do escritório).
+          aparelhos (ex.: do celular usado em campo para o computador do escritório). O Excel traz as planilhas Talhões,
+          Coletas (com os resultados calculados), Amostras e Parâmetros.
         </p>
         <div className="acoes">
+          <button className="primario" onClick={exportarXlsx} disabled={exportando}>{exportando ? 'Gerando…' : 'Exportar Excel (.xlsx)'}</button>
+          <button onClick={exportarCSV}>Exportar amostras (CSV)</button>
           <button onClick={exportarJSON}>Exportar backup (JSON)</button>
-          <button onClick={exportarCSV}>Exportar amostras (CSV/Excel)</button>
           <button onClick={() => arquivo.current?.click()}>Restaurar backup…</button>
           <input ref={arquivo} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && importar(e.target.files[0])} />
         </div>
