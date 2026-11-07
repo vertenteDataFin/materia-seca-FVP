@@ -3,6 +3,7 @@ import { db } from '../db';
 import { PARAMETROS_PADRAO, producaoPonto, teorMS, teorUmidade, type Parametros } from '../calc';
 import { baixarArquivo, hoje, lerParametros, numParaTexto, parseNum, salvarParametros } from '../util';
 import { exportarExcel } from '../exportarExcel';
+import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -19,6 +20,13 @@ export default function Config() {
   const [mensagem, setMensagem] = useState('');
   const [exportando, setExportando] = useState(false);
   const arquivo = useRef<HTMLInputElement>(null);
+
+  async function carregarColetasIniciais() {
+    const r = await importarColetasIniciais();
+    const partes = [`${r.criadas} coleta(s) criada(s)`, `${r.existentes} já existia(m)`];
+    if (r.semTalhao.length) partes.push(`talhão não encontrado: ${r.semTalhao.join(', ')}`);
+    setMensagem(`Coletas da ficha de campo: ${partes.join(' · ')}.`);
+  }
 
   async function exportarXlsx() {
     setExportando(true);
@@ -126,6 +134,16 @@ export default function Config() {
           <button onClick={exportarJSON}>Exportar backup (JSON)</button>
           <button onClick={() => arquivo.current?.click()}>Restaurar backup…</button>
           <input ref={arquivo} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && importar(e.target.files[0])} />
+        </div>
+      </div>
+      <div className="cartao">
+        <h2>Coletas da ficha de campo</h2>
+        <p className="dica">
+          As coletas já feitas ({COLETAS_INICIAIS.map((c) => `${c.talhao} em ${c.data.split('-').reverse().join('/')}`).join(', ')}) entram
+          automaticamente na primeira abertura do app, sem posição GPS. Use o botão se precisar recarregá-las — coletas que já existem não são duplicadas.
+        </p>
+        <div className="acoes">
+          <button onClick={carregarColetasIniciais}>Carregar coletas da ficha</button>
         </div>
       </div>
       {mensagem && <p className="aviso">{mensagem}</p>}

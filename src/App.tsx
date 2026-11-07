@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { HashRouter, NavLink, Route, Routes } from 'react-router-dom';
 import { importarTalhoesFazenda } from './importarFazenda';
+import { importarColetasIniciais } from './coletasIniciais';
 import Painel from './pages/Painel';
 import Mapa from './pages/Mapa';
 import Talhoes from './pages/Talhoes';
@@ -13,8 +14,10 @@ import Config from './pages/Config';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
 const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v3';
+// Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
+const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v1';
 
-/** Na primeira abertura (ou nova versão do KML), carrega/sincroniza os talhões da fazenda. */
+/** Na primeira abertura (ou nova versão do KML), carrega/sincroniza os talhões da fazenda e as coletas já feitas. */
 function useTalhoesIniciais() {
   const [pronto, setPronto] = useState(() => localStorage.getItem(CHAVE_SEED) === '1');
   useEffect(() => {
@@ -29,6 +32,12 @@ function useTalhoesIniciais() {
         setPronto(true);
       }
     })();
+  }, [pronto]);
+  useEffect(() => {
+    if (!pronto || localStorage.getItem(CHAVE_COLETAS) === '1') return;
+    importarColetasIniciais()
+      .then(() => localStorage.setItem(CHAVE_COLETAS, '1'))
+      .catch((e) => console.error('Falha ao carregar coletas iniciais', e));
   }, [pronto]);
   return pronto;
 }
