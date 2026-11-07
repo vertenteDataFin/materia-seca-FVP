@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { db, excluirColeta, type Amostra, type Coleta, type Talhao } from '../db';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade } from '../calc';
-import { CampoNumero, Indicador, SeloMS } from '../components';
+import { CampoNumero, Indicador, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
 import MapaTalhoes, { nomeCurto, type Marcador } from '../MapaTalhoes';
 import { fmt, lerParametros } from '../util';
@@ -18,6 +18,7 @@ export default function ColetaDetalhe() {
   const [capturando, setCapturando] = useState<number | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
   const [mostrarMapa, setMostrarMapa] = useState(false);
+  const celular = useCelular();
 
   if (coleta === null) {
     return (
@@ -70,6 +71,32 @@ export default function ColetaDetalhe() {
   const nFora = amostras.filter(fora).length;
   const nSemGps = amostras.filter((a) => a.lat == null).length;
 
+  const statusGps = (a: Amostra) =>
+    a.lat != null && a.lng != null ? (
+      <span className={fora(a) ? 'gps-fora' : 'gps-ok'} title={`${fmtCoord(a.lat, a.lng)}${a.capturadoEm ? ` · ${new Date(a.capturadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}`}>
+        {fora(a) ? '⚠ fora' : '✓'}{a.precisaoM != null && ` ±${a.precisaoM} m`}
+      </span>
+    ) : (
+      <span className="mudo">sem posição</span>
+    );
+  const botaoGps = (a: Amostra) => {
+    const temGps = a.lat != null && a.lng != null;
+    return (
+      <button
+        className="mini"
+        aria-label={`Capturar GPS do ponto ${a.ponto}`}
+        title={temGps ? 'Recapturar posição' : 'Capturar posição'}
+        disabled={capturando != null}
+        onClick={() => capturarGps(a.id!)}
+      >
+        {capturando === a.id ? '…' : temGps ? '↻' : '📍'}
+      </button>
+    );
+  };
+  const botaoRemover = (a: Amostra) => (
+    <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && db.amostras.delete(a.id!)}>✕</button>
+  );
+
   return (
     <>
       <div className="titulo-linha">
@@ -94,6 +121,44 @@ export default function ColetaDetalhe() {
         {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use ↻ para tentar de novo.</p>}
         {nFora > 0 && <p className="aviso">{nFora} ponto(s) com GPS fora do contorno do talhão (marcados em vermelho). Confira o talhão da coleta.</p>}
 
+        {celular ? (
+          <div className="pontos">
+            {amostras.map((a) => {
+              const ms = teorMS(a);
+              const invalido = a.pesoUmidoG != null && a.pesoSecoG != null && ms == null;
+              return (
+                <div key={a.id} className={`ponto ${fora(a) ? 'ponto-fora' : ''}`}>
+                  <div className="ponto-topo">
+                    <strong>Ponto {a.ponto}</strong>
+                    {statusGps(a)}
+                    {botaoGps(a)}
+                    <span className="espaco" />
+                    {botaoRemover(a)}
+                  </div>
+                  <div className="ponto-campos">
+                    <label>
+                      Peso verde (kg)
+                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoVerdeKg: v })} />
+                    </label>
+                    <label>
+                      Úmido (g)
+                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoUmidoG: v })} />
+                    </label>
+                    <label>
+                      Seco (g)
+                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoSecoG: v })} />
+                    </label>
+                  </div>
+                  <div className="ponto-resultado">
+                    <span><span className="mudo">MV</span> <strong>{fmt(producaoPonto(a, coleta.areaAmostralM2), 2)}</strong> kg/m²</span>
+                    <span className={invalido ? 'erro' : ''}><span className="mudo">MS</span> <strong>{invalido ? 'seco > úmido' : fmt(ms)}</strong>{!invalido && ' %'}</span>
+                    <span><span className="mudo">Umidade</span> <strong>{fmt(teorUmidade(a))}</strong> %</span>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        ) : (
         <div className="rolagem">
           <table className="tabela-amostras">
             <thead>
@@ -113,28 +178,10 @@ export default function ColetaDetalhe() {
               {amostras.map((a) => {
                 const ms = teorMS(a);
                 const invalido = a.pesoUmidoG != null && a.pesoSecoG != null && ms == null;
-                const temGps = a.lat != null && a.lng != null;
                 return (
                   <tr key={a.id}>
                     <td><strong>{a.ponto}</strong></td>
-                    <td>
-                      {temGps ? (
-                        <span className={fora(a) ? 'gps-fora' : 'gps-ok'} title={`${fmtCoord(a.lat!, a.lng!)}${a.capturadoEm ? ` · ${new Date(a.capturadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}`}>
-                          {fora(a) ? '⚠ fora' : '✓'}{a.precisaoM != null && ` ±${a.precisaoM} m`}
-                        </span>
-                      ) : (
-                        <span className="mudo">sem posição</span>
-                      )}{' '}
-                      <button
-                        className="mini"
-                        aria-label={`Capturar GPS do ponto ${a.ponto}`}
-                        title={temGps ? 'Recapturar posição' : 'Capturar posição'}
-                        disabled={capturando != null}
-                        onClick={() => capturarGps(a.id!)}
-                      >
-                        {capturando === a.id ? '…' : temGps ? '↻' : '📍'}
-                      </button>
-                    </td>
+                    <td>{statusGps(a)} {botaoGps(a)}</td>
                     <td className="n">
                       <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoVerdeKg: v })} />
                     </td>
@@ -147,15 +194,14 @@ export default function ColetaDetalhe() {
                     </td>
                     <td className={`n ${invalido ? 'erro' : ''}`}>{invalido ? 'seco > úmido' : fmt(ms)}</td>
                     <td className="n">{fmt(teorUmidade(a))}</td>
-                    <td className="acoes-linha">
-                      <button className="perigo" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && db.amostras.delete(a.id!)}>✕</button>
-                    </td>
+                    <td className="acoes-linha">{botaoRemover(a)}</td>
                   </tr>
                 );
               })}
             </tbody>
           </table>
         </div>
+        )}
         {nSemGps > 0 && amostras.length > 0 && <p className="dica">{nSemGps} ponto(s) sem posição GPS.</p>}
       </div>
 

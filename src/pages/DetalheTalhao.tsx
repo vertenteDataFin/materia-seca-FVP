@@ -113,7 +113,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
         <p className="vazio">Nenhuma coleta ainda.</p>
       ) : (
         <div className="rolagem">
-          <table>
+          <table className="tabela-cartoes">
             <thead>
               <tr>
                 <th>Data</th>
@@ -129,13 +129,16 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
             <tbody>
               {coletas.map(({ c, r }) => (
                 <tr key={c.id}>
-                  <td>{fmtData(c.data)}</td>
-                  <td>{c.responsavel || '—'}</td>
-                  <td className="n">{r.nPontos}</td>
-                  <td className="n">{fmt(r.tMVha)}</td>
-                  <td className="n">{fmt(r.msPct)}</td>
-                  <td className="n">{fmt(r.tMSha)}</td>
-                  <td><SeloMS status={statusMS(r.msPct, parametros)} /></td>
+                  <td className="largo-cel">
+                    <strong>{fmtData(c.data)}</strong>
+                    <span className="so-cel mudo"><small>{c.responsavel || 'sem responsável'} <SeloMS status={statusMS(r.msPct, parametros)} /></small></span>
+                  </td>
+                  <td className="oculta-cel">{c.responsavel || '—'}</td>
+                  <td className="n" data-rotulo="Pontos">{r.nPontos}</td>
+                  <td className="n" data-rotulo="t MV/ha">{fmt(r.tMVha)}</td>
+                  <td className="n" data-rotulo="MS %">{fmt(r.msPct)}</td>
+                  <td className="n" data-rotulo="t MS/ha">{fmt(r.tMSha)}</td>
+                  <td className="oculta-cel"><SeloMS status={statusMS(r.msPct, parametros)} /></td>
                   <td className="acoes-linha"><Link className="botao" to={`/coletas/${c.id}`}>Abrir</Link></td>
                 </tr>
               ))}

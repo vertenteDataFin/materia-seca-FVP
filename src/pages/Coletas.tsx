@@ -55,11 +55,11 @@ export default function Coletas() {
           <p className="vazio">Nenhuma coleta registrada.</p>
         ) : (
           <div className="rolagem">
-            <table>
+            <table className="tabela-cartoes">
               <thead>
                 <tr>
-                  <th>Data</th>
                   <th>Talhão</th>
+                  <th>Data</th>
                   <th className="oculta-cel">Responsável</th>
                   <th className="n">Pontos</th>
                   <th className="n">t MV/ha</th>
@@ -71,13 +71,16 @@ export default function Coletas() {
               <tbody>
                 {linhas.map(({ c, talhao, r }) => (
                   <tr key={c.id}>
-                    <td>{fmtData(c.data)}</td>
-                    <td className="nome-talhao"><strong>{nomeCurto(talhao)}</strong></td>
+                    <td className="nome-talhao largo-cel">
+                      <strong>{nomeCurto(talhao)}</strong>
+                      <span className="mudo so-cel"><small>{fmtData(c.data)}{c.responsavel ? ` · ${c.responsavel}` : ''}</small></span>
+                    </td>
+                    <td className="oculta-cel">{fmtData(c.data)}</td>
                     <td className="oculta-cel">{c.responsavel || '—'}</td>
-                    <td className="n">{r.nPontos}</td>
-                    <td className="n">{fmt(r.tMVha)}</td>
-                    <td className="n">{fmt(r.msPct)}</td>
-                    <td className="n">{fmt(r.tMSha)}</td>
+                    <td className="n" data-rotulo="Pontos">{r.nPontos}</td>
+                    <td className="n" data-rotulo="t MV/ha">{fmt(r.tMVha)}</td>
+                    <td className="n" data-rotulo="MS %">{fmt(r.msPct)}</td>
+                    <td className="n" data-rotulo="t MS/ha">{fmt(r.tMSha)}</td>
                     <td className="acoes-linha"><Link className="botao" to={`/coletas/${c.id}`}>Abrir</Link></td>
                   </tr>
                 ))}

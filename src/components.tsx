@@ -3,6 +3,21 @@ import { Link } from 'react-router-dom';
 import { ROTULO_STATUS, type StatusMS } from './calc';
 import { numParaTexto, parseNum } from './util';
 
+/** true quando a tela é estreita (celular). Acompanha rotação/redimensionamento. */
+export function useCelular(maxPx = 700) {
+  const consulta = () => (typeof window !== 'undefined' && typeof window.matchMedia === 'function' ? window.matchMedia(`(max-width: ${maxPx}px)`) : null);
+  const [cel, setCel] = useState(() => consulta()?.matches ?? false);
+  useEffect(() => {
+    const mq = consulta();
+    if (!mq) return;
+    const f = (e: MediaQueryListEvent) => setCel(e.matches);
+    mq.addEventListener('change', f);
+    return () => mq.removeEventListener('change', f);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [maxPx]);
+  return cel;
+}
+
 /** Campo numérico que aceita vírgula e só grava ao sair do campo. */
 export function CampoNumero({
   valor,

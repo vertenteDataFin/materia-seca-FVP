@@ -152,12 +152,69 @@ tr.linha-sel td { background: var(--verde-claro); }
 .nome-talhao a:hover { text-decoration: underline; }
 .so-cel { display: none; }
 
+.topo nav a .icone { margin-right: 0.3rem; }
+
+/* Pontos da coleta em cartões (celular) */
+.pontos { display: grid; gap: 0.6rem; }
+.ponto { border: 1px solid var(--borda); border-radius: 10px; padding: 0.7rem 0.8rem; background: var(--fundo); }
+.ponto-fora { border-color: var(--perigo); }
+.ponto-topo { display: flex; align-items: center; gap: 0.5rem; flex-wrap: wrap; margin-bottom: 0.5rem; }
+.ponto-topo .espaco { flex: 1; }
+.ponto-campos { display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem; }
+.ponto-campos label { font-size: 0.75rem; }
+.ponto-campos input.num { width: 100%; font-size: 1.1rem; padding: 0.55rem 0.5rem; }
+.ponto-resultado { margin-top: 0.5rem; font-size: 0.95rem; display: flex; gap: 0.4rem 1rem; flex-wrap: wrap; }
+.ponto-resultado span { white-space: nowrap; }
+
 @media (max-width: 700px) {
-  main { padding: 0.6rem; }
-  .cartao { padding: 0.75rem; }
+  main { padding: 0.6rem 0.6rem calc(4.6rem + env(safe-area-inset-bottom)); }
+  h1 { font-size: 1.25rem; margin: 0.25rem 0 0.75rem; }
+  .cartao { padding: 0.75rem; border-radius: 12px; }
+  .indicadores { gap: 0.5rem; }
   .indicador-valor { font-size: 1.15rem; }
   .oculta-cel { display: none; }
   .so-cel { display: block; }
   th, td { padding: 0.4rem 0.35rem; }
   table { font-size: 0.88rem; }
+
+  /* Cabeçalho enxuto + barra de abas fixa embaixo */
+  .topo { padding: 0.5rem 0.75rem; }
+  .topo nav {
+    position: fixed; left: 0; right: 0; bottom: 0; z-index: 1100;
+    display: grid; grid-template-columns: repeat(5, 1fr); gap: 0;
+    padding: 0.25rem 0.25rem calc(0.25rem + env(safe-area-inset-bottom));
+    background: var(--verde); border-top: 1px solid var(--verde-escuro);
+    box-shadow: 0 -2px 8px rgba(0, 0, 0, 0.25);
+  }
+  .topo nav a { display: flex; flex-direction: column; align-items: center; gap: 0.1rem; padding: 0.35rem 0.1rem; font-size: 0.68rem; border-radius: 8px; }
+  .topo nav a .icone { font-size: 1.3rem; line-height: 1; margin: 0; }
+
+  /* Alvos de toque */
+  button:not(.mini):not(.link), .botao { padding: 0.65rem 0.9rem; min-height: 44px; }
+  button.mini { min-height: 36px; min-width: 36px; padding: 0.3rem 0.5rem; }
+  input, select { padding: 0.6rem 0.65rem; min-height: 44px; }
+  .acoes > * { flex: 1 1 auto; text-align: center; }
+  .cabecalho-cartao { flex-wrap: wrap; }
+  .cabecalho-cartao > button, .cabecalho-cartao > .botao { flex: 1 1 100%; }
+
+  /* Tabelas viram cartões: 1 linha = 1 cartão; cada célula mostra seu rótulo (data-rotulo) */
+  .tabela-cartoes thead { display: none; }
+  .tabela-cartoes, .tabela-cartoes tbody, .tabela-cartoes tfoot { display: block; }
+  .tabela-cartoes tr {
+    display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.5rem 0.75rem;
+    padding: 0.7rem 0.8rem; margin-bottom: 0.6rem;
+    background: var(--fundo); border: 1px solid var(--borda); border-radius: 10px;
+  }
+  .tabela-cartoes.cartoes-2 tr { grid-template-columns: repeat(2, 1fr); }
+  .tabela-cartoes tr.linha-sel { border-color: var(--verde); background: var(--verde-claro); }
+  .tabela-cartoes td { display: block; padding: 0; border: none; text-align: left; white-space: normal; max-width: none; min-width: 0; overflow-wrap: break-word; font-size: 1rem; }
+  .tabela-cartoes td[data-rotulo]::before { content: attr(data-rotulo); display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); margin-bottom: 0.1rem; }
+  .tabela-cartoes td.largo-cel, .tabela-cartoes td.acoes-linha { grid-column: 1 / -1; }
+  .tabela-cartoes td:empty, .tabela-cartoes td.oculta-cel { display: none; }
+  .tabela-cartoes td.acoes-linha { display: flex; gap: 0.5rem; margin-top: 0.25rem; }
+  .tabela-cartoes td.acoes-linha > * { flex: 1; margin: 0; text-align: center; padding: 0.55rem 0.6rem; font-size: 1rem; }
+  .tabela-cartoes tfoot tr { background: white; border: 2px solid var(--verde); }
+  .tabela-cartoes tfoot td { border: none; }
+  .tabela-cartoes .nome-talhao strong { font-size: 1.1rem; }
+  .tabela-cartoes tr.inativa td { opacity: 1; }
 }

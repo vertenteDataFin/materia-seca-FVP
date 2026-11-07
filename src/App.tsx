@@ -42,11 +42,11 @@ export default function App() {
           <span>Silagem MS</span>
         </div>
         <nav>
-          <NavLink to="/" end>Painel</NavLink>
-          <NavLink to="/mapa">Mapa</NavLink>
-          <NavLink to="/coletas">Coletas</NavLink>
-          <NavLink to="/talhoes">Talhões</NavLink>
-          <NavLink to="/config">Config.</NavLink>
+          <NavLink to="/" end><span className="icone" aria-hidden>📊</span><span>Painel</span></NavLink>
+          <NavLink to="/mapa"><span className="icone" aria-hidden>🗺️</span><span>Mapa</span></NavLink>
+          <NavLink to="/coletas"><span className="icone" aria-hidden>📋</span><span>Coletas</span></NavLink>
+          <NavLink to="/talhoes"><span className="icone" aria-hidden>🌱</span><span>Talhões</span></NavLink>
+          <NavLink to="/config"><span className="icone" aria-hidden>⚙️</span><span>Config.</span></NavLink>
         </nav>
       </header>
       <main>

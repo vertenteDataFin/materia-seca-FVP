@@ -87,7 +87,7 @@ export default function Painel() {
       <div className="cartao">
         <h2>Por talhão</h2>
         <div className="rolagem">
-          <table>
+          <table className="tabela-cartoes">
             <thead>
               <tr>
                 <th>Talhão</th>
@@ -107,20 +107,23 @@ export default function Painel() {
             <tbody>
               {linhas.map(({ t, c, r, e }) => (
                 <tr key={t.id}>
-                  <td className="nome-talhao">
+                  <td className="nome-talhao largo-cel">
                     <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{nomeCurto(t.nome)}</strong></Link>
-                    <div className="mudo so-cel"><small>{t.capim || '—'}{c ? ` · ${fmtData(c.data)}` : ''}</small></div>
+                    <div className="mudo so-cel">
+                      <small>{t.capim || '—'}{c ? <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></> : ' · sem coleta'}</small>
+                      {c && <> <SeloMS status={statusMS(r?.msPct ?? null, parametros)} /></>}
+                    </div>
                     {t.fazenda && <div className="mudo oculta-cel"><small>{t.fazenda}</small></div>}
                   </td>
                   <td className="oculta-cel">{t.capim || '—'}</td>
-                  <td className="n">{t.areaHa > 0 ? fmt(t.areaHa, 1) : <Link to="/talhoes" className="selo selo-alto">informar</Link>}</td>
+                  <td className="n" data-rotulo="Área (ha)">{t.areaHa > 0 ? fmt(t.areaHa, 1) : <Link to="/talhoes" className="selo selo-alto">informar</Link>}</td>
                   <td className="oculta-cel">{c ? <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link> : <span className="mudo">sem coleta</span>}</td>
-                  <td className="n">{fmt(r?.tMVha)}</td>
-                  <td className="n">{fmt(r?.msPct)}</td>
-                  <td className="n">{fmt(r?.tMSha)}</td>
+                  <td className="n" data-rotulo="t MV/ha">{fmt(r?.tMVha)}</td>
+                  <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
+                  <td className="n" data-rotulo="t MS/ha">{fmt(r?.tMSha)}</td>
                   <td className="n oculta-cel">{fmt(e?.tMVtotal)}</td>
                   <td className="n oculta-cel">{fmt(e?.tMStotal)}</td>
-                  <td className="n">{fmt(e?.silagemT)}</td>
+                  <td className="n" data-rotulo="Silagem (t)">{fmt(e?.silagemT)}</td>
                   <td className="n oculta-cel">{fmt(e?.volumeM3, 0)}</td>
                   <td className="oculta-cel">{c && <SeloMS status={statusMS(r?.msPct ?? null, parametros)} />}</td>
                 </tr>
@@ -128,14 +131,14 @@ export default function Painel() {
             </tbody>
             <tfoot>
               <tr>
-                <td>Total</td>
+                <td className="largo-cel">Total</td>
                 <td className="oculta-cel" />
-                <td className="n">{fmt(areaTotal, 1)}</td>
+                <td className="n" data-rotulo="Área (ha)">{fmt(areaTotal, 1)}</td>
                 <td className="oculta-cel" />
                 <td colSpan={3} />
                 <td className="n oculta-cel">{fmt(mvTotal)}</td>
                 <td className="n oculta-cel">{fmt(msTotal)}</td>
-                <td className="n">{fmt(silagemTotal)}</td>
+                <td className="n" data-rotulo="Silagem (t)">{fmt(silagemTotal)}</td>
                 <td className="n oculta-cel">{fmt(volumeTotal, 0)}</td>
                 <td className="oculta-cel" />
               </tr>

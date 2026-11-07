@@ -16,7 +16,15 @@ export default function Talhoes() {
   const inicial = params.get('talhao') ? Number(params.get('talhao')) : null;
   const [selecionadoId, setSelecionadoId] = useState<number | null>(inicial);
   const [mostrarRegistros, setMostrarRegistros] = useState(inicial != null);
+  const [mostrarForm, setMostrarForm] = useState(false);
   const [erro, setErro] = useState('');
+
+  function fecharForm() {
+    setEditandoId(null);
+    setForm(vazio);
+    setErro('');
+    setMostrarForm(false);
+  }
 
   async function salvar(e: FormEvent) {
     e.preventDefault();
@@ -33,14 +41,13 @@ export default function Talhoes() {
     // update preserva os demais campos (ex.: contorno importado do KML)
     if (editandoId != null) await db.talhoes.update(editandoId, dados);
     else await db.talhoes.add(dados);
-    setForm(vazio);
-    setEditandoId(null);
-    setErro('');
+    fecharForm();
   }
 
   function editar(t: Talhao) {
     setEditandoId(t.id!);
     setForm({ nome: t.nome, fazenda: t.fazenda ?? '', area: numParaTexto(t.areaHa), capim: t.capim, observacoes: t.observacoes ?? '' });
+    setMostrarForm(true);
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
@@ -61,7 +68,10 @@ export default function Talhoes() {
 
   return (
     <>
-      <h1>Talhões</h1>
+      <div className="titulo-linha">
+        <h1>Talhões</h1>
+        {!mostrarForm && <button onClick={() => setMostrarForm(true)}>+ Novo talhão</button>}
+      </div>
 
       {nDiverge > 0 && (
         <p className="aviso">
@@ -73,6 +83,7 @@ export default function Talhoes() {
         <DetalheTalhao talhao={selecionado} aoFechar={() => setMostrarRegistros(false)} aoEditar={editar} />
       )}
 
+      {mostrarForm && (
       <form className="cartao grade-form" onSubmit={salvar}>
         <h2>{editandoId != null ? 'Editar talhão' : 'Novo talhão'}</h2>
         <label>
@@ -103,13 +114,10 @@ export default function Talhoes() {
         {erro && <p className="erro largo">{erro}</p>}
         <div className="acoes largo">
           <button type="submit" className="primario">{editandoId != null ? 'Salvar alterações' : 'Adicionar talhão'}</button>
-          {editandoId != null && (
-            <button type="button" onClick={() => { setEditandoId(null); setForm(vazio); setErro(''); }}>
-              Cancelar
-            </button>
-          )}
+          <button type="button" onClick={fecharForm}>Cancelar</button>
         </div>
       </form>
+      )}
 
       <div className="cartao">
         {semArea > 0 && <p className="aviso">{semArea} talhão(ões) sem área informada — a estimativa de produção total depende da área.</p>}
@@ -117,7 +125,7 @@ export default function Talhoes() {
           <p className="vazio">Nenhum talhão cadastrado.</p>
         ) : (
           <div className="rolagem">
-            <table>
+            <table className="tabela-cartoes cartoes-2">
               <thead>
                 <tr>
                   <th>Talhão</th>
@@ -132,12 +140,15 @@ export default function Talhoes() {
               <tbody>
                 {talhoes.map((t) => (
                   <tr key={t.id} className={t.id === selecionadoId ? 'linha-sel' : ''}>
-                    <td><button className="link" onClick={() => { setSelecionadoId(t.id!); setMostrarRegistros(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><strong>{t.nome}</strong></button></td>
-                    <td>{t.fazenda || '—'}</td>
-                    <td className="n">{t.areaHa > 0 ? fmt(t.areaHa, 2) : <span className="selo selo-alto">informar</span>}</td>
-                    <td>{t.capim || '—'}{diverge(t) && <span className="selo selo-alto" style={{ marginLeft: '0.4rem' }}>KML≠foto</span>}</td>
-                    <td>{t.geometria?.length ? <span className="selo selo-ideal">KML</span> : <span className="mudo">—</span>}</td>
-                    <td className="obs">{t.observacoes}</td>
+                    <td className="largo-cel nome-talhao">
+                      <button className="link" onClick={() => { setSelecionadoId(t.id!); setMostrarRegistros(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><strong>{t.nome}</strong></button>
+                      <span className="so-cel mudo"><small>{t.fazenda ? `Faz. ${t.fazenda} · ` : ''}{t.geometria?.length ? 'contorno do KML' : 'sem contorno'}</small></span>
+                    </td>
+                    <td className="oculta-cel">{t.fazenda || '—'}</td>
+                    <td className="n" data-rotulo="Área (ha)">{t.areaHa > 0 ? fmt(t.areaHa, 2) : <span className="selo selo-alto">informar</span>}</td>
+                    <td data-rotulo="Capim">{t.capim || '—'}{diverge(t) && <span className="selo selo-alto" style={{ marginLeft: '0.4rem' }}>KML≠foto</span>}</td>
+                    <td className="oculta-cel">{t.geometria?.length ? <span className="selo selo-ideal">KML</span> : <span className="mudo">—</span>}</td>
+                    <td className="obs largo-cel">{t.observacoes}</td>
                     <td className="acoes-linha">
                       <button onClick={() => editar(t)}>Editar</button>
                       <button className="perigo" onClick={() => excluir(t)}>Excluir</button>
