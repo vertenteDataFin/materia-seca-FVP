@@ -7,6 +7,7 @@ import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../com
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmt, lerParametros } from '../util';
+import { usePermissoes } from '../permissoes';
 
 export default function ColetaDetalhe() {
   const navigate = useNavigate();
@@ -17,6 +18,7 @@ export default function ColetaDetalhe() {
   const [erroGps, setErroGps] = useState('');
   const [mostrarMapa, setMostrarMapa] = useState(false);
   const celular = useCelular();
+  const { podeExcluir } = usePermissoes();
 
   if (!dados) return null;
   const coleta = dados.coletas.find((c) => c.id === coletaId);
@@ -91,9 +93,10 @@ export default function ColetaDetalhe() {
       </button>
     );
   };
-  const botaoRemover = (a: Amostra) => (
-    <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && excluirAmostra(a.id)}>✕</button>
-  );
+  const botaoRemover = (a: Amostra) =>
+    podeExcluir ? (
+      <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && excluirAmostra(a.id)}>✕</button>
+    ) : null;
 
   return (
     <>
@@ -241,9 +244,11 @@ export default function ColetaDetalhe() {
         )}
       </div>
 
-      <div className="acoes">
-        <button className="perigo" onClick={excluir}>Excluir coleta</button>
-      </div>
+      {podeExcluir && (
+        <div className="acoes">
+          <button className="perigo" onClick={excluir}>Excluir coleta</button>
+        </div>
+      )}
     </>
   );
 }

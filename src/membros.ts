@@ -3,11 +3,23 @@ import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firesto
 import { obterFirebase } from './firebase';
 import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 
+/**
+ * admin: tudo, inclui pessoas · membro: tudo nos dados, não gerencia pessoas ·
+ * operador: consulta e registra (coletas, pontos, pesos), não exclui nem mexe em talhões.
+ */
+export type Papel = 'admin' | 'membro' | 'operador';
+
+export const ROTULO_PAPEL: Record<Papel, string> = {
+  admin: 'Administrador (tudo, inclui pessoas)',
+  membro: 'Membro (registra e exclui)',
+  operador: 'Operador (consulta e registra, não exclui)',
+};
+
 export interface Membro {
   /** E-mail em minúsculas (id do documento). */
   email: string;
   nome: string;
-  papel: 'admin' | 'membro';
+  papel: Papel;
   adicionadoPor?: string;
   em?: string;
 }
@@ -35,13 +47,19 @@ export function useMembros(): Membro[] | null | undefined {
   return m;
 }
 
-export function ehAdmin(email: string | null | undefined, membros: Membro[] | null | undefined): boolean {
-  if (!email) return false;
+/** Papel de um e-mail: admins fixos sempre são admin; quem não está na lista é tratado como operador (as regras bloqueiam de qualquer jeito). */
+export function papelDe(email: string | null | undefined, membros: Membro[] | null | undefined): Papel {
+  if (!email) return 'operador';
   const e = normalizarEmail(email);
-  return ADMINS.map(normalizarEmail).includes(e) || !!membros?.some((m) => m.email === e && m.papel === 'admin');
+  if (ADMINS.map(normalizarEmail).includes(e)) return 'admin';
+  return membros?.find((m) => m.email === e)?.papel ?? 'operador';
 }
 
-export function adicionarMembro(email: string, nome: string, papel: Membro['papel'], porQuem: string) {
+export function ehAdmin(email: string | null | undefined, membros: Membro[] | null | undefined): boolean {
+  return papelDe(email, membros) === 'admin';
+}
+
+export function adicionarMembro(email: string, nome: string, papel: Papel, porQuem: string) {
   const e = normalizarEmail(email);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error('E-mail inválido.');
   return setDoc(doc(ref(), e), { nome: nome.trim(), papel, adicionadoPor: porQuem, em: new Date().toISOString() });

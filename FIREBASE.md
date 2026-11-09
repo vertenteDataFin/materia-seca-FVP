@@ -8,11 +8,21 @@ com cache offline no aparelho. Só entra quem fizer login com um e-mail autoriza
 | O quê | Onde |
 |---|---|
 | Dados da fazenda | Firestore → `fazendas/vertente/{talhoes,coletas,amostras}` |
-| Pessoas com acesso | Firestore → `fazendas/vertente/membros/<e-mail em minúsculas>` com `{ nome, papel: 'admin' \| 'membro' }` |
+| Pessoas com acesso | Firestore → `fazendas/vertente/membros/<e-mail em minúsculas>` com `{ nome, papel }` |
 | Administradores fixos | `src/firebaseConfig.ts` (`ADMINS`) **e** `firestore.rules` (`admins()`) — manter iguais |
 | Configuração do app web | `src/firebaseConfig.ts` (valores públicos; a proteção são as regras) |
 | Regras de segurança | `firestore.rules` |
 | Parâmetros da estimativa, último responsável/quadro | localStorage do navegador (por aparelho) |
+
+Papéis (campo `papel` do membro):
+
+| Papel | Pode |
+|---|---|
+| `admin` | Tudo, inclusive incluir/remover pessoas e restaurar backup |
+| `membro` | Registrar, editar e excluir coletas, pontos e talhões |
+| `operador` | Consultar tudo e registrar coletas/pesos; **não** exclui nada nem altera talhões |
+
+As regras do Firestore são a trava real; a interface apenas esconde os botões.
 
 O login é por e-mail e senha, sem confirmação de e-mail. Por isso, **desative a inscrição livre** no console
 (Authentication → Configurações → Ações do usuário → desmarcar "Ativar criação (inscrição)"): assim só as contas

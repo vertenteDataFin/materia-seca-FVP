@@ -2,6 +2,7 @@ import { importarColetasIniciais } from './coletasIniciais';
 import { dadosAtuais, repositorio } from './dados';
 import { importarTalhoesFazenda } from './importarFazenda';
 import { migrarLegadoUmaVez } from './migracaoLegado';
+import type { Permissoes } from './permissoes';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
 export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v5';
@@ -11,21 +12,23 @@ export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v3';
 /**
  * Depois que a fonte de dados confirmou o estado (servidor ou disco): migra o banco antigo do aparelho,
  * sincroniza os talhões do KML e lança as coletas da ficha. Tudo idempotente. Devolve mensagens para o usuário.
+ * Operadores não gravam talhões, então para eles só a migração de coletas e a ficha rodam.
  */
-export async function inicializarDados(): Promise<string[]> {
+export async function inicializarDados(p: Permissoes): Promise<string[]> {
   const msgs: string[] = [];
   await repositorio().aguardarPronto();
 
   try {
-    const m = await migrarLegadoUmaVez();
+    const m = await migrarLegadoUmaVez({ permitirNovosTalhoes: p.podeEditarTalhoes });
     if (m && (m.talhoesNovos || m.coletasNovas)) {
       msgs.push(`Dados deste aparelho enviados: ${m.coletasNovas} coleta(s), ${m.amostras} amostra(s), ${m.talhoesNovos} talhão(ões) novo(s).`);
     }
+    if (m?.coletasIgnoradas) msgs.push(`${m.coletasIgnoradas} coleta(s) de talhões não cadastrados ficaram de fora.`);
   } catch (e) {
     console.error('Falha ao migrar dados antigos', e);
   }
 
-  if (localStorage.getItem(CHAVE_SEED) !== '1' || !dadosAtuais().talhoes.length) {
+  if (p.podeEditarTalhoes && (localStorage.getItem(CHAVE_SEED) !== '1' || !dadosAtuais().talhoes.length)) {
     try {
       await importarTalhoesFazenda();
       localStorage.setItem(CHAVE_SEED, '1');
@@ -34,7 +37,7 @@ export async function inicializarDados(): Promise<string[]> {
     }
   }
 
-  if (localStorage.getItem(CHAVE_COLETAS) !== '1') {
+  if (localStorage.getItem(CHAVE_COLETAS) !== '1' && dadosAtuais().talhoes.length) {
     try {
       importarColetasIniciais();
       localStorage.setItem(CHAVE_COLETAS, '1');

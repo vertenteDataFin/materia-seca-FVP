@@ -7,6 +7,7 @@ import { capimFoto, mesmoCapim } from '../capinsFoto';
 import { resumoColeta, statusMS } from '../calc';
 import { CampoNumero, SeloMS } from '../components';
 import { fmt, fmtData, lerParametros } from '../util';
+import { usePermissoes } from '../permissoes';
 
 function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; confere?: boolean | null }) {
   return (
@@ -24,6 +25,7 @@ function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; conf
 export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talhao: Talhao; aoFechar: () => void; aoEditar: (t: Talhao) => void }) {
   const parametros = lerParametros();
   const dados = useDados();
+  const { podeEditarTalhoes } = usePermissoes();
   const coletas = useMemo(() => {
     if (!dados) return [];
     const porColeta = amostrasPorColeta(dados.amostras);
@@ -52,7 +54,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
         </h2>
         <div className="acoes">
           <Link className="botao" to={`/coletas/nova?talhao=${t.id}`}>+ Nova coleta</Link>
-          <button onClick={() => aoEditar(t)}>Editar</button>
+          {podeEditarTalhoes && <button onClick={() => aoEditar(t)}>Editar</button>}
           <button onClick={aoFechar} aria-label="Fechar">✕</button>
         </div>
       </div>
@@ -68,10 +70,12 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
                 <th>Em uso</th>
                 <td>
                   <strong>{t.capim || '—'}</strong>
-                  <div className="acoes" style={{ marginTop: '0.4rem' }}>
-                    {t.capimKml && !mesmoCapim(t.capim, t.capimKml) && <button onClick={() => usarCapim(t.capimKml!)}>Usar do KML</button>}
-                    {foto && !mesmoCapim(t.capim, foto) && <button onClick={() => usarCapim(foto)}>Usar da foto</button>}
-                  </div>
+                  {podeEditarTalhoes && (
+                    <div className="acoes" style={{ marginTop: '0.4rem' }}>
+                      {t.capimKml && !mesmoCapim(t.capim, t.capimKml) && <button onClick={() => usarCapim(t.capimKml!)}>Usar do KML</button>}
+                      {foto && !mesmoCapim(t.capim, foto) && <button onClick={() => usarCapim(foto)}>Usar da foto</button>}
+                    </div>
+                  )}
                 </td>
               </tr>
             </tbody>
@@ -94,11 +98,17 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
               <tr>
                 <th>Em uso</th>
                 <td>
-                  <CampoNumero valor={t.areaHa} ariaLabel="Área em uso" aoSalvar={(v) => v != null && v > 0 && usarArea(v)} />
-                  <div className="acoes" style={{ marginTop: '0.4rem' }}>
-                    {t.areaKmlHa && Math.abs(t.areaHa - t.areaKmlHa) > 0.01 && <button onClick={() => usarArea(t.areaKmlHa!)}>Usar declarada</button>}
-                    {areaPoligono != null && Math.abs(t.areaHa - areaPoligono) > 0.01 && <button onClick={() => usarArea(areaPoligono)}>Usar polígono</button>}
-                  </div>
+                  {podeEditarTalhoes ? (
+                    <>
+                      <CampoNumero valor={t.areaHa} ariaLabel="Área em uso" aoSalvar={(v) => v != null && v > 0 && usarArea(v)} />
+                      <div className="acoes" style={{ marginTop: '0.4rem' }}>
+                        {t.areaKmlHa && Math.abs(t.areaHa - t.areaKmlHa) > 0.01 && <button onClick={() => usarArea(t.areaKmlHa!)}>Usar declarada</button>}
+                        {areaPoligono != null && Math.abs(t.areaHa - areaPoligono) > 0.01 && <button onClick={() => usarArea(areaPoligono)}>Usar polígono</button>}
+                      </div>
+                    </>
+                  ) : (
+                    <strong>{fmt(t.areaHa, 2)}</strong>
+                  )}
                 </td>
               </tr>
             </tbody>

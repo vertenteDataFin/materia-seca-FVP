@@ -7,7 +7,8 @@ import { exportarExcel } from '../exportarExcel';
 import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
 import { FIREBASE_ATIVO } from '../firebase';
 import { sair } from '../sessao';
-import { adicionarMembro, ehAdmin, removerMembro, useMembros } from '../membros';
+import { adicionarMembro, papelDe, removerMembro, ROTULO_PAPEL, useMembros, type Papel } from '../membros';
+import { usePermissoes } from '../permissoes';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -24,6 +25,7 @@ export default function Config({ usuario }: { usuario?: User }) {
   const [mensagem, setMensagem] = useState('');
   const [exportando, setExportando] = useState(false);
   const arquivo = useRef<HTMLInputElement>(null);
+  const { podeEditarTalhoes } = usePermissoes();
 
   function carregarColetasIniciais() {
     const r = importarColetasIniciais();
@@ -136,7 +138,7 @@ export default function Config({ usuario }: { usuario?: User }) {
           <button className="primario" onClick={exportarXlsx} disabled={exportando}>{exportando ? 'Gerando…' : 'Exportar Excel (.xlsx)'}</button>
           <button onClick={exportarCSV}>Exportar amostras (CSV)</button>
           <button onClick={exportarJSON}>Exportar backup (JSON)</button>
-          <button onClick={() => arquivo.current?.click()}>Restaurar backup…</button>
+          {podeEditarTalhoes && <button onClick={() => arquivo.current?.click()}>Restaurar backup…</button>}
           <input ref={arquivo} type="file" accept="application/json,.json" hidden onChange={(e) => e.target.files?.[0] && importar(e.target.files[0])} />
         </div>
       </div>
@@ -171,10 +173,11 @@ export default function Config({ usuario }: { usuario?: User }) {
 /** Conta logada e, para administradores, a lista de pessoas com acesso. */
 function Conta({ usuario }: { usuario: User }) {
   const membros = useMembros();
-  const admin = ehAdmin(usuario.email, membros);
+  const meuPapel = papelDe(usuario.email, membros);
+  const admin = meuPapel === 'admin';
   const [email, setEmail] = useState('');
   const [nome, setNome] = useState('');
-  const [papel, setPapel] = useState<'membro' | 'admin'>('membro');
+  const [papel, setPapel] = useState<Papel>('operador');
   const [msg, setMsg] = useState('');
 
   async function incluir(e: FormEvent) {
@@ -197,8 +200,10 @@ function Conta({ usuario }: { usuario: User }) {
         <button onClick={() => void sair()}>Sair</button>
       </div>
       <p>
-        Logado como <strong>{usuario.email}</strong>{admin && <span className="selo selo-ideal" style={{ marginLeft: '0.5rem' }}>administrador</span>}
+        Logado como <strong>{usuario.email}</strong>
+        <span className={`selo ${admin ? 'selo-ideal' : ''}`} style={{ marginLeft: '0.5rem' }}>{ROTULO_PAPEL[meuPapel].split(' (')[0].toLowerCase()}</span>
       </p>
+      {meuPapel === 'operador' && <p className="dica">Perfil de operador: consulta e registra coletas, mas não exclui registros nem altera o cadastro de talhões.</p>}
 
       {admin && (
         <>
@@ -210,7 +215,7 @@ function Conta({ usuario }: { usuario: User }) {
               {membros.map((m) => (
                 <li key={m.email}>
                   <strong>{m.email}</strong>
-                  <span className="mudo">{m.nome}{m.papel === 'admin' ? ' · admin' : ''}</span>
+                  <span className="mudo">{m.nome} · {ROTULO_PAPEL[m.papel]?.split(' (')[0].toLowerCase() ?? m.papel}</span>
                   <span className="espaco" />
                   {m.email !== usuario.email?.toLowerCase() && (
                     <button className="perigo mini" aria-label={`Remover ${m.email}`} onClick={() => confirm(`Remover o acesso de ${m.email}?`) && removerMembro(m.email).catch((e) => setMsg(e.message))}>✕</button>
@@ -231,9 +236,10 @@ function Conta({ usuario }: { usuario: User }) {
             </label>
             <label>
               Papel
-              <select value={papel} onChange={(e) => setPapel(e.target.value as 'membro' | 'admin')}>
-                <option value="membro">Membro (usa o app)</option>
-                <option value="admin">Administrador (também inclui pessoas)</option>
+              <select value={papel} onChange={(e) => setPapel(e.target.value as Papel)}>
+                {(Object.keys(ROTULO_PAPEL) as Papel[]).map((p) => (
+                  <option key={p} value={p}>{ROTULO_PAPEL[p]}</option>
+                ))}
               </select>
             </label>
             <div className="acoes largo">

@@ -7,6 +7,7 @@ import { PassosColeta } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmtData } from '../util';
+import { usePermissoes } from '../permissoes';
 
 /** Etapa 2: marcar no mapa do talhão onde cada ponto foi coletado (cada ponto = uma amostra). */
 export default function ColetaPontos() {
@@ -14,6 +15,7 @@ export default function ColetaPontos() {
   const dados = useDados();
   const [capturando, setCapturando] = useState(false);
   const [erro, setErro] = useState('');
+  const { podeExcluir } = usePermissoes();
 
   if (!dados) return null;
   const coleta = dados.coletas.find((c) => c.id === coletaId);
@@ -61,14 +63,14 @@ export default function ColetaPontos() {
         <h2>Onde foram coletados os pontos</h2>
         <p className="dica">
           Toque no mapa no lugar de cada ponto coletado — cada toque cria uma amostra numerada. Em campo, use <strong>Ponto no meu GPS</strong> para marcar
-          onde você está. Toque num ponto para removê-lo.
+          onde você está.{podeExcluir && ' Toque num ponto para removê-lo.'}
         </p>
         {talhao?.geometria?.length ? (
           <MapaTalhoes
             talhoes={[talhao]}
             marcadores={marcadores}
             aoClicarMapa={(lat, lng) => adicionarPonto(coletaId, { lat, lng })}
-            aoClicarMarcador={(i) => remover(comPosicao[i])}
+            aoClicarMarcador={podeExcluir ? (i) => remover(comPosicao[i]) : undefined}
             altura="min(55vh, 520px)"
             zoomMax={17}
           />
@@ -105,7 +107,7 @@ export default function ColetaPontos() {
                   )}
                 </span>
                 <span className="espaco" />
-                <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => remover(a)}>✕</button>
+                {podeExcluir && <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => remover(a)}>✕</button>}
               </li>
             ))}
           </ul>

@@ -10,7 +10,14 @@ export interface ResultadoMigracao {
   talhoesReaproveitados: number;
   coletasNovas: number;
   coletasExistentes: number;
+  /** Coletas de talhões que não puderam ser criados (perfil sem permissão). */
+  coletasIgnoradas: number;
   amostras: number;
+}
+
+export interface OpcoesMigracao {
+  /** false para perfis que não podem criar talhões: coletas de talhões desconhecidos ficam de fora. */
+  permitirNovosTalhoes?: boolean;
 }
 
 /**
@@ -18,8 +25,8 @@ export interface ResultadoMigracao {
  * Talhões são casados pelo nome (não duplica os que já existem); coletas iguais
  * (mesmo talhão, data, responsável e observação) são puladas.
  */
-export function migrarDados(legado: DadosLegados): ResultadoMigracao {
-  const r: ResultadoMigracao = { talhoesNovos: 0, talhoesReaproveitados: 0, coletasNovas: 0, coletasExistentes: 0, amostras: 0 };
+export function migrarDados(legado: DadosLegados, { permitirNovosTalhoes = true }: OpcoesMigracao = {}): ResultadoMigracao {
+  const r: ResultadoMigracao = { talhoesNovos: 0, talhoesReaproveitados: 0, coletasNovas: 0, coletasExistentes: 0, coletasIgnoradas: 0, amostras: 0 };
   const d = dadosAtuais();
   const repo = repositorio();
   const ops: Operacao[] = [];
@@ -31,6 +38,7 @@ export function migrarDados(legado: DadosLegados): ResultadoMigracao {
       r.talhoesReaproveitados++;
       continue;
     }
+    if (!permitirNovosTalhoes) continue;
     const { id: _id, ...dados } = t;
     const id = repo.novoId();
     idT.set(t.id!, id);
@@ -40,7 +48,10 @@ export function migrarDados(legado: DadosLegados): ResultadoMigracao {
   const idC = new Map<number, string>();
   for (const c of legado.coletas) {
     const talhaoId = idT.get(c.talhaoId);
-    if (!talhaoId) continue; // coleta órfã
+    if (!talhaoId) {
+      if (legado.talhoes.some((t) => t.id === c.talhaoId)) r.coletasIgnoradas++;
+      continue; // coleta órfã ou de talhão que não pôde ser criado
+    }
     const igual = d.coletas.some(
       (x) => x.talhaoId === talhaoId && x.data === c.data && x.responsavel === c.responsavel && (x.observacoes ?? '') === (c.observacoes ?? ''),
     );
@@ -66,10 +77,10 @@ export function migrarDados(legado: DadosLegados): ResultadoMigracao {
 }
 
 /** Migra uma única vez por aparelho; null se não havia nada a migrar. */
-export async function migrarLegadoUmaVez(): Promise<ResultadoMigracao | null> {
+export async function migrarLegadoUmaVez(opcoes: OpcoesMigracao = {}): Promise<ResultadoMigracao | null> {
   if (localStorage.getItem(CHAVE_MIGRADO) === '1') return null;
   const legado = await lerLegado();
-  const r = legado && (legado.talhoes.length || legado.coletas.length) ? migrarDados(legado) : null;
+  const r = legado && (legado.talhoes.length || legado.coletas.length) ? migrarDados(legado, opcoes) : null;
   localStorage.setItem(CHAVE_MIGRADO, '1');
   return r;
 }

@@ -3,6 +3,7 @@ import { useSearchParams } from 'react-router-dom';
 import { adicionarTalhao, atualizarTalhao, excluirTalhao, useDados } from '../dados';
 import type { Talhao } from '../tipos';
 import { CAPINS_COMUNS, fmt, numParaTexto, parseNum } from '../util';
+import { usePermissoes } from '../permissoes';
 import DetalheTalhao from './DetalheTalhao';
 import { capimFoto, mesmoCapim } from '../capinsFoto';
 
@@ -10,6 +11,7 @@ const vazio = { nome: '', fazenda: '', area: '', capim: '', observacoes: '' };
 
 export default function Talhoes() {
   const dados = useDados();
+  const { podeEditarTalhoes, podeExcluir } = usePermissoes();
   const [form, setForm] = useState(vazio);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [params] = useSearchParams();
@@ -71,7 +73,7 @@ export default function Talhoes() {
     <>
       <div className="titulo-linha">
         <h1>Talhões</h1>
-        {!mostrarForm && <button onClick={() => setMostrarForm(true)}>+ Novo talhão</button>}
+        {!mostrarForm && podeEditarTalhoes && <button onClick={() => setMostrarForm(true)}>+ Novo talhão</button>}
       </div>
 
       {nDiverge > 0 && (
@@ -151,8 +153,8 @@ export default function Talhoes() {
                     <td className="oculta-cel">{t.geometria?.length ? <span className="selo selo-ideal">KML</span> : <span className="mudo">—</span>}</td>
                     <td className="obs largo-cel">{t.observacoes}</td>
                     <td className="acoes-linha">
-                      <button onClick={() => editar(t)}>Editar</button>
-                      <button className="perigo" onClick={() => excluir(t)}>Excluir</button>
+                      {podeEditarTalhoes && <button onClick={() => editar(t)}>Editar</button>}
+                      {podeExcluir && podeEditarTalhoes && <button className="perigo" onClick={() => excluir(t)}>Excluir</button>}
                     </td>
                   </tr>
                 ))}

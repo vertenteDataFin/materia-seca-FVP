@@ -72,6 +72,28 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(getDoc(talhao(semEmail)));
   });
 
+  it('operador lê e registra, mas não exclui nem mexe em talhões', async () => {
+    const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
+    await assertSucceeds(setDoc(talhao(admin), { nome: 'Talhão 18 - PD', areaHa: 118, capim: 'Miyagi' }));
+    await assertSucceeds(setDoc(membro(admin, 'campo@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
+    const op = env.authenticatedContext('o', senha('campo@fazenda.com.br', false)).firestore();
+    const { deleteDoc, updateDoc } = await import('firebase/firestore');
+    await assertSucceeds(getDoc(talhao(op)));
+    await assertFails(updateDoc(talhao(op), { capim: 'Mombaça' }));
+    await assertFails(deleteDoc(talhao(op)));
+    const coleta = doc(collection(op, 'fazendas', FID, 'coletas'), 'c1');
+    const amostra = doc(collection(op, 'fazendas', FID, 'amostras'), 'a1');
+    await assertSucceeds(setDoc(coleta, { talhaoId: 't1', data: '2026-11-09', responsavel: '', areaAmostralM2: 1 }));
+    await assertSucceeds(setDoc(amostra, { coletaId: 'c1', ponto: 1, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null }));
+    await assertSucceeds(updateDoc(amostra, { pesoVerdeKg: 2.5 }));
+    await assertFails(deleteDoc(amostra));
+    await assertFails(deleteDoc(coleta));
+    // membro comum exclui
+    await assertSucceeds(setDoc(membro(admin, 'tec@fazenda.com.br'), { nome: 'Téc', papel: 'membro' }));
+    const tec = env.authenticatedContext('t', senha('tec@fazenda.com.br', false)).firestore();
+    await assertSucceeds(deleteDoc(doc(collection(tec, 'fazendas', FID, 'amostras'), 'a1')));
+  });
+
   it('admin não remove a si mesmo da lista', async () => {
     const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
     await assertSucceeds(setDoc(membro(admin, ADMIN), { nome: 'Eu', papel: 'admin' }));

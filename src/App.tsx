@@ -5,6 +5,8 @@ import { definirRepositorio } from './dados';
 import { FIREBASE_ATIVO, obterFirebase } from './firebase';
 import { FAZENDA_ID } from './firebaseConfig';
 import { inicializarDados } from './inicializacao';
+import { papelDe, useMembros } from './membros';
+import { PERMISSOES_LOCAL, PermissoesContext, permissoesDoPapel, type Permissoes } from './permissoes';
 import { RepositorioLocal, type Repositorio } from './repositorio';
 import { RepositorioFirestore } from './repositorioFirestore';
 import { useUsuario } from './sessao';
@@ -37,7 +39,7 @@ function AppLocal() {
     };
   }, []);
   if (!repo) return null;
-  return <Casca repo={repo} />;
+  return <Casca repo={repo} permissoes={PERMISSOES_LOCAL} />;
 }
 
 /** Com Firebase: exige login; os dados ficam no Firestore (com cache offline). */
@@ -65,75 +67,88 @@ function AppNuvem() {
   if (usuario === undefined) return <p className="vazio">Conectando…</p>;
   if (usuario === null) return <Login />;
   if (!repo) return null;
-  return <Casca repo={repo} usuario={usuario} />;
+  return <CascaNuvem repo={repo} usuario={usuario} />;
+}
+
+/** Descobre o papel do usuário (lista de membros) antes de montar a interface. */
+function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
+  const membros = useMembros();
+  if (membros === undefined) return <p className="vazio">Conectando…</p>;
+  return <Casca repo={repo} usuario={usuario} permissoes={permissoesDoPapel(papelDe(usuario.email, membros))} />;
 }
 
 /** Cabeçalho, navegação e rotas; roda a inicialização (migração, KML, fichas) quando a fonte está pronta. */
-function Casca({ repo, usuario }: { repo: Repositorio; usuario?: User }) {
+function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: User; permissoes: Permissoes }) {
   const [avisos, setAvisos] = useState<string[]>([]);
   const [erro, setErro] = useState('');
 
   useEffect(() => {
     let ativo = true;
-    inicializarDados()
+    inicializarDados(permissoes)
       .then((m) => ativo && m.length && setAvisos(m))
       .catch((e) => console.error(e));
     return () => {
       ativo = false;
     };
-  }, [repo]);
+  }, [repo, permissoes.papel]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(
     () =>
       repo.assinarErros((e) => {
         const codigo = (e as { code?: string }).code ?? '';
         if (codigo === 'permission-denied') {
-          setErro(`Acesso negado para ${usuario?.email ?? 'este usuário'}: peça ao administrador para incluir seu e-mail em Config → Pessoas com acesso.`);
+          setErro(
+            permissoes.papel === 'operador'
+              ? `Sem permissão para esta ação com o perfil de operador (${usuario?.email ?? ''}). Se você devia ter acesso, peça ao administrador para incluir seu e-mail em Config → Pessoas com acesso.`
+              : `Acesso negado para ${usuario?.email ?? 'este usuário'}: peça ao administrador para incluir seu e-mail em Config → Pessoas com acesso.`,
+          );
         } else {
           setErro(`Falha ao gravar: ${e.message}`);
         }
       }),
-    [repo, usuario?.email],
+    [repo, usuario?.email, permissoes.papel],
   );
 
   return (
-    <HashRouter>
-      <header className="topo">
-        <div className="marca">
-          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" width={28} height={28} />
-          <span>Silagem MS</span>
-        </div>
-        <nav>
-          <NavLink to="/" end><span className="icone" aria-hidden>📊</span><span>Painel</span></NavLink>
-          <NavLink to="/mapa"><span className="icone" aria-hidden>🗺️</span><span>Mapa</span></NavLink>
-          <NavLink to="/coletas"><span className="icone" aria-hidden>📋</span><span>Coletas</span></NavLink>
-          <NavLink to="/talhoes"><span className="icone" aria-hidden>🌱</span><span>Talhões</span></NavLink>
-          <NavLink to="/config"><span className="icone" aria-hidden>⚙️</span><span>Config.</span></NavLink>
-        </nav>
-      </header>
-      <main>
-        {erro && (
-          <p className="faixa-erro">
-            {erro} <button className="link" onClick={() => setErro('')}>fechar</button>
-          </p>
-        )}
-        {avisos.length > 0 && (
-          <p className="aviso">
-            {avisos.join(' ')} <button className="link" onClick={() => setAvisos([])}>ok</button>
-          </p>
-        )}
-        <Routes>
-          <Route path="/" element={<Painel />} />
-          <Route path="/mapa" element={<Mapa />} />
-          <Route path="/talhoes" element={<Talhoes />} />
-          <Route path="/coletas" element={<Coletas />} />
-          <Route path="/coletas/nova" element={<NovaColeta />} />
-          <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
-          <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
-          <Route path="/coletas/:id" element={<ColetaDetalhe />} />
-          <Route path="/config" element={<Config usuario={usuario} />} />
-        </Routes>
-      </main>
-    </HashRouter>
+    <PermissoesContext.Provider value={permissoes}>
+      <HashRouter>
+        <header className="topo">
+          <div className="marca">
+            <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" width={28} height={28} />
+            <span>Silagem MS</span>
+          </div>
+          <nav>
+            <NavLink to="/" end><span className="icone" aria-hidden>📊</span><span>Painel</span></NavLink>
+            <NavLink to="/mapa"><span className="icone" aria-hidden>🗺️</span><span>Mapa</span></NavLink>
+            <NavLink to="/coletas"><span className="icone" aria-hidden>📋</span><span>Coletas</span></NavLink>
+            <NavLink to="/talhoes"><span className="icone" aria-hidden>🌱</span><span>Talhões</span></NavLink>
+            <NavLink to="/config"><span className="icone" aria-hidden>⚙️</span><span>Config.</span></NavLink>
+          </nav>
+        </header>
+        <main>
+          {erro && (
+            <p className="faixa-erro">
+              {erro} <button className="link" onClick={() => setErro('')}>fechar</button>
+            </p>
+          )}
+          {avisos.length > 0 && (
+            <p className="aviso">
+              {avisos.join(' ')} <button className="link" onClick={() => setAvisos([])}>ok</button>
+            </p>
+          )}
+          <Routes>
+            <Route path="/" element={<Painel />} />
+            <Route path="/mapa" element={<Mapa />} />
+            <Route path="/talhoes" element={<Talhoes />} />
+            <Route path="/coletas" element={<Coletas />} />
+            <Route path="/coletas/nova" element={<NovaColeta />} />
+            <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
+            <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
+            <Route path="/coletas/:id" element={<ColetaDetalhe />} />
+            <Route path="/config" element={<Config usuario={usuario} />} />
+          </Routes>
+        </main>
+      </HashRouter>
+    </PermissoesContext.Provider>
   );
 }

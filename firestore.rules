@@ -2,6 +2,7 @@ rules_version = '2';
 
 // Regras de acesso do Silagem MS.
 // Só pessoas autorizadas (administradores abaixo ou documentos em fazendas/<id>/membros/<e-mail>) leem e gravam.
+// Papéis: admin (tudo, inclui pessoas) · membro (registra e exclui) · operador (consulta e registra, não exclui).
 service cloud.firestore {
   match /databases/{db}/documents {
 
@@ -22,26 +23,43 @@ service cloud.firestore {
       return /databases/$(db)/documents/fazendas/$(fid)/membros/$(email());
     }
 
-    function ehAdmin(fid) {
-      return logado() && (email() in admins() || (exists(docMembro(fid)) && get(docMembro(fid)).data.papel == 'admin'));
-    }
-
     function ehMembro(fid) {
       return logado() && (email() in admins() || exists(docMembro(fid)));
+    }
+
+    // Papel efetivo: admins fixos são admin; os demais vêm do documento em membros.
+    function papel(fid) {
+      return email() in admins() ? 'admin' : get(docMembro(fid)).data.papel;
+    }
+
+    function ehAdmin(fid) {
+      return ehMembro(fid) && papel(fid) == 'admin';
+    }
+
+    function podeExcluir(fid) {
+      return ehMembro(fid) && papel(fid) != 'operador';
     }
 
     match /fazendas/{fid}/membros/{m} {
       allow read: if ehMembro(fid);
       allow create, update: if ehAdmin(fid)
         && m == m.lower()
-        && request.resource.data.papel in ['admin', 'membro']
+        && request.resource.data.papel in ['admin', 'membro', 'operador']
         && request.resource.data.nome is string;
       // Um admin não remove a si mesmo (evita ficar sem acesso).
       allow delete: if ehAdmin(fid) && m != email();
     }
 
+    // Cadastro de talhões: operador só lê.
+    match /fazendas/{fid}/talhoes/{id} {
+      allow read: if ehMembro(fid);
+      allow write: if podeExcluir(fid);
+    }
+
+    // Coletas e amostras: todo membro registra e edita; só quem não é operador exclui.
     match /fazendas/{fid}/{col}/{id} {
-      allow read, write: if ehMembro(fid) && col in ['talhoes', 'coletas', 'amostras'];
+      allow read, create, update: if ehMembro(fid) && col in ['coletas', 'amostras'];
+      allow delete: if podeExcluir(fid) && col in ['coletas', 'amostras'];
     }
   }
 }
