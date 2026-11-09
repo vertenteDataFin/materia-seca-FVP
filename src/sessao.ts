@@ -1,15 +1,5 @@
 import { useEffect, useState } from 'react';
-import {
-  GoogleAuthProvider,
-  onAuthStateChanged,
-  sendEmailVerification,
-  sendPasswordResetEmail,
-  signInWithEmailAndPassword,
-  signInWithPopup,
-  signInWithRedirect,
-  signOut,
-  type User,
-} from 'firebase/auth';
+import { onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { obterFirebase } from './firebase';
 
 /** Usuário logado: undefined enquanto o Firebase ainda não respondeu; null se deslogado. */
@@ -17,23 +7,6 @@ export function useUsuario(): User | null | undefined {
   const [u, setU] = useState<User | null | undefined>(undefined);
   useEffect(() => onAuthStateChanged(obterFirebase().auth, setU), []);
   return u;
-}
-
-export async function entrarComGoogle() {
-  const { auth } = obterFirebase();
-  const provedor = new GoogleAuthProvider();
-  provedor.setCustomParameters({ prompt: 'select_account' });
-  try {
-    await signInWithPopup(auth, provedor);
-  } catch (e) {
-    const codigo = (e as { code?: string }).code ?? '';
-    // Em PWA instalado o popup pode ser bloqueado: tenta por redirecionamento.
-    if (codigo === 'auth/popup-blocked' || codigo === 'auth/operation-not-supported-in-this-environment') {
-      await signInWithRedirect(auth, provedor);
-      return;
-    }
-    throw e;
-  }
 }
 
 export function entrarComEmail(email: string, senha: string) {
@@ -52,7 +25,7 @@ export function sair() {
   return signOut(obterFirebase().auth);
 }
 
-/** Precisa confirmar o e-mail? (contas com senha; Google já vem verificado) */
+/** Precisa confirmar o e-mail? (contas com senha ainda não verificadas) */
 export function precisaVerificarEmail(u: User): boolean {
   return !u.emailVerified && u.providerData.some((p) => p.providerId === 'password');
 }
@@ -64,8 +37,6 @@ const MENSAGENS: Record<string, string> = {
   'auth/invalid-email': 'E-mail inválido.',
   'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente de novo.',
   'auth/network-request-failed': 'Sem conexão. O primeiro login precisa de internet.',
-  'auth/popup-closed-by-user': 'A janela de login foi fechada antes de concluir.',
-  'auth/cancelled-popup-request': 'A janela de login foi fechada antes de concluir.',
   'auth/unauthorized-domain': 'Este endereço não está autorizado no Firebase (Authentication → Domínios autorizados).',
   'auth/operation-not-allowed': 'Este método de login não está ativado no Firebase (Authentication → Método de login).',
 };

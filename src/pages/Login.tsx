@@ -1,5 +1,5 @@
 import { useState, type FormEvent } from 'react';
-import { entrarComEmail, entrarComGoogle, mensagemErroAuth, redefinirSenha } from '../sessao';
+import { entrarComEmail, mensagemErroAuth, redefinirSenha } from '../sessao';
 
 export default function Login() {
   const [email, setEmail] = useState('');
@@ -42,13 +42,7 @@ export default function Login() {
           <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" width={40} height={40} />
           <span>Silagem MS</span>
         </div>
-        <p className="dica">Entre com a conta autorizada pela fazenda. Os dados ficam sincronizados entre os aparelhos.</p>
-
-        <button className="primario largo" onClick={() => void executar(entrarComGoogle)} disabled={ocupado}>
-          Entrar com Google
-        </button>
-
-        <div className="separador"><span>ou com e-mail e senha</span></div>
+        <p className="dica">Entre com o e-mail e a senha cadastrados pela fazenda. Os dados ficam sincronizados entre os aparelhos.</p>
 
         <form className="grade-form" onSubmit={porEmail}>
           <label className="largo">
@@ -60,7 +54,7 @@ export default function Login() {
             <input type="password" autoComplete="current-password" value={senha} onChange={(e) => setSenha(e.target.value)} />
           </label>
           <div className="acoes largo">
-            <button type="submit" disabled={ocupado}>{ocupado ? 'Entrando…' : 'Entrar'}</button>
+            <button type="submit" className="primario" disabled={ocupado}>{ocupado ? 'Entrando…' : 'Entrar'}</button>
             <button type="button" className="link" onClick={esqueci} disabled={ocupado}>Esqueci a senha</button>
           </div>
         </form>

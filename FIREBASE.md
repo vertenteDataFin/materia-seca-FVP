@@ -14,14 +14,17 @@ com cache offline no aparelho. Só entra quem fizer login com um e-mail autoriza
 | Regras de segurança | `firestore.rules` |
 | Parâmetros da estimativa, último responsável/quadro | localStorage do navegador (por aparelho) |
 
-Contas com senha precisam confirmar o e-mail; login Google já vem verificado.
+O login é por e-mail e senha. Na primeira entrada o app pede para confirmar o e-mail (link enviado pelo Firebase);
+só depois disso as regras liberam os dados.
 
 ## Primeira configuração (console.firebase.google.com)
 
 1. Firestore Database → Criar banco (região `southamerica-east1`, modo de produção).
-2. Authentication → Método de login → ativar **Google** (e "E-mail/senha", se quiser).
-3. Authentication → Configurações → Domínios autorizados → adicionar `vertentedatafin.github.io`.
-4. Publicar as regras (abaixo). Até isso ser feito, ninguém consegue ler nem gravar.
+2. Authentication → Método de login → ativar **E-mail/senha**.
+3. Authentication → Usuários → **Adicionar usuário** para cada pessoa (e-mail + senha inicial). A pessoa pode trocar a senha
+   pelo "Esqueci a senha" na tela de login.
+4. Authentication → Configurações → Domínios autorizados → adicionar `vertentedatafin.github.io`.
+5. Publicar as regras (abaixo). Até isso ser feito, ninguém consegue ler nem gravar.
 
 ## Publicar as regras de segurança
 
@@ -36,7 +39,8 @@ npm run regras
 
 ## Incluir ou remover pessoas
 
-No app, logado como administrador: **Config → Pessoas com acesso**. Para promover alguém a administrador
+Dois passos: criar o usuário em Authentication → Usuários e, no app, logado como administrador, incluir o mesmo
+e-mail em **Config → Pessoas com acesso**. Para promover alguém a administrador
 fixo (não removível pelo app), edite `ADMINS` e `admins()` e publique as regras de novo.
 
 ## Migração de aparelhos antigos
