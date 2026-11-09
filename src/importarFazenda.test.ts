@@ -25,13 +25,24 @@ describe('importarTalhoesFazenda', () => {
     const antigo = repo.adicionar('talhoes', { nome: 'PD - TALHAO 18', capim: 'Miyagi', areaHa: 118, observacoes: '' });
     const curto = repo.adicionar('talhoes', { nome: 'TL 21', capim: 'Mombaça', areaHa: 73, observacoes: '' });
     const custom = repo.adicionar('talhoes', { nome: 'Talhão 23 compostagem', capim: 'Mombaça', areaHa: 49.9, observacoes: '' });
+    // simula aparelho que já tinha o capim antigo derivado do KML
+    const velho = repo.adicionar('talhoes', { nome: 'Talhão 20 - Conf', capim: 'Piatã/Compostagem', capimKml: 'Piatã/Compostagem', areaHa: 35 });
+    const escolhido = repo.adicionar('talhoes', { nome: 'Talhão 19 - PD', capim: 'Zuri', capimKml: 'Miyagi', areaHa: 95 });
     const r = await importarTalhoesFazenda();
-    expect(r.atualizados).toBe(2);
+    expect(r.atualizados).toBe(4);
     const d = repo.obter()!;
     const nome = (id: string) => d.talhoes.find((t) => t.id === id)!.nome;
     expect(nome(antigo)).toBe('Talhão 18 - PD');
     expect(nome(curto)).toBe('Talhão 21 - Conf');
     expect(nome(custom)).toBe('Talhão 23 compostagem'); // personalizado: não mexe
+    // capim derivado do KML acompanha o KML; capim escolhido pelo usuário fica
+    const t23 = d.talhoes.find((t) => t.nome === 'Talhão 23 - Conf')!;
+    expect(t23.capim).toBe('Mombaça');
+    expect(t23.capimKml).toBe('Mombaça');
+    const t18 = d.talhoes.find((t) => t.id === antigo)!;
+    expect(t18.capim).toBe('Miyagi');
+    expect(d.talhoes.find((t) => t.id === velho)!.capim).toBe('Piatã');
+    expect(d.talhoes.find((t) => t.id === escolhido)!.capim).toBe('Zuri');
     expect(d.talhoes.find((t) => t.id === antigo)!.geometria!.length).toBeGreaterThan(0);
     const nomes = d.talhoes.map((t) => t.nome).sort(compararNomes);
     expect(nomes).toContain('Pivô 1 - Conf');

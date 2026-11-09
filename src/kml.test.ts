@@ -29,7 +29,8 @@ describe('kml', () => {
   });
 
   it('converte atividade em capim', () => {
-    expect(capimDaAtividade('CAPIM MOMBACA / COMPOSTAGEM')).toBe('Mombaça/Compostagem');
+    expect(capimDaAtividade('CAPIM MOMBACA / COMPOSTAGEM')).toBe('Mombaça');
+    expect(capimDaAtividade('CAPIM MIYAGI / CAPIM MOMBACA')).toBe('Miyagi/Mombaça');
     expect(capimDaAtividade('CAPIM PIATÃ')).toBe('Piatã');
     expect(capimDaAtividade('SEM ATIVIDADE CADASTRADA')).toBe('');
   });

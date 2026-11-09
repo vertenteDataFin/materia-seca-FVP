@@ -58,18 +58,21 @@ const PALAVRAS: Record<string, string> = {
   XARAES: 'Xaraés',
   TANZANIA: 'Tanzânia',
   CAPIACU: 'BRS Capiaçu',
-  COMPOSTAGEM: 'Compostagem',
 };
+
+/** Partes da atividade que não são capim (uso do solo junto ao capim) e saem do nome. */
+const NAO_CAPIM = /COMPOSTAGEM/i;
 
 export function semAcento(s: string) {
   return s.normalize('NFD').replace(/[̀-ͯ]/g, '');
 }
 
-/** "CAPIM MOMBACA / COMPOSTAGEM" → "Mombaça/Compostagem"; "SEM ATIVIDADE..." → "". */
+/** "CAPIM MOMBACA / COMPOSTAGEM" → "Mombaça" (compostagem não é capim); "SEM ATIVIDADE..." → "". */
 export function capimDaAtividade(atividade: string): string {
   if (!atividade.trim() || /SEM ATIVIDADE/i.test(atividade)) return '';
   return atividade
     .split('/')
+    .filter((parte) => !NAO_CAPIM.test(parte))
     .map((parte) => {
       const p = parte.replace(/CAPIM\s+/gi, '').trim();
       const chave = semAcento(p).toUpperCase();

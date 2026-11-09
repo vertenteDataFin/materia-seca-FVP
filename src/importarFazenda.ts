@@ -72,11 +72,13 @@ async function executar() {
       const atual = existentes.find((t) => t.id === id)!;
       // Renomeia para o padrão do app se o nome ainda for o do KML ou uma abreviação dele (ex.: "TL 18").
       const nome = nomeEhDoKml(atual.nome, p) ? p.nomeApp : atual.nome;
+      // Capim: mantém o que o usuário escolheu; se ainda era o derivado do KML (ou vazio), acompanha o KML.
+      const capim = atual.capim && atual.capim !== atual.capimKml ? atual.capim : p.capim;
       ops.push({
         tipo: 'atualizar',
         colecao: 'talhoes',
         id,
-        dados: { ...doKml, nome, capim: atual.capim || p.capim, areaHa: atual.areaHa > 0 ? atual.areaHa : areaKml } as Record<string, unknown>,
+        dados: { ...doKml, nome, capim, areaHa: atual.areaHa > 0 ? atual.areaHa : areaKml } as Record<string, unknown>,
       });
       atualizados++;
     } else {
