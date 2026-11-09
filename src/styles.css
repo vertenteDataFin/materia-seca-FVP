@@ -345,3 +345,18 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
   .filtro-datas label { flex: 1; }
   .filtro-datas input[type="date"] { flex: 1; min-width: 0; }
 }
+/* ---- Filtros na linha de cabeçalho da tabela ---- */
+.filtros-linha th { padding: 0.25rem 0.4rem 0.6rem; font-weight: normal; text-transform: none; letter-spacing: 0; }
+.filtros-linha input, .filtros-linha select { width: 100%; min-width: 0; padding: 0.3rem 0.45rem; font-size: 0.85rem; min-height: 0; box-sizing: border-box; }
+.filtros-linha th.filtro-datas { display: table-cell; }
+.filtros-linha th.filtro-datas input { width: calc(50% - 0.15rem); }
+.filtros-linha th.filtro-datas input + input { margin-left: 0.3rem; }
+@media (max-width: 700px) {
+  .tabela-cartoes thead.com-filtros { display: block; margin-bottom: 0.6rem; }
+  .tabela-cartoes thead.com-filtros tr.titulos { display: none; }
+  .tabela-cartoes thead.com-filtros tr.filtros-linha { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; border: none; padding: 0; background: none; }
+  .tabela-cartoes thead.com-filtros tr.filtros-linha th { display: block; padding: 0; }
+  .tabela-cartoes thead.com-filtros tr.filtros-linha th:empty { display: none; }
+  .tabela-cartoes thead.com-filtros tr.filtros-linha th:first-child, .tabela-cartoes thead.com-filtros tr.filtros-linha th.filtro-datas { grid-column: 1 / -1; }
+  .filtros-linha input, .filtros-linha select { font-size: 1rem; padding: 0.5rem 0.6rem; }
+}

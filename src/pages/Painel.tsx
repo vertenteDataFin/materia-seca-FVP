@@ -10,7 +10,7 @@ import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 export default function Painel() {
   const [parametros] = useState(lerParametros);
   const dados = useDados();
-  const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', fazenda: '', de: '', ate: '' };
+  const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', busca: '', de: '', ate: '' };
   const [filtro, setFiltro] = useState(FILTRO_VAZIO);
 
   const linhas = useMemo(() => {
@@ -40,17 +40,17 @@ export default function Painel() {
   const contagem: Record<Semaforo, number> = { verde: 0, amarelo: 0, vermelho: 0 };
   for (const l of linhas) contagem[semaforoDe(statusMS(l.r?.msPct ?? null, parametros))]++;
   const capins = [...new Set(dados.talhoes.map((t) => t.capim).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
-  const fazendas = [...new Set(dados.talhoes.map((t) => t.fazenda ?? '').filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const normal = (s: string) => s.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase();
+  const busca = normal(filtro.busca.trim());
   const filtradas = linhas.filter(
     (l) =>
       (!filtro.semaforo || semaforoDe(statusMS(l.r?.msPct ?? null, parametros)) === filtro.semaforo) &&
       (!filtro.capim || l.t.capim === filtro.capim) &&
-      (!filtro.fazenda || (l.t.fazenda ?? '') === filtro.fazenda) &&
+      (!busca || normal(`${l.t.nome} ${nomeCurto(l.t.nome)} ${l.t.fazenda ?? ''}`).includes(busca)) &&
       // período da última coleta: talhões sem coleta saem quando há data informada
       (!(filtro.de || filtro.ate) || (!!l.c && (!filtro.de || l.c.data >= filtro.de) && (!filtro.ate || l.c.data <= filtro.ate))),
   );
-  const alternarSemaforo = (s: Semaforo) => setFiltro((f) => ({ ...f, semaforo: f.semaforo === s ? '' : s }));
-  const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.fazenda || filtro.de || filtro.ate);
+  const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.busca || filtro.de || filtro.ate);
 
   if (!dados.talhoes.length) {
     return (
@@ -87,66 +87,25 @@ export default function Painel() {
       <div className="cartao">
         <div className="cabecalho-cartao">
           <h2>Por talhão</h2>
-          <div className="filtros" role="group" aria-label="Filtros">
-            <span className="semaforo-resumo">
-              {(
-                [
-                  ['verde', `${contagem.verde} pronto(s)`, '#fff'],
-                  ['amarelo', `${contagem.amarelo} sem MS`, '#3a2e00'],
-                  ['vermelho', `${contagem.vermelho} fora do ponto`, '#fff'],
-                ] as [Semaforo, string, string][]
-              ).map(([s, rotulo, cor]) => (
-                <button
-                  key={s}
-                  type="button"
-                  className={`selo selo-filtro ${filtro.semaforo === s ? 'ativo' : ''}`}
-                  style={{ background: COR_SEMAFORO[s], color: cor }}
-                  aria-pressed={filtro.semaforo === s}
-                  onClick={() => alternarSemaforo(s)}
-                >
-                  {rotulo}
-                </button>
-              ))}
-            </span>
-            {capins.length > 1 && (
-              <select value={filtro.capim} onChange={(e) => setFiltro({ ...filtro, capim: e.target.value })} aria-label="Filtrar por capim">
-                <option value="">Todos os capins</option>
-                {capins.map((c) => (
-                  <option key={c} value={c}>{c}</option>
-                ))}
-              </select>
-            )}
-            {fazendas.length > 1 && (
-              <select value={filtro.fazenda} onChange={(e) => setFiltro({ ...filtro, fazenda: e.target.value })} aria-label="Filtrar por fazenda">
-                <option value="">Todas as fazendas</option>
-                {fazendas.map((f) => (
-                  <option key={f} value={f}>{f}</option>
-                ))}
-              </select>
-            )}
-            <span className="filtro-datas">
-              <label>
-                <span className="mudo">Coleta de</span>
-                <input type="date" value={filtro.de} max={filtro.ate || undefined} onChange={(e) => setFiltro({ ...filtro, de: e.target.value })} aria-label="Última coleta a partir de" />
-              </label>
-              <label>
-                <span className="mudo">até</span>
-                <input type="date" value={filtro.ate} min={filtro.de || undefined} onChange={(e) => setFiltro({ ...filtro, ate: e.target.value })} aria-label="Última coleta até" />
-              </label>
-            </span>
-            {temFiltro && (
-              <button type="button" className="link" onClick={() => setFiltro(FILTRO_VAZIO)}>limpar</button>
-            )}
-          </div>
+          <span className="semaforo-resumo">
+            <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>{contagem.verde} pronto(s)</span>{' '}
+            <span className="selo" style={{ background: COR_SEMAFORO.amarelo, color: '#3a2e00' }}>{contagem.amarelo} sem MS</span>{' '}
+            <span className="selo" style={{ background: COR_SEMAFORO.vermelho, color: '#fff' }}>{contagem.vermelho} fora do ponto</span>
+          </span>
         </div>
         <p className="dica">
           Última coleta de cada talhão. Toque no talhão para ver o cadastro ou na data para abrir a coleta.
-          {temFiltro && <> Mostrando <strong>{filtradas.length}</strong> de {linhas.length} talhões.</>}
+          {temFiltro && (
+            <>
+              {' '}Mostrando <strong>{filtradas.length}</strong> de {linhas.length} talhões.{' '}
+              <button type="button" className="link" onClick={() => setFiltro(FILTRO_VAZIO)}>limpar filtros</button>
+            </>
+          )}
         </p>
         <div className="rolagem">
           <table className="tabela-cartoes">
-            <thead>
-              <tr>
+            <thead className="com-filtros">
+              <tr className="titulos">
                 <th>Talhão</th>
                 <th className="oculta-cel">Capim</th>
                 <th className="oculta-cel">Última coleta</th>
@@ -155,6 +114,35 @@ export default function Painel() {
                 <th className="n">MV (t/ha)</th>
                 <th className="n">MS (%)</th>
                 <th className="n">MS (t/ha)</th>
+              </tr>
+              <tr className="filtros-linha">
+                <th>
+                  <input type="search" value={filtro.busca} onChange={(e) => setFiltro({ ...filtro, busca: e.target.value })} placeholder="Buscar talhão…" aria-label="Buscar talhão" />
+                </th>
+                <th>
+                  <select value={filtro.capim} onChange={(e) => setFiltro({ ...filtro, capim: e.target.value })} aria-label="Filtrar por capim">
+                    <option value="">Capim: todos</option>
+                    {capins.map((c) => (
+                      <option key={c} value={c}>{c}</option>
+                    ))}
+                  </select>
+                </th>
+                <th className="filtro-datas">
+                  <input type="date" value={filtro.de} max={filtro.ate || undefined} onChange={(e) => setFiltro({ ...filtro, de: e.target.value })} aria-label="Última coleta a partir de" title="De" />
+                  <input type="date" value={filtro.ate} min={filtro.de || undefined} onChange={(e) => setFiltro({ ...filtro, ate: e.target.value })} aria-label="Última coleta até" title="Até" />
+                </th>
+                <th />
+                <th />
+                <th />
+                <th>
+                  <select value={filtro.semaforo} onChange={(e) => setFiltro({ ...filtro, semaforo: e.target.value as Semaforo | '' })} aria-label="Filtrar por situação da MS">
+                    <option value="">MS: todas</option>
+                    <option value="verde">Pronto para ensilar</option>
+                    <option value="vermelho">Fora do ponto</option>
+                    <option value="amarelo">Sem coleta / sem MS</option>
+                  </select>
+                </th>
+                <th />
               </tr>
             </thead>
             <tbody>
