@@ -10,7 +10,8 @@ import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 export default function Painel() {
   const [parametros] = useState(lerParametros);
   const dados = useDados();
-  const [filtro, setFiltro] = useState<{ semaforo: Semaforo | ''; capim: string; fazenda: string }>({ semaforo: '', capim: '', fazenda: '' });
+  const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', fazenda: '', de: '', ate: '' };
+  const [filtro, setFiltro] = useState(FILTRO_VAZIO);
 
   const linhas = useMemo(() => {
     if (!dados) return [];
@@ -44,10 +45,12 @@ export default function Painel() {
     (l) =>
       (!filtro.semaforo || semaforoDe(statusMS(l.r?.msPct ?? null, parametros)) === filtro.semaforo) &&
       (!filtro.capim || l.t.capim === filtro.capim) &&
-      (!filtro.fazenda || (l.t.fazenda ?? '') === filtro.fazenda),
+      (!filtro.fazenda || (l.t.fazenda ?? '') === filtro.fazenda) &&
+      // período da última coleta: talhões sem coleta saem quando há data informada
+      (!(filtro.de || filtro.ate) || (!!l.c && (!filtro.de || l.c.data >= filtro.de) && (!filtro.ate || l.c.data <= filtro.ate))),
   );
   const alternarSemaforo = (s: Semaforo) => setFiltro((f) => ({ ...f, semaforo: f.semaforo === s ? '' : s }));
-  const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.fazenda);
+  const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.fazenda || filtro.de || filtro.ate);
 
   if (!dados.talhoes.length) {
     return (
@@ -121,8 +124,18 @@ export default function Painel() {
                 ))}
               </select>
             )}
+            <span className="filtro-datas">
+              <label>
+                <span className="mudo">Coleta de</span>
+                <input type="date" value={filtro.de} max={filtro.ate || undefined} onChange={(e) => setFiltro({ ...filtro, de: e.target.value })} aria-label="Última coleta a partir de" />
+              </label>
+              <label>
+                <span className="mudo">até</span>
+                <input type="date" value={filtro.ate} min={filtro.de || undefined} onChange={(e) => setFiltro({ ...filtro, ate: e.target.value })} aria-label="Última coleta até" />
+              </label>
+            </span>
             {temFiltro && (
-              <button type="button" className="link" onClick={() => setFiltro({ semaforo: '', capim: '', fazenda: '' })}>limpar</button>
+              <button type="button" className="link" onClick={() => setFiltro(FILTRO_VAZIO)}>limpar</button>
             )}
           </div>
         </div>
