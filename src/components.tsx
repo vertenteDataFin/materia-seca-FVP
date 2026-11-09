@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { ROTULO_STATUS, type StatusMS } from './calc';
+import { ROTULO_SEMAFORO, semaforoDe, type Semaforo } from './semaforo';
 import { criarColeta } from './coletas';
 import { numParaTexto, parseNum } from './util';
 
@@ -113,9 +114,16 @@ export function MenuTalhao({
   );
 }
 
-export function SeloMS({ status }: { status: StatusMS | null }) {
-  if (!status) return <span className="selo">sem MS</span>;
-  return <span className={`selo selo-${status}`}>{ROTULO_STATUS[status]}</span>;
+/** Selo de situação da MS nas cores do semáforo (verde pronto, vermelho fora do ponto, amarelo sem MS). */
+export function SeloMS({ status, semColeta = false }: { status: StatusMS | null; semColeta?: boolean }) {
+  const cor = semaforoDe(status);
+  const texto = status ? ROTULO_STATUS[status] : semColeta ? 'sem coleta' : 'MS não aferida';
+  return <span className={`selo selo-${cor}`}>{texto}</span>;
+}
+
+/** Bolinha do semáforo (para listas e mapa). */
+export function Bolinha({ cor, titulo }: { cor: Semaforo; titulo?: string }) {
+  return <span className={`bolinha bolinha-${cor}`} title={titulo ?? ROTULO_SEMAFORO[cor]} aria-label={titulo ?? ROTULO_SEMAFORO[cor]} />;
 }
 
 export function Indicador({ rotulo, valor, unidade }: { rotulo: string; valor: string; unidade?: string }) {

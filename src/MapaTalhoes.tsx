@@ -55,11 +55,11 @@ export function nomeCurto(nome: string): string {
 
 function estiloPath(sel: boolean, e: EstiloTalhao): L.PathOptions {
   return {
-    color: sel ? '#ffe066' : '#39d353',
+    color: sel ? '#ffe066' : (e.cor ?? '#2e9e3f'),
     weight: sel ? 4 : 2.5,
     dashArray: e.tracejado ? '8 6' : undefined,
     fillColor: e.cor ?? '#2e9e3f',
-    fillOpacity: sel ? 0.55 : 0.35,
+    fillOpacity: sel ? 0.6 : 0.42,
   };
 }
 

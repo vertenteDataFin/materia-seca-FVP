@@ -6,8 +6,7 @@ import { resumoColeta, statusMS } from '../calc';
 import { MenuTalhao } from '../components';
 import { fmt, lerParametros } from '../util';
 import MapaTalhoes from '../MapaTalhoes';
-
-export const COR_STATUS = { baixo: '#4aa3ff', ideal: '#39d353', alto: '#ffb020' } as const;
+import { COR_SEMAFORO, semaforoDe } from '../semaforo';
 
 export default function Mapa() {
   const navigate = useNavigate();
@@ -58,16 +57,18 @@ export default function Mapa() {
           estilo={(t) => {
             const u = ultimaPorTalhao.get(t.id);
             const s = u ? statusMS(u.msPct, parametros) : null;
-            return { cor: s ? COR_STATUS[s] : u ? '#9aa59a' : undefined, rotuloExtra: u?.msPct != null ? `${fmt(u.msPct, 0)}% MS` : t.capim };
+            return {
+              cor: COR_SEMAFORO[semaforoDe(s)],
+              tracejado: !u || u.msPct == null,
+              rotuloExtra: u?.msPct != null ? `${fmt(u.msPct, 0)}% MS` : u ? 'MS pendente' : 'sem coleta',
+            };
           }}
         />
         <p className="dica">Toque no talhão para ver os registros ou iniciar uma nova coleta.</p>
         <p className="dica">
-          <span className="selo" style={{ background: COR_STATUS.baixo, color: '#fff' }}>MS baixa</span>{' '}
-          <span className="selo" style={{ background: COR_STATUS.ideal, color: '#fff' }}>ponto de ensilagem</span>{' '}
-          <span className="selo" style={{ background: COR_STATUS.alto, color: '#fff' }}>MS alta</span>{' '}
-          <span className="selo" style={{ background: '#9aa59a', color: '#fff' }}>coletado, aguardando laboratório</span>{' '}
-          <span className="selo" style={{ background: '#2e9e3f', color: '#fff' }}>sem coleta</span>
+          <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>verde: pronto para ensilar (MS {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)} %)</span>{' '}
+          <span className="selo" style={{ background: COR_SEMAFORO.amarelo, color: '#3a2e00' }}>amarelo: sem coleta ou MS não aferida</span>{' '}
+          <span className="selo" style={{ background: COR_SEMAFORO.vermelho, color: '#fff' }}>vermelho: MS fora do ponto (baixa ou alta)</span>
         </p>
       </div>
     </>

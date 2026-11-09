@@ -2,9 +2,10 @@ import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import { estimativaTalhao, resumoColeta, statusMS } from '../calc';
-import { Indicador, SeloMS } from '../components';
+import { Bolinha, Indicador, SeloMS } from '../components';
 import { fmt, fmtData, lerParametros } from '../util';
 import { nomeCurto } from '../MapaTalhoes';
+import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 
 export default function Painel() {
   const [parametros] = useState(lerParametros);
@@ -34,6 +35,8 @@ export default function Painel() {
   // MS média ponderada apenas sobre talhões que têm MV e MS
   const mvComMS = soma((l) => (l.e?.tMStotal != null ? l.e.tMVtotal : 0));
   const msPonderada = mvComMS > 0 ? (msTotal / mvComMS) * 100 : null;
+  const contagem: Record<Semaforo, number> = { verde: 0, amarelo: 0, vermelho: 0 };
+  for (const l of linhas) contagem[semaforoDe(statusMS(l.r?.msPct ?? null, parametros))]++;
 
   if (!dados.talhoes.length) {
     return (
@@ -68,7 +71,14 @@ export default function Painel() {
       </div>
 
       <div className="cartao">
-        <h2>Por talhão</h2>
+        <div className="cabecalho-cartao">
+          <h2>Por talhão</h2>
+          <span className="semaforo-resumo">
+            <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>{contagem.verde} pronto(s)</span>{' '}
+            <span className="selo" style={{ background: COR_SEMAFORO.amarelo, color: '#3a2e00' }}>{contagem.amarelo} sem MS</span>{' '}
+            <span className="selo" style={{ background: COR_SEMAFORO.vermelho, color: '#fff' }}>{contagem.vermelho} fora do ponto</span>
+          </span>
+        </div>
         <p className="dica">Última coleta de cada talhão. Toque no talhão para ver o cadastro ou na data para abrir a coleta.</p>
         <div className="rolagem">
           <table className="tabela-cartoes">
@@ -88,10 +98,11 @@ export default function Painel() {
               {linhas.map(({ t, c, r }) => (
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
+                    <Bolinha cor={semaforoDe(statusMS(r?.msPct ?? null, parametros))} />{' '}
                     <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{nomeCurto(t.nome)}</strong></Link>
                     <div className="mudo so-cel">
-                      <small>{t.capim || '—'}{c ? <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></> : ' · sem coleta'}</small>
-                      {c && <> <SeloMS status={statusMS(r?.msPct ?? null, parametros)} /></>}
+                      <small>{t.capim || '—'}{c && <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></>}</small>{' '}
+                      <SeloMS status={statusMS(r?.msPct ?? null, parametros)} semColeta={!c} />
                     </div>
                   </td>
                   <td className="oculta-cel">{t.capim || '—'}</td>
