@@ -73,13 +73,26 @@ function AppNuvem() {
 
 function VerificarEmail({ usuario, aoAtualizar }: { usuario: User; aoAtualizar: () => void }) {
   const [msg, setMsg] = useState('');
+  const [enviado, setEnviado] = useState(() => sessionStorage.getItem(`silagem-ms:verificacao-enviada:${usuario.uid}`) === '1');
+
+  // Envia o link uma vez por sessão, assim que a tela aparece (o Firebase limita reenvios seguidos).
+  useEffect(() => {
+    if (enviado) return;
+    enviarVerificacao(usuario)
+      .then(() => {
+        sessionStorage.setItem(`silagem-ms:verificacao-enviada:${usuario.uid}`, '1');
+        setEnviado(true);
+      })
+      .catch((e) => setMsg(mensagemErroAuth(e)));
+  }, [usuario, enviado]);
+
   return (
     <main className="login">
       <div className="cartao login-cartao">
         <h2>Confirme seu e-mail</h2>
         <p>
-          Enviamos um link de confirmação para <strong>{usuario.email}</strong>. Abra o e-mail, clique no link e depois toque em
-          "Já confirmei".
+          {enviado ? 'Enviamos' : 'Estamos enviando'} um link de confirmação para <strong>{usuario.email}</strong>. Abra o e-mail (confira
+          também o spam), clique no link e depois toque em "Já confirmei".
         </p>
         <div className="acoes">
           <button

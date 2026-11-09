@@ -35,7 +35,7 @@ const MENSAGENS: Record<string, string> = {
   'auth/wrong-password': 'E-mail ou senha incorretos.',
   'auth/user-not-found': 'Não há conta com este e-mail. Peça ao administrador para incluir você.',
   'auth/invalid-email': 'E-mail inválido.',
-  'auth/too-many-requests': 'Muitas tentativas. Aguarde alguns minutos e tente de novo.',
+  'auth/too-many-requests': 'Muitas tentativas seguidas. Aguarde alguns minutos e tente de novo.',
   'auth/network-request-failed': 'Sem conexão. O primeiro login precisa de internet.',
   'auth/unauthorized-domain': 'Este endereço não está autorizado no Firebase (Authentication → Domínios autorizados).',
   'auth/operation-not-allowed': 'Este método de login não está ativado no Firebase (Authentication → Método de login).',
