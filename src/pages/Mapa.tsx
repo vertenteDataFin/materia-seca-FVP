@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Amostra, type Coleta } from '../db';
+import { db, listarTalhoes, type Amostra, type Coleta } from '../db';
 import { resumoColeta, statusMS } from '../calc';
 import { MenuTalhao } from '../components';
 import { fmt, lerParametros } from '../util';
@@ -14,7 +14,7 @@ export default function Mapa() {
   const [parametros] = useState(lerParametros);
   const [selecionadoId, setSelecionadoId] = useState<number | null>(null);
   const dados = useLiveQuery(async () => {
-    const [talhoes, coletas, amostras] = await Promise.all([db.talhoes.orderBy('nome').toArray(), db.coletas.toArray(), db.amostras.toArray()]);
+    const [talhoes, coletas, amostras] = await Promise.all([listarTalhoes(), db.coletas.toArray(), db.amostras.toArray()]);
     return { talhoes, coletas, amostras };
   }, []);
 

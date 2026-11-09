@@ -1,5 +1,5 @@
 import { db, type Talhao } from './db';
-import { chaveNome, lerKml, sugerirCorrespondencias } from './kml';
+import { chaveNome, lerKml, sugerirCorrespondencias, type PoligonoKml } from './kml';
 
 export const KML_FAZENDA_URL = `${import.meta.env.BASE_URL}talhoes-fazenda.kml`;
 
@@ -32,6 +32,11 @@ export async function fundirDuplicados(): Promise<number> {
   });
 }
 
+/** O nome atual ainda é derivado do KML (mesma chave, sem personalização do usuário)? */
+function nomeEhDoKml(nomeAtual: string, p: PoligonoKml): boolean {
+  return chaveNome(nomeAtual) === chaveNome(p.nome);
+}
+
 let emAndamento: Promise<{ criados: number; atualizados: number }> | null = null;
 
 /**
@@ -61,10 +66,12 @@ async function executar() {
       const id = corresp.get(i);
       if (id != null) {
         const atual = existentes.find((t) => t.id === id)!;
-        await db.talhoes.update(id, { ...doKml, capim: atual.capim || p.capim, areaHa: atual.areaHa > 0 ? atual.areaHa : areaKml });
+        // Renomeia para o padrão do app se o nome ainda for o do KML ou uma abreviação dele (ex.: "TL 18").
+        const nome = nomeEhDoKml(atual.nome, p) ? p.nomeApp : atual.nome;
+        await db.talhoes.update(id, { ...doKml, nome, capim: atual.capim || p.capim, areaHa: atual.areaHa > 0 ? atual.areaHa : areaKml });
         atualizados++;
       } else {
-        await db.talhoes.add({ nome: p.nomeLimpo, capim: p.capim, areaHa: areaKml, observacoes: '', ...doKml } as Talhao);
+        await db.talhoes.add({ nome: p.nomeApp, capim: p.capim, areaHa: areaKml, observacoes: '', ...doKml } as Talhao);
         criados++;
       }
     }

@@ -66,6 +66,16 @@ class SilagemDB extends Dexie {
 
 export const db = new SilagemDB();
 
+/** Ordem natural de nomes: "Talhão 13" < "Talhão 17A" < "Talhão 18" < "Talhão C3" (não 1, 10, 13, 2…). */
+export function compararNomes(a: string, b: string): number {
+  return a.localeCompare(b, 'pt-BR', { numeric: true, sensitivity: 'base' });
+}
+
+/** Todos os talhões em ordem alfabética natural pelo nome. */
+export async function listarTalhoes(): Promise<Talhao[]> {
+  return (await db.talhoes.toArray()).sort((a, b) => compararNomes(a.nome, b.nome));
+}
+
 /** Exclui um talhão e todas as suas coletas e amostras. */
 export async function excluirTalhao(id: number) {
   await db.transaction('rw', db.talhoes, db.coletas, db.amostras, async () => {

@@ -1,17 +1,16 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Amostra, type Coleta } from '../db';
+import { db, listarTalhoes, type Amostra, type Coleta } from '../db';
 import { estimativaTalhao, resumoColeta, statusMS } from '../calc';
 import { Indicador, SeloMS } from '../components';
 import { fmt, fmtData, lerParametros } from '../util';
-import { nomeCurto } from '../MapaTalhoes';
 
 export default function Painel() {
   const [parametros] = useState(lerParametros);
   const dados = useLiveQuery(async () => {
     const [talhoes, coletas, amostras] = await Promise.all([
-      db.talhoes.orderBy('nome').toArray(),
+      listarTalhoes(),
       db.coletas.toArray(),
       db.amostras.toArray(),
     ]);
@@ -108,7 +107,7 @@ export default function Painel() {
               {linhas.map(({ t, c, r, e }) => (
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
-                    <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{nomeCurto(t.nome)}</strong></Link>
+                    <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{t.nome}</strong></Link>
                     <div className="mudo so-cel">
                       <small>{t.capim || '—'}{c ? <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></> : ' · sem coleta'}</small>
                       {c && <> <SeloMS status={statusMS(r?.msPct ?? null, parametros)} /></>}

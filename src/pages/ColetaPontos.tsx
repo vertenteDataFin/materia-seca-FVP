@@ -5,7 +5,7 @@ import { db, type Amostra } from '../db';
 import { adicionarPonto, removerPonto } from '../coletas';
 import { PassosColeta } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
-import MapaTalhoes, { nomeCurto, type Marcador } from '../MapaTalhoes';
+import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmtData } from '../util';
 
 /** Etapa 2: marcar no mapa do talhão onde cada ponto foi coletado (cada ponto = uma amostra). */
@@ -51,7 +51,7 @@ export default function ColetaPontos() {
   return (
     <>
       <div className="titulo-linha">
-        <h1>Coleta — {talhao ? nomeCurto(talhao.nome) : '…'} · {fmtData(coleta.data)}</h1>
+        <h1>Coleta — {talhao ? talhao.nome : '…'} · {fmtData(coleta.data)}</h1>
         <Link to="/mapa">← Mapa</Link>
       </div>
       <PassosColeta coletaId={coletaId} atual={2} />

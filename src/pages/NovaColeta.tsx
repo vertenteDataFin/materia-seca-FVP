@@ -1,16 +1,15 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db } from '../db';
+import { listarTalhoes } from '../db';
 import { CHAVE_QUADRO, CHAVE_RESP, criarColeta, lembrarUltimos } from '../coletas';
 import { fmt, hoje, parseNum } from '../util';
-import { nomeCurto } from '../MapaTalhoes';
 
 /** Registro de uma nova coleta pela lista (sem mapa). Depois segue para a etapa de pontos. */
 export default function NovaColeta() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const talhoes = useLiveQuery(() => db.talhoes.orderBy('nome').toArray(), []);
+  const talhoes = useLiveQuery(() => listarTalhoes(), []);
   const [form, setForm] = useState({
     talhaoId: params.get('talhao') ?? '',
     data: hoje(),
@@ -44,7 +43,7 @@ export default function NovaColeta() {
   return (
     <>
       <div className="titulo-linha">
-        <h1>Nova coleta{talhao ? ` — ${nomeCurto(talhao.nome)}` : ''}</h1>
+        <h1>Nova coleta{talhao ? ` — ${talhao.nome}` : ''}</h1>
         <Link to="/mapa">← Mapa</Link>
       </div>
 

@@ -1,7 +1,8 @@
 ﻿// @vitest-environment jsdom
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { areaAnelM2, capimDaAtividade, chaveNome, lerKml, sugerirCorrespondencias } from './kml';
+import { areaAnelM2, capimDaAtividade, chaveNome, lerKml, nomePadrao, sugerirCorrespondencias } from './kml';
+import { compararNomes } from './db';
 
 const KML_MINIMO = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2"><Document><Folder><name>CAPIM</name>
@@ -14,6 +15,7 @@ describe('kml', () => {
   it('lê nome, fazenda, área, atividade e calcula a área do polígono', () => {
     const [p] = lerKml(KML_MINIMO);
     expect(p.nomeLimpo).toBe('PD - TALHAO 17 A');
+    expect(p.nomeApp).toBe('Talhão 17A - PD');
     expect(p.fazenda).toBe('Pedra');
     expect(p.areaDeclaradaHa).toBe(73.3);
     expect(p.capim).toBe('Mombaça');
@@ -37,6 +39,28 @@ describe('kml', () => {
     expect(chaveNome('PIVO 01 — CAPIM MIYAGI')).toBe(chaveNome('Pivô 1'));
     expect(chaveNome('CONF - TALHAO C3')).toBe(chaveNome('C3'));
     expect(chaveNome('PD- TALHÃO 17 D')).toBe('17D');
+    expect(chaveNome('Talhão 17A - PD')).toBe('17A');
+    expect(chaveNome('Pivô 1 - Conf')).toBe(chaveNome('PIVO 01'));
+    expect(chaveNome('Talhão C3 - Conf')).toBe('C3');
+    expect(chaveNome('Talhão 18 - PD')).toBe(chaveNome('TL 18'));
+  });
+
+  it('gera o nome no padrão "Talhão N - Fazenda"', () => {
+    expect(nomePadrao('PD - TALHAO 18', 'Pedra')).toBe('Talhão 18 - PD');
+    expect(nomePadrao('PD - TALHAO 17 A', 'Pedra')).toBe('Talhão 17A - PD');
+    expect(nomePadrao('PD- TALHÃO 17 D', 'Pedra')).toBe('Talhão 17D - PD');
+    expect(nomePadrao('CONF - TALHAO 21', 'Confinamento')).toBe('Talhão 21 - Conf');
+    expect(nomePadrao('CONF - TALHAO C3', 'Confinamento')).toBe('Talhão C3 - Conf');
+    expect(nomePadrao('PIVO 01', 'Confinamento')).toBe('Pivô 1 - Conf');
+    expect(nomePadrao('SA - TALHAO 05A', 'Santo Antonio')).toBe('Talhão 5A - SA');
+    expect(nomePadrao('TALHÃO 08- JIBOIA/ORIDIO', 'Jiboia/Vovo Oridio')).toBe('Talhão 8 - JI');
+  });
+
+  it('ordena nomes em ordem natural', () => {
+    const nomes = ['Talhão 20 - Conf', 'Talhão C3 - Conf', 'Talhão 17B - PD', 'Pivô 2 - Conf', 'Talhão 13 - PD', 'Talhão 17A - PD', 'Pivô 1 - Conf', 'Talhão 18 - PD'];
+    expect([...nomes].sort(compararNomes)).toEqual([
+      'Pivô 1 - Conf', 'Pivô 2 - Conf', 'Talhão 13 - PD', 'Talhão 17A - PD', 'Talhão 17B - PD', 'Talhão 18 - PD', 'Talhão 20 - Conf', 'Talhão C3 - Conf',
+    ]);
   });
 });
 

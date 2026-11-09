@@ -12,4 +12,11 @@ describe('nomeCurto', () => {
     expect(nomeCurto('CONF - TALHAO 21 — CAPIM MOMBACA')).toBe('TL 21');
     expect(nomeCurto('Cauã 1')).toBe('Cauã 1');
   });
+
+  it('abrevia o nome no padrão do app', () => {
+    expect(nomeCurto('Talhão 17A - PD')).toBe('TL 17A');
+    expect(nomeCurto('Talhão 18 - PD')).toBe('TL 18');
+    expect(nomeCurto('Pivô 1 - Conf')).toBe('Pivô 1');
+    expect(nomeCurto('Talhão C3 - Conf')).toBe('C3');
+  });
 });

@@ -1,16 +1,15 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Amostra } from '../db';
+import { db, listarTalhoes, type Amostra } from '../db';
 import { resumoColeta } from '../calc';
 import { fmt, fmtData } from '../util';
-import { nomeCurto } from '../MapaTalhoes';
 
 /** Histórico de coletas. A criação fica em /coletas/nova (talhão escolhido no Mapa). */
 export default function Coletas() {
   const dados = useLiveQuery(async () => {
     const [talhoes, coletas, amostras] = await Promise.all([
-      db.talhoes.orderBy('nome').toArray(),
+      listarTalhoes(),
       db.coletas.toArray(),
       db.amostras.toArray(),
     ]);
@@ -47,7 +46,7 @@ export default function Coletas() {
           <select value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Filtrar por talhão">
             <option value="">Todos os talhões</option>
             {dados.talhoes.map((t) => (
-              <option key={t.id} value={t.id}>{nomeCurto(t.nome)}</option>
+              <option key={t.id} value={t.id}>{t.nome}</option>
             ))}
           </select>
         </div>
@@ -72,7 +71,7 @@ export default function Coletas() {
                 {linhas.map(({ c, talhao, r }) => (
                   <tr key={c.id}>
                     <td className="nome-talhao largo-cel">
-                      <strong>{nomeCurto(talhao)}</strong>
+                      <strong>{talhao}</strong>
                       <span className="mudo so-cel"><small>{fmtData(c.data)}{c.responsavel ? ` · ${c.responsavel}` : ''}</small></span>
                     </td>
                     <td className="oculta-cel">{fmtData(c.data)}</td>

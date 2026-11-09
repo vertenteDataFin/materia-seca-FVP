@@ -7,6 +7,8 @@ export interface PoligonoKml {
   nome: string;
   /** Nome sem o sufixo de atividade (" — CAPIM ..."). */
   nomeLimpo: string;
+  /** Nome no padrão do app: "Talhão 18 - PD", "Pivô 1 - Conf". */
+  nomeApp: string;
   fazenda: string;
   atividade: string;
   /** Capim derivado da atividade atual ('' se sem atividade). */
@@ -106,10 +108,12 @@ export function lerKml(texto: string): PoligonoKml[] {
     const fazenda = (desc.match(/Fazenda:\s*([^<\n]+)/i)?.[1] ?? '').replace(/^Faz\.\s*/i, '').trim();
     const area = desc.match(/[ÁA]rea:\s*([\d.,]+)\s*ha/i)?.[1];
     const atividade = (desc.match(/Atividade hoje:\s*([^<\n]+)/i)?.[1] ?? '').trim();
+    const nomeLimpo = nome.split(' — ')[0].trim();
     return [
       {
         nome,
-        nomeLimpo: nome.split(' — ')[0].trim(),
+        nomeLimpo,
+        nomeApp: nomePadrao(nomeLimpo, fazenda),
         fazenda,
         atividade,
         capim: capimDaAtividade(atividade),
@@ -121,9 +125,50 @@ export function lerKml(texto: string): PoligonoKml[] {
   });
 }
 
+/** Siglas das fazendas usadas no sufixo do nome padrão. */
+const SIGLA_FAZENDA: Record<string, string> = {
+  PEDRA: 'PD',
+  CONFINAMENTO: 'Conf',
+  BRUMADO: 'BR',
+  CASCATA: 'CA',
+  CAUA: 'CAU',
+  MARAJU: 'MA',
+  'SANTA MARIA DO BRILHANTE': 'SMB',
+  'SANTO ANTONIO': 'SA',
+};
+
+/** Sigla da fazenda: pelo nome da fazenda ou, na falta, pelo prefixo do nome do KML ("CONF - "). */
+export function siglaFazenda(fazenda: string, nomeKml = ''): string {
+  const porNome = SIGLA_FAZENDA[semAcento(fazenda).toUpperCase().replace(/\s+/g, ' ').trim()];
+  if (porNome) return porNome;
+  const prefixo = semAcento(nomeKml).toUpperCase().match(/^([A-Z]{1,5})\s*-\s*/)?.[1];
+  if (prefixo) return prefixo.length <= 2 ? prefixo : prefixo.charAt(0) + prefixo.slice(1).toLowerCase();
+  const f = fazenda.trim();
+  return f ? f.slice(0, 2).toUpperCase() : '';
+}
+
+/**
+ * Nome no padrão do app: "Talhão <número> - <sigla da fazenda>".
+ * "PD - TALHAO 17 A" → "Talhão 17A - PD"; "PIVO 01" → "Pivô 1 - Conf"; "CONF - TALHAO C3" → "Talhão C3 - Conf".
+ */
+export function nomePadrao(nomeKml: string, fazenda: string): string {
+  const sigla = siglaFazenda(fazenda, nomeKml);
+  let s = semAcento(nomeKml).toUpperCase().split(' — ')[0].trim();
+  s = s.replace(/^[A-Z]{1,5}\s*-\s*/, '').replace(/\s*-\s+[A-Z/ ]+$/, '').trim();
+  let base: string;
+  const pivo = s.match(/^PIVO\s*0*(\d+)$/);
+  if (pivo) base = `Pivô ${pivo[1]}`;
+  else {
+    const corpo = s.replace(/^TALHAO\s*/, '').trim();
+    const num = corpo.match(/^0*(\d+)\s*([A-Z])?$/);
+    base = num ? `Talhão ${num[1]}${num[2] ?? ''}` : `Talhão ${corpo}`;
+  }
+  return sigla ? `${base} - ${sigla}` : base;
+}
+
 /**
  * Chave de comparação de nomes: remove prefixo de fazenda ("PD - ", "CONF - "), sufixos,
- * a palavra TALHÃO/TL e zeros à esquerda. "PD - TALHAO 17 A" e "TL 17A" → "17A"; "PIVO 01" e "Pivô 1" → "PIVO1".
+ * a palavra TALHÃO/TL e zeros à esquerda. "PD - TALHAO 17 A", "Talhão 17A - PD" e "TL 17A" → "17A"; "PIVO 01" e "Pivô 1 - Conf" → "PIVO1".
  */
 export function chaveNome(nome: string): string {
   let s = semAcento(nome).toUpperCase().split(' — ')[0];

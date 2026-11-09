@@ -39,9 +39,13 @@ interface Props {
 
 const SATELITE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
 
-/** Nome curto como na foto: "PD - TALHAO 17 A" → "TL 17A"; "PIVO 01" → "Pivô 1"; "CONF - TALHAO C3" → "C3". */
+/** Nome curto como na foto: "Talhão 17A - PD" ou "PD - TALHAO 17 A" → "TL 17A"; "Pivô 1 - Conf" → "Pivô 1"; "Talhão C3 - Conf" → "C3". */
 export function nomeCurto(nome: string): string {
-  const s = nome.replace(/\s*—.*$/, '').replace(/^[A-Z]+\s*-\s*/i, '').trim();
+  const s = nome
+    .replace(/\s*—.*$/, '')
+    .replace(/^[A-Z]+\s*-\s*/i, '')
+    .replace(/\s+-\s+[A-Za-z]{1,5}$/, '')
+    .trim();
   const pivo = s.match(/^PIV[OÔ]\s*0*(\d+)$/i);
   if (pivo) return `Pivô ${pivo[1]}`;
   const tl = s.match(/^TALH[AÃ]O\s*(\d+)\s*([A-Z]?)$/i);

@@ -1,7 +1,7 @@
 import { useState, type FormEvent } from 'react';
 import { useLiveQuery } from 'dexie-react-hooks';
 import { useSearchParams } from 'react-router-dom';
-import { db, excluirTalhao, type Talhao } from '../db';
+import { db, listarTalhoes, excluirTalhao, type Talhao } from '../db';
 import { CAPINS_COMUNS, fmt, numParaTexto, parseNum } from '../util';
 import DetalheTalhao from './DetalheTalhao';
 import { capimFoto, mesmoCapim } from '../capinsFoto';
@@ -9,7 +9,7 @@ import { capimFoto, mesmoCapim } from '../capinsFoto';
 const vazio = { nome: '', fazenda: '', area: '', capim: '', observacoes: '' };
 
 export default function Talhoes() {
-  const talhoes = useLiveQuery(() => db.talhoes.orderBy('nome').toArray(), []);
+  const talhoes = useLiveQuery(() => listarTalhoes(), []);
   const [form, setForm] = useState(vazio);
   const [editandoId, setEditandoId] = useState<number | null>(null);
   const [params] = useSearchParams();
@@ -88,7 +88,7 @@ export default function Talhoes() {
         <h2>{editandoId != null ? 'Editar talhão' : 'Novo talhão'}</h2>
         <label>
           Nome / identificação
-          <input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex.: PD - TALHAO 17 A" />
+          <input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex.: Talhão 17A - PD" />
         </label>
         <label>
           Fazenda

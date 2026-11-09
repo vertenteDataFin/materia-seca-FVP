@@ -1,5 +1,5 @@
 import type ExcelJS from 'exceljs';
-import { db, type Amostra, type Coleta, type Talhao } from './db';
+import { db, listarTalhoes, type Amostra, type Coleta, type Talhao } from './db';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade, type Parametros } from './calc';
 import { areaAnelM2 } from './kml';
 import { hoje, lerParametros } from './util';
@@ -31,7 +31,7 @@ function situacao(msPct: number | null, cvPct: number | null, p: Parametros): st
 
 /** Monta as planilhas (dados puros) a partir do banco — separado da escrita para ser testável. */
 export async function montarPlanilhas(p: Parametros = lerParametros()): Promise<Planilha[]> {
-  const [talhoes, coletas, amostras] = await Promise.all([db.talhoes.orderBy('nome').toArray(), db.coletas.toArray(), db.amostras.toArray()]);
+  const [talhoes, coletas, amostras] = await Promise.all([listarTalhoes(), db.coletas.toArray(), db.amostras.toArray()]);
   coletas.sort((a, b) => a.data.localeCompare(b.data) || a.id! - b.id!);
   const talhaoPorId = new Map<number, Talhao>(talhoes.map((t) => [t.id!, t]));
   const porColeta = new Map<number, Amostra[]>();

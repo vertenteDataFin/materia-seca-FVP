@@ -1,11 +1,11 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { useLiveQuery } from 'dexie-react-hooks';
-import { db, excluirColeta, type Amostra, type Coleta, type Talhao } from '../db';
+import { db, listarTalhoes, excluirColeta, type Amostra, type Coleta, type Talhao } from '../db';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade } from '../calc';
 import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
-import MapaTalhoes, { nomeCurto, type Marcador } from '../MapaTalhoes';
+import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmt, lerParametros } from '../util';
 
 export default function ColetaDetalhe() {
@@ -13,7 +13,7 @@ export default function ColetaDetalhe() {
   const coletaId = Number(useParams().id);
   const coleta = useLiveQuery(async () => (await db.coletas.get(coletaId)) ?? null, [coletaId]);
   const amostras = useLiveQuery(() => db.amostras.where('coletaId').equals(coletaId).sortBy('ponto'), [coletaId]);
-  const talhoes = useLiveQuery(() => db.talhoes.orderBy('nome').toArray(), []);
+  const talhoes = useLiveQuery(() => listarTalhoes(), []);
   const [parametros] = useState(lerParametros);
   const [capturando, setCapturando] = useState<number | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
@@ -100,7 +100,7 @@ export default function ColetaDetalhe() {
   return (
     <>
       <div className="titulo-linha">
-        <h1>Coleta — {talhao ? nomeCurto(talhao.nome) : 'talhão removido'}</h1>
+        <h1>Coleta — {talhao ? talhao.nome : 'talhão removido'}</h1>
         <Link to="/coletas">← Coletas</Link>
       </div>
       <PassosColeta coletaId={coletaId} atual={4} />

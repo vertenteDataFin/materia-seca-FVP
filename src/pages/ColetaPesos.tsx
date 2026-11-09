@@ -5,7 +5,6 @@ import { adicionarPonto, lembrarUltimos } from '../coletas';
 import { producaoPonto, resumoColeta } from '../calc';
 import { CampoNumero, Indicador, PassosColeta } from '../components';
 import { dentroDoTalhao, fmtCoord } from '../geo';
-import { nomeCurto } from '../MapaTalhoes';
 import { fmt, fmtData } from '../util';
 
 /** Etapa 3: peso verde (massa fresca) de cada ponto. */
@@ -38,7 +37,7 @@ export default function ColetaPesos() {
   return (
     <>
       <div className="titulo-linha">
-        <h1>Coleta — {talhao ? nomeCurto(talhao.nome) : '…'} · {fmtData(coleta.data)}</h1>
+        <h1>Coleta — {talhao ? talhao.nome : '…'} · {fmtData(coleta.data)}</h1>
         <Link to={`/coletas/${coletaId}/pontos`}>← Pontos</Link>
       </div>
       <PassosColeta coletaId={coletaId} atual={3} />
