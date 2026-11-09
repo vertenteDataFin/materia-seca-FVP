@@ -10,6 +10,7 @@ import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 export default function Painel() {
   const [parametros] = useState(lerParametros);
   const dados = useDados();
+  const [filtro, setFiltro] = useState<{ semaforo: Semaforo | ''; capim: string; fazenda: string }>({ semaforo: '', capim: '', fazenda: '' });
 
   const linhas = useMemo(() => {
     if (!dados) return [];
@@ -37,6 +38,16 @@ export default function Painel() {
   const msPonderada = mvComMS > 0 ? (msTotal / mvComMS) * 100 : null;
   const contagem: Record<Semaforo, number> = { verde: 0, amarelo: 0, vermelho: 0 };
   for (const l of linhas) contagem[semaforoDe(statusMS(l.r?.msPct ?? null, parametros))]++;
+  const capins = [...new Set(dados.talhoes.map((t) => t.capim).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const fazendas = [...new Set(dados.talhoes.map((t) => t.fazenda ?? '').filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
+  const filtradas = linhas.filter(
+    (l) =>
+      (!filtro.semaforo || semaforoDe(statusMS(l.r?.msPct ?? null, parametros)) === filtro.semaforo) &&
+      (!filtro.capim || l.t.capim === filtro.capim) &&
+      (!filtro.fazenda || (l.t.fazenda ?? '') === filtro.fazenda),
+  );
+  const alternarSemaforo = (s: Semaforo) => setFiltro((f) => ({ ...f, semaforo: f.semaforo === s ? '' : s }));
+  const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.fazenda);
 
   if (!dados.talhoes.length) {
     return (
@@ -73,13 +84,52 @@ export default function Painel() {
       <div className="cartao">
         <div className="cabecalho-cartao">
           <h2>Por talhão</h2>
-          <span className="semaforo-resumo">
-            <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>{contagem.verde} pronto(s)</span>{' '}
-            <span className="selo" style={{ background: COR_SEMAFORO.amarelo, color: '#3a2e00' }}>{contagem.amarelo} sem MS</span>{' '}
-            <span className="selo" style={{ background: COR_SEMAFORO.vermelho, color: '#fff' }}>{contagem.vermelho} fora do ponto</span>
-          </span>
+          <div className="filtros" role="group" aria-label="Filtros">
+            <span className="semaforo-resumo">
+              {(
+                [
+                  ['verde', `${contagem.verde} pronto(s)`, '#fff'],
+                  ['amarelo', `${contagem.amarelo} sem MS`, '#3a2e00'],
+                  ['vermelho', `${contagem.vermelho} fora do ponto`, '#fff'],
+                ] as [Semaforo, string, string][]
+              ).map(([s, rotulo, cor]) => (
+                <button
+                  key={s}
+                  type="button"
+                  className={`selo selo-filtro ${filtro.semaforo === s ? 'ativo' : ''}`}
+                  style={{ background: COR_SEMAFORO[s], color: cor }}
+                  aria-pressed={filtro.semaforo === s}
+                  onClick={() => alternarSemaforo(s)}
+                >
+                  {rotulo}
+                </button>
+              ))}
+            </span>
+            {capins.length > 1 && (
+              <select value={filtro.capim} onChange={(e) => setFiltro({ ...filtro, capim: e.target.value })} aria-label="Filtrar por capim">
+                <option value="">Todos os capins</option>
+                {capins.map((c) => (
+                  <option key={c} value={c}>{c}</option>
+                ))}
+              </select>
+            )}
+            {fazendas.length > 1 && (
+              <select value={filtro.fazenda} onChange={(e) => setFiltro({ ...filtro, fazenda: e.target.value })} aria-label="Filtrar por fazenda">
+                <option value="">Todas as fazendas</option>
+                {fazendas.map((f) => (
+                  <option key={f} value={f}>{f}</option>
+                ))}
+              </select>
+            )}
+            {temFiltro && (
+              <button type="button" className="link" onClick={() => setFiltro({ semaforo: '', capim: '', fazenda: '' })}>limpar</button>
+            )}
+          </div>
         </div>
-        <p className="dica">Última coleta de cada talhão. Toque no talhão para ver o cadastro ou na data para abrir a coleta.</p>
+        <p className="dica">
+          Última coleta de cada talhão. Toque no talhão para ver o cadastro ou na data para abrir a coleta.
+          {temFiltro && <> Mostrando <strong>{filtradas.length}</strong> de {linhas.length} talhões.</>}
+        </p>
         <div className="rolagem">
           <table className="tabela-cartoes">
             <thead>
@@ -95,7 +145,12 @@ export default function Painel() {
               </tr>
             </thead>
             <tbody>
-              {linhas.map(({ t, c, r }) => (
+              {!filtradas.length && (
+                <tr>
+                  <td colSpan={8} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
+                </tr>
+              )}
+              {filtradas.map(({ t, c, r }) => (
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
                     <Bolinha cor={semaforoDe(statusMS(r?.msPct ?? null, parametros))} />{' '}

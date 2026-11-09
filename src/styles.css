@@ -327,3 +327,14 @@ tr.linha-sel td { background: var(--verde-claro); }
 .bolinha-amarelo { background: #f2b705; }
 .bolinha-vermelho { background: #d64035; }
 .semaforo-resumo { display: flex; gap: 0.3rem; flex-wrap: wrap; }
+/* ---- Filtros do Painel ---- */
+.filtros { display: flex; gap: 0.4rem; flex-wrap: wrap; align-items: center; }
+.filtros select { padding: 0.3rem 0.5rem; font-size: 0.85rem; min-height: 0; }
+button.selo-filtro { border: 2px solid transparent; cursor: pointer; font: inherit; font-size: 0.8rem; font-weight: 600; min-height: 0; padding: 0.15rem 0.55rem; opacity: 0.75; }
+button.selo-filtro:hover { opacity: 1; }
+button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0 0 0 2px #fff inset; }
+@media (max-width: 700px) {
+  .filtros { width: 100%; }
+  .filtros select { flex: 1; }
+  button.selo-filtro { min-height: 32px; }
+}
