@@ -10,7 +10,7 @@ import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 export default function Painel() {
   const [parametros] = useState(lerParametros);
   const dados = useDados();
-  const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', busca: '', de: '', ate: '' };
+  const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', busca: '', data: '' };
   const [filtro, setFiltro] = useState(FILTRO_VAZIO);
 
   const linhas = useMemo(() => {
@@ -47,10 +47,10 @@ export default function Painel() {
       (!filtro.semaforo || semaforoDe(statusMS(l.r?.msPct ?? null, parametros)) === filtro.semaforo) &&
       (!filtro.capim || l.t.capim === filtro.capim) &&
       (!busca || normal(`${l.t.nome} ${nomeCurto(l.t.nome)} ${l.t.fazenda ?? ''}`).includes(busca)) &&
-      // período da última coleta: talhões sem coleta saem quando há data informada
-      (!(filtro.de || filtro.ate) || (!!l.c && (!filtro.de || l.c.data >= filtro.de) && (!filtro.ate || l.c.data <= filtro.ate))),
+      // data exata da última coleta: talhões sem coleta saem quando há data informada
+      (!filtro.data || l.c?.data === filtro.data),
   );
-  const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.busca || filtro.de || filtro.ate);
+  const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.busca || filtro.data);
 
   if (!dados.talhoes.length) {
     return (
@@ -127,9 +127,8 @@ export default function Painel() {
                     ))}
                   </select>
                 </th>
-                <th className="filtro-datas">
-                  <input type="date" value={filtro.de} max={filtro.ate || undefined} onChange={(e) => setFiltro({ ...filtro, de: e.target.value })} aria-label="Última coleta a partir de" title="De" />
-                  <input type="date" value={filtro.ate} min={filtro.de || undefined} onChange={(e) => setFiltro({ ...filtro, ate: e.target.value })} aria-label="Última coleta até" title="Até" />
+                <th>
+                  <input type="date" value={filtro.data} onChange={(e) => setFiltro({ ...filtro, data: e.target.value })} aria-label="Data da última coleta" title="Data da última coleta" />
                 </th>
                 <th />
                 <th />
