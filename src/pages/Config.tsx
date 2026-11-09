@@ -9,6 +9,7 @@ import { FIREBASE_ATIVO } from '../firebase';
 import { sair } from '../sessao';
 import { adicionarMembro, papelDe, removerMembro, ROTULO_PAPEL, useMembros, type Papel } from '../membros';
 import { usePermissoes } from '../permissoes';
+import { liberarSolicitacao, recusarSolicitacao, useSolicitacoes } from '../solicitacoes';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -171,6 +172,48 @@ export default function Config({ usuario }: { usuario?: User }) {
   );
 }
 
+/** Contas criadas na tela de login que aguardam liberação (só administradores veem). */
+function PedidosDeAcesso({ porQuem, aoMensagem }: { porQuem: string; aoMensagem: (m: string) => void }) {
+  const pedidos = useSolicitacoes(true);
+  const [papeis, setPapeis] = useState<Record<string, Papel>>({});
+  if (!pedidos || !pedidos.length) return null;
+  const papelDe = (email: string) => papeis[email] ?? 'operador';
+  return (
+    <>
+      <h3>
+        Pedidos de acesso <span className="selo selo-alto">{pedidos.length}</span>
+      </h3>
+      <ul className="lista-pontos">
+        {pedidos.map((s) => (
+          <li key={s.email} className="pedido">
+            <div>
+              <strong>{s.nome || s.email}</strong>
+              <div className="mudo"><small>{s.email} · pediu em {new Date(s.em).toLocaleDateString('pt-BR')}</small></div>
+            </div>
+            <span className="espaco" />
+            <select value={papelDe(s.email)} onChange={(e) => setPapeis({ ...papeis, [s.email]: e.target.value as Papel })} aria-label={`Papel de ${s.email}`}>
+              {(Object.keys(ROTULO_PAPEL) as Papel[]).map((p) => (
+                <option key={p} value={p}>{ROTULO_PAPEL[p].split(' (')[0]}</option>
+              ))}
+            </select>
+            <button
+              className="primario"
+              onClick={() =>
+                liberarSolicitacao(s, papelDe(s.email), porQuem)
+                  .then(() => aoMensagem(`${s.email} liberado(a) como ${ROTULO_PAPEL[papelDe(s.email)].split(' (')[0].toLowerCase()}.`))
+                  .catch((e) => aoMensagem(e.message))
+              }
+            >
+              Liberar
+            </button>
+            <button className="perigo mini" aria-label={`Recusar ${s.email}`} onClick={() => confirm(`Recusar o pedido de ${s.email}?`) && recusarSolicitacao(s.email).catch((e) => aoMensagem(e.message))}>✕</button>
+          </li>
+        ))}
+      </ul>
+    </>
+  );
+}
+
 /** Conta logada e, para administradores, a lista de pessoas com acesso. */
 function Conta({ usuario }: { usuario: User }) {
   const membros = useMembros();
@@ -206,6 +249,8 @@ function Conta({ usuario }: { usuario: User }) {
       </p>
       {meuPapel === 'operador' && <p className="dica">Perfil de operador: consulta e registra coletas, mas não exclui registros nem altera o cadastro de talhões.</p>}
 
+      {admin && <PedidosDeAcesso porQuem={usuario.email ?? ''} aoMensagem={setMsg} />}
+
       {admin && (
         <>
           <h3>Pessoas com acesso</h3>
@@ -226,6 +271,10 @@ function Conta({ usuario }: { usuario: User }) {
               {!membros.length && <li className="mudo">Só os administradores fixos têm acesso por enquanto.</li>}
             </ul>
           )}
+          <p className="dica">
+            O caminho normal é a pessoa criar a conta na tela de login e você liberar o pedido acima. O formulário abaixo serve para liberar um
+            e-mail antes mesmo de a conta existir.
+          </p>
           <form className="grade-form" onSubmit={incluir}>
             <label>
               E-mail

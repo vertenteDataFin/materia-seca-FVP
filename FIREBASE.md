@@ -24,19 +24,19 @@ Papéis (campo `papel` do membro):
 
 As regras do Firestore são a trava real; a interface apenas esconde os botões.
 
-O login é por e-mail e senha, sem confirmação de e-mail. Por isso, **desative a inscrição livre** no console
-(Authentication → Configurações → Ações do usuário → desmarcar "Ativar criação (inscrição)"): assim só as contas
-criadas pelo administrador existem, e ninguém consegue registrar um e-mail autorizado antes do dono.
+O login é por e-mail e senha, sem confirmação de e-mail. A pessoa **cria a própria conta** na tela de login
+("Criar conta"); isso gera um pedido em `fazendas/vertente/solicitacoes/<e-mail>` e ela fica na tela "Aguardando
+liberação" até um administrador liberar em **Config → Pedidos de acesso**, escolhendo o papel. Por isso a criação de
+contas precisa ficar **ativada** no console (Authentication → Configurações → Ações do usuário). Quem cria conta sem
+ser liberado não enxerga nada: as regras só liberam membros.
 
 ## Primeira configuração (console.firebase.google.com)
 
 1. Firestore Database → Criar banco (região `southamerica-east1`, modo de produção).
 2. Authentication → Método de login → ativar **E-mail/senha**.
-3. Authentication → Usuários → **Adicionar usuário** para cada pessoa (e-mail + senha inicial). A pessoa pode trocar a senha
-   pelo "Esqueci a senha" na tela de login.
-4. Authentication → Configurações → Domínios autorizados → adicionar `vertentedatafin.github.io`.
-5. Authentication → Configurações → Ações do usuário → desmarcar "Ativar criação (inscrição)".
-6. Publicar as regras (abaixo). Até isso ser feito, ninguém consegue ler nem gravar.
+3. Authentication → Configurações → Domínios autorizados → adicionar `vertentedatafin.github.io`.
+4. Authentication → Configurações → Ações do usuário → manter "Ativar criação (inscrição)" **ligado**.
+5. Publicar as regras (abaixo). Até isso ser feito, ninguém consegue ler nem gravar.
 
 ## Publicar as regras de segurança
 
@@ -51,8 +51,8 @@ npm run regras
 
 ## Incluir ou remover pessoas
 
-Dois passos: criar o usuário em Authentication → Usuários e, no app, logado como administrador, incluir o mesmo
-e-mail em **Config → Pessoas com acesso**. Para promover alguém a administrador
+A pessoa cria a conta na tela de login; o administrador libera em **Config → Pedidos de acesso** (ou inclui o e-mail
+antes, em **Pessoas com acesso**). Remover alguém: ✕ na lista de pessoas. Para promover alguém a administrador
 fixo (não removível pelo app), edite `ADMINS` e `admins()` e publique as regras de novo.
 
 ## Migração de aparelhos antigos

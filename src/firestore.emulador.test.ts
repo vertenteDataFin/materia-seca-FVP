@@ -94,6 +94,21 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(deleteDoc(doc(collection(tec, 'fazendas', FID, 'amostras'), 'a1')));
   });
 
+  it('conta nova registra só o próprio pedido de acesso; admin lê e apaga', async () => {
+    const novo = env.authenticatedContext('n', senha('novo@gmail.com', false)).firestore();
+    const pedido = (db: Firestore, e: string) => doc(collection(db, 'fazendas', FID, 'solicitacoes'), e);
+    await assertSucceeds(setDoc(pedido(novo, 'novo@gmail.com'), { email: 'novo@gmail.com', nome: 'Novo', em: '2026-11-09T12:00:00Z' }));
+    await assertFails(setDoc(pedido(novo, 'outro@gmail.com'), { email: 'outro@gmail.com', nome: 'X', em: '2026-11-09T12:00:00Z' }));
+    await assertFails(getDocs(collection(novo, 'fazendas', FID, 'solicitacoes')));
+    await assertFails(getDoc(talhao(novo))); // ainda sem acesso aos dados
+    const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
+    await assertSucceeds(getDocs(collection(admin, 'fazendas', FID, 'solicitacoes')));
+    await assertSucceeds(setDoc(membro(admin, 'novo@gmail.com'), { nome: 'Novo', papel: 'operador' }));
+    const { deleteDoc } = await import('firebase/firestore');
+    await assertSucceeds(deleteDoc(pedido(admin, 'novo@gmail.com')));
+    await assertSucceeds(getDoc(talhao(novo))); // liberado
+  });
+
   it('admin não remove a si mesmo da lista', async () => {
     const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
     await assertSucceeds(setDoc(membro(admin, ADMIN), { nome: 'Eu', papel: 'admin' }));

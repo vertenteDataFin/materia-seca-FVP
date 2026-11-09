@@ -32,18 +32,28 @@ export function normalizarEmail(e: string) {
   return e.trim().toLowerCase();
 }
 
-/** Lista ao vivo das pessoas com acesso (undefined enquanto carrega; null se sem permissão). */
+/**
+ * Lista ao vivo das pessoas com acesso (undefined enquanto carrega; null se sem permissão).
+ * Sem permissão (conta ainda não liberada), tenta de novo a cada 15 s para perceber a liberação.
+ */
 export function useMembros(): Membro[] | null | undefined {
   const [m, setM] = useState<Membro[] | null | undefined>(undefined);
-  useEffect(
-    () =>
-      onSnapshot(
-        ref(),
-        (snap) => setM(snap.docs.map((d) => ({ ...(d.data() as Omit<Membro, 'email'>), email: d.id })).sort((a, b) => a.email.localeCompare(b.email))),
-        () => setM(null),
-      ),
-    [],
-  );
+  const [tentativa, setTentativa] = useState(0);
+  useEffect(() => {
+    let timer: ReturnType<typeof setTimeout> | undefined;
+    const cancelar = onSnapshot(
+      ref(),
+      (snap) => setM(snap.docs.map((d) => ({ ...(d.data() as Omit<Membro, 'email'>), email: d.id })).sort((a, b) => a.email.localeCompare(b.email))),
+      () => {
+        setM(null);
+        timer = setTimeout(() => setTentativa((n) => n + 1), 15000);
+      },
+    );
+    return () => {
+      cancelar();
+      if (timer) clearTimeout(timer);
+    };
+  }, [tentativa]);
   return m;
 }
 

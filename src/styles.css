@@ -360,3 +360,13 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
   .tabela-cartoes thead.com-filtros tr.filtros-linha th:first-child, .tabela-cartoes thead.com-filtros tr.filtros-linha th.filtro-datas { grid-column: 1 / -1; }
   .filtros-linha input, .filtros-linha select { font-size: 1rem; padding: 0.5rem 0.6rem; }
 }
+/* ---- Abas do login e pedidos de acesso ---- */
+.abas { display: flex; border-bottom: 1px solid var(--borda); }
+.abas button { flex: 1; background: none; border: 0; border-bottom: 3px solid transparent; border-radius: 0; color: var(--mudo); font-weight: 600; padding: 0.6rem 0.5rem; min-height: 0; cursor: pointer; }
+.abas button:hover { background: var(--fundo); }
+.abas button.ativa { color: var(--verde); border-bottom-color: var(--verde); }
+.lista-pontos li.pedido select { padding: 0.3rem 0.5rem; min-height: 0; font-size: 0.9rem; }
+@media (max-width: 700px) {
+  .lista-pontos li.pedido > div:first-child { width: 100%; }
+  .lista-pontos li.pedido select { flex: 1; }
+}

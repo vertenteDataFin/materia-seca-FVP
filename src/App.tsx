@@ -3,13 +3,13 @@ import { HashRouter, NavLink, Route, Routes } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { definirRepositorio } from './dados';
 import { FIREBASE_ATIVO, obterFirebase } from './firebase';
-import { FAZENDA_ID } from './firebaseConfig';
+import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 import { inicializarDados } from './inicializacao';
 import { papelDe, useMembros } from './membros';
 import { PERMISSOES_LOCAL, PermissoesContext, permissoesDoPapel, type Permissoes } from './permissoes';
 import { RepositorioLocal, type Repositorio } from './repositorio';
 import { RepositorioFirestore } from './repositorioFirestore';
-import { useUsuario } from './sessao';
+import { sair, useUsuario } from './sessao';
 import Painel from './pages/Painel';
 import Mapa from './pages/Mapa';
 import Talhoes from './pages/Talhoes';
@@ -55,9 +55,9 @@ function AppNuvem() {
       definirRepositorio(null);
       return;
     }
+    // A conexão com os dados só é aberta em CascaNuvem, depois de confirmar que a conta foi liberada.
     const r = new RepositorioFirestore(obterFirebase().firestore, FAZENDA_ID);
     definirRepositorio(r);
-    r.iniciar();
     setRepo(r);
     return () => {
       r.parar();
@@ -74,8 +74,47 @@ function AppNuvem() {
 /** Descobre o papel do usuário (lista de membros) antes de montar a interface. */
 function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
   const membros = useMembros();
+  const adminFixo = ADMINS.map((a) => a.toLowerCase()).includes((usuario.email ?? '').toLowerCase());
+  const liberado = Array.isArray(membros) || (membros === null && adminFixo);
+  const [iniciado, setIniciado] = useState(false);
+
+  // Abre a conexão com os dados só quando a conta tem acesso (senão os ouvintes morrem com "acesso negado").
+  useEffect(() => {
+    if (!liberado) {
+      setIniciado(false);
+      return;
+    }
+    repo.iniciar();
+    setIniciado(true);
+    return () => repo.parar();
+  }, [repo, liberado]);
+
   if (membros === undefined) return <p className="vazio">Conectando…</p>;
+  // Não consegue ler a lista de membros e não é admin fixo: conta criada, mas ainda não liberada.
+  if (!liberado) return <AguardandoLiberacao usuario={usuario} />;
+  if (!iniciado) return null;
   return <Casca repo={repo} usuario={usuario} permissoes={permissoesDoPapel(papelDe(usuario.email, membros))} />;
+}
+
+function AguardandoLiberacao({ usuario }: { usuario: User }) {
+  return (
+    <main className="login">
+      <div className="cartao login-cartao">
+        <div className="marca login-marca">
+          <img src={`${import.meta.env.BASE_URL}icon.svg`} alt="" width={40} height={40} />
+          <span>Silagem MS</span>
+        </div>
+        <h2>Aguardando liberação</h2>
+        <p>
+          Sua conta <strong>{usuario.email}</strong> foi criada. Um administrador da fazenda precisa liberar o acesso em
+          Config → Pessoas com acesso. Avise a Maria Laura ou a Maria. Esta tela atualiza sozinha quando o acesso for liberado.
+        </p>
+        <div className="acoes">
+          <button onClick={() => void sair()}>Sair</button>
+        </div>
+      </div>
+    </main>
+  );
 }
 
 /** Cabeçalho, navegação e rotas; roda a inicialização (migração, KML, fichas) quando a fonte está pronta. */
