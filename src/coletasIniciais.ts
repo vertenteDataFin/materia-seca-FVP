@@ -11,7 +11,7 @@ export const COLETAS_INICIAIS: {
 }[] = [
   { talhao: 'TL 23', data: '2026-11-06', amostras: [[3.6, 100, 22], [4.1, 100, 24]] },
   { talhao: 'TL 21', data: '2026-11-06', amostras: [[1.2, 100, 22], [3.0, 100, 20]] },
-  { talhao: 'TL 18', data: '2026-11-07', amostras: [[2.02, 100, 22], [1.0, 100, 26], [2.3], [1.0], [2.0], [1.68]] },
+  { talhao: 'TL 18', data: '2026-11-07', amostras: [[2.02, 100, 22], [1.0, 100, 26], [2.3, 100, 24], [1.0, 100, 26], [2.0, 100, 22], [1.68, 100, 22]] },
 ];
 
 export const OBS_COLETA_INICIAL = 'Lançada da ficha de campo (sem GPS)';
@@ -19,16 +19,19 @@ export const OBS_COLETA_INICIAL = 'Lançada da ficha de campo (sem GPS)';
 export interface ResultadoImportacao {
   criadas: number;
   existentes: number;
+  /** Amostras já existentes que receberam úmido/seco da ficha (estavam em branco). */
+  completadas: number;
   semTalhao: string[];
 }
 
 /**
  * Cria as coletas iniciais nos talhões correspondentes (pelo nome). Se a coleta da ficha daquele
- * talhão/data já existir (identificada pela observação), não cria de novo — pode ser chamada
- * quantas vezes for preciso. Coletas feitas pelo usuário no mesmo dia não impedem a importação.
+ * talhão/data já existir (identificada pela observação), não cria de novo, mas completa amostras
+ * que ainda estejam sem úmido/seco com os valores da ficha — pode ser chamada quantas vezes for
+ * preciso. Coletas feitas pelo usuário no mesmo dia não impedem a importação.
  */
 export function importarColetasIniciais(): ResultadoImportacao {
-  const r: ResultadoImportacao = { criadas: 0, existentes: 0, semTalhao: [] };
+  const r: ResultadoImportacao = { criadas: 0, existentes: 0, completadas: 0, semTalhao: [] };
   const d = dadosAtuais();
   const repo = repositorio();
   const ops: Operacao[] = [];
@@ -38,8 +41,17 @@ export function importarColetasIniciais(): ResultadoImportacao {
       r.semTalhao.push(c.talhao);
       continue;
     }
-    if (d.coletas.some((x) => x.talhaoId === t.id && x.data === c.data && x.observacoes === OBS_COLETA_INICIAL)) {
+    const existente = d.coletas.find((x) => x.talhaoId === t.id && x.data === c.data && x.observacoes === OBS_COLETA_INICIAL);
+    if (existente) {
       r.existentes++;
+      const amostras = d.amostras.filter((a) => a.coletaId === existente.id);
+      c.amostras.forEach(([, umido, seco], i) => {
+        const a = amostras.find((x) => x.ponto === i + 1);
+        if (a && umido != null && seco != null && a.pesoUmidoG == null && a.pesoSecoG == null) {
+          ops.push({ tipo: 'atualizar', colecao: 'amostras', id: a.id, dados: { pesoUmidoG: umido, pesoSecoG: seco } });
+          r.completadas++;
+        }
+      });
       continue;
     }
     const coletaId = repo.novoId();

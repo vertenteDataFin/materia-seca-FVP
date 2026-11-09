@@ -7,7 +7,7 @@ import type { Permissoes } from './permissoes';
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
 export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v5';
 // Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
-export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v3';
+export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v4';
 
 /**
  * Depois que a fonte de dados confirmou o estado (servidor ou disco): migra o banco antigo do aparelho,
