@@ -14,8 +14,9 @@ com cache offline no aparelho. Só entra quem fizer login com um e-mail autoriza
 | Regras de segurança | `firestore.rules` |
 | Parâmetros da estimativa, último responsável/quadro | localStorage do navegador (por aparelho) |
 
-O login é por e-mail e senha. Na primeira entrada o app pede para confirmar o e-mail (link enviado pelo Firebase);
-só depois disso as regras liberam os dados.
+O login é por e-mail e senha, sem confirmação de e-mail. Por isso, **desative a inscrição livre** no console
+(Authentication → Configurações → Ações do usuário → desmarcar "Ativar criação (inscrição)"): assim só as contas
+criadas pelo administrador existem, e ninguém consegue registrar um e-mail autorizado antes do dono.
 
 ## Primeira configuração (console.firebase.google.com)
 
@@ -24,7 +25,8 @@ só depois disso as regras liberam os dados.
 3. Authentication → Usuários → **Adicionar usuário** para cada pessoa (e-mail + senha inicial). A pessoa pode trocar a senha
    pelo "Esqueci a senha" na tela de login.
 4. Authentication → Configurações → Domínios autorizados → adicionar `vertentedatafin.github.io`.
-5. Publicar as regras (abaixo). Até isso ser feito, ninguém consegue ler nem gravar.
+5. Authentication → Configurações → Ações do usuário → desmarcar "Ativar criação (inscrição)".
+6. Publicar as regras (abaixo). Até isso ser feito, ninguém consegue ler nem gravar.
 
 ## Publicar as regras de segurança
 

@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { onAuthStateChanged, sendEmailVerification, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
+import { onAuthStateChanged, sendPasswordResetEmail, signInWithEmailAndPassword, signOut, type User } from 'firebase/auth';
 import { obterFirebase } from './firebase';
 
 /** Usuário logado: undefined enquanto o Firebase ainda não respondeu; null se deslogado. */
@@ -17,17 +17,8 @@ export function redefinirSenha(email: string) {
   return sendPasswordResetEmail(obterFirebase().auth, email.trim());
 }
 
-export function enviarVerificacao(u: User) {
-  return sendEmailVerification(u);
-}
-
 export function sair() {
   return signOut(obterFirebase().auth);
-}
-
-/** Precisa confirmar o e-mail? (contas com senha ainda não verificadas) */
-export function precisaVerificarEmail(u: User): boolean {
-  return !u.emailVerified && u.providerData.some((p) => p.providerId === 'password');
 }
 
 const MENSAGENS: Record<string, string> = {

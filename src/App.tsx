@@ -7,7 +7,7 @@ import { FAZENDA_ID } from './firebaseConfig';
 import { inicializarDados } from './inicializacao';
 import { RepositorioLocal, type Repositorio } from './repositorio';
 import { RepositorioFirestore } from './repositorioFirestore';
-import { enviarVerificacao, mensagemErroAuth, precisaVerificarEmail, sair, useUsuario } from './sessao';
+import { useUsuario } from './sessao';
 import Painel from './pages/Painel';
 import Mapa from './pages/Mapa';
 import Talhoes from './pages/Talhoes';
@@ -43,13 +43,11 @@ function AppLocal() {
 /** Com Firebase: exige login; os dados ficam no Firestore (com cache offline). */
 function AppNuvem() {
   const usuario = useUsuario();
-  const [, forcar] = useState(0);
   const [repo, setRepo] = useState<Repositorio | null>(null);
-  const liberado = !!usuario && !precisaVerificarEmail(usuario);
   const uid = usuario?.uid;
 
   useEffect(() => {
-    if (!liberado) {
+    if (!uid) {
       setRepo(null);
       definirRepositorio(null);
       return;
@@ -62,64 +60,12 @@ function AppNuvem() {
       r.parar();
       definirRepositorio(null);
     };
-  }, [liberado, uid]);
+  }, [uid]);
 
   if (usuario === undefined) return <p className="vazio">Conectando…</p>;
   if (usuario === null) return <Login />;
-  if (precisaVerificarEmail(usuario)) return <VerificarEmail usuario={usuario} aoAtualizar={() => forcar((n) => n + 1)} />;
   if (!repo) return null;
   return <Casca repo={repo} usuario={usuario} />;
-}
-
-function VerificarEmail({ usuario, aoAtualizar }: { usuario: User; aoAtualizar: () => void }) {
-  const [msg, setMsg] = useState('');
-  const [enviado, setEnviado] = useState(() => sessionStorage.getItem(`silagem-ms:verificacao-enviada:${usuario.uid}`) === '1');
-
-  // Envia o link uma vez por sessão, assim que a tela aparece (o Firebase limita reenvios seguidos).
-  useEffect(() => {
-    if (enviado) return;
-    enviarVerificacao(usuario)
-      .then(() => {
-        sessionStorage.setItem(`silagem-ms:verificacao-enviada:${usuario.uid}`, '1');
-        setEnviado(true);
-      })
-      .catch((e) => setMsg(mensagemErroAuth(e)));
-  }, [usuario, enviado]);
-
-  return (
-    <main className="login">
-      <div className="cartao login-cartao">
-        <h2>Confirme seu e-mail</h2>
-        <p>
-          {enviado ? 'Enviamos' : 'Estamos enviando'} um link de confirmação para <strong>{usuario.email}</strong>. Abra o e-mail (confira
-          também o spam), clique no link e depois toque em "Já confirmei".
-        </p>
-        <div className="acoes">
-          <button
-            className="primario"
-            onClick={async () => {
-              await usuario.reload();
-              aoAtualizar();
-              if (!usuario.emailVerified) setMsg('Ainda não consta como confirmado. Confira a caixa de spam ou reenvie.');
-            }}
-          >
-            Já confirmei
-          </button>
-          <button
-            onClick={() =>
-              enviarVerificacao(usuario)
-                .then(() => setMsg('E-mail reenviado.'))
-                .catch((e) => setMsg(mensagemErroAuth(e)))
-            }
-          >
-            Reenviar e-mail
-          </button>
-          <button onClick={() => void sair()}>Sair</button>
-        </div>
-        {msg && <p className="aviso">{msg}</p>}
-      </div>
-    </main>
-  );
 }
 
 /** Cabeçalho, navegação e rotas; roda a inicialização (migração, KML, fichas) quando a fonte está pronta. */

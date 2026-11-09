@@ -60,16 +60,16 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(setDoc(membro(novo, 'outro@gmail.com'), { nome: 'Outro', papel: 'membro' }));
   });
 
-  it('e-mail em maiúsculas é normalizado e conta com senha precisa estar verificada', async () => {
+  it('e-mail em maiúsculas é normalizado e conta com senha entra sem confirmar e-mail', async () => {
     const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
     await assertSucceeds(setDoc(membro(admin, 'maria@fazenda.com.br'), { nome: 'Maria', papel: 'membro' }));
     await assertFails(setDoc(membro(admin, 'Fulano@Fazenda.com.br'), { nome: 'F', papel: 'membro' })); // id tem de ser minúsculo
     const mariaMaiusc = env.authenticatedContext('m', google('Maria@Fazenda.com.br')).firestore();
     await assertSucceeds(getDoc(talhao(mariaMaiusc)));
     const naoVerificada = env.authenticatedContext('n', senha('maria@fazenda.com.br', false)).firestore();
-    await assertFails(getDoc(talhao(naoVerificada)));
-    const verificada = env.authenticatedContext('v', senha('maria@fazenda.com.br', true)).firestore();
-    await assertSucceeds(getDoc(talhao(verificada)));
+    await assertSucceeds(getDoc(talhao(naoVerificada)));
+    const semEmail = env.authenticatedContext('s', {}).firestore();
+    await assertFails(getDoc(talhao(semEmail)));
   });
 
   it('admin não remove a si mesmo da lista', async () => {
