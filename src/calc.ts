@@ -1,4 +1,4 @@
-import type { Amostra, Coleta } from './db';
+import type { Amostra, Coleta } from './tipos';
 
 export interface Parametros {
   /** Perdas estimadas no processo (colheita, fermentação, desabastecimento), em %. */

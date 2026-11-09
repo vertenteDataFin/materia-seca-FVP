@@ -1,7 +1,7 @@
 import { useState } from 'react';
 import { Link, useParams } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Amostra } from '../db';
+import { useDados } from '../dados';
+import type { Amostra } from '../tipos';
 import { adicionarPonto, removerPonto } from '../coletas';
 import { PassosColeta } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
@@ -10,21 +10,22 @@ import { fmtData } from '../util';
 
 /** Etapa 2: marcar no mapa do talhão onde cada ponto foi coletado (cada ponto = uma amostra). */
 export default function ColetaPontos() {
-  const coletaId = Number(useParams().id);
-  const coleta = useLiveQuery(async () => (await db.coletas.get(coletaId)) ?? null, [coletaId]);
-  const amostras = useLiveQuery(() => db.amostras.where('coletaId').equals(coletaId).sortBy('ponto'), [coletaId]);
-  const talhao = useLiveQuery(async () => (coleta ? await db.talhoes.get(coleta.talhaoId) : undefined), [coleta?.talhaoId]);
+  const coletaId = useParams().id!;
+  const dados = useDados();
   const [capturando, setCapturando] = useState(false);
   const [erro, setErro] = useState('');
 
-  if (coleta === null) {
+  if (!dados) return null;
+  const coleta = dados.coletas.find((c) => c.id === coletaId);
+  if (!coleta) {
     return (
       <div className="cartao">
         <p className="vazio">Coleta não encontrada. <Link to="/coletas">Voltar</Link></p>
       </div>
     );
   }
-  if (!coleta || !amostras) return null;
+  const amostras = dados.amostras.filter((a) => a.coletaId === coletaId);
+  const talhao = dados.talhoes.find((t) => t.id === coleta.talhaoId);
 
   const fora = (a: Amostra) => (a.lat != null && a.lng != null ? dentroDoTalhao(a.lng, a.lat, talhao?.geometria) === false : false);
   const comPosicao = amostras.filter((a) => a.lat != null && a.lng != null);
@@ -36,7 +37,7 @@ export default function ColetaPontos() {
     setErro('');
     try {
       const p = await capturarPosicao();
-      await adicionarPonto(coletaId, { lat: p.lat, lng: p.lng, precisaoM: p.precisaoM, capturadoEm: p.capturadoEm });
+      adicionarPonto(coletaId, { lat: p.lat, lng: p.lng, precisaoM: p.precisaoM, capturadoEm: p.capturadoEm });
     } catch (e) {
       setErro((e as Error).message);
     } finally {
@@ -45,7 +46,7 @@ export default function ColetaPontos() {
   }
 
   function remover(a: Amostra) {
-    if (confirm(`Remover o ponto ${a.ponto}?`)) void removerPonto(a.id!);
+    if (confirm(`Remover o ponto ${a.ponto}?`)) removerPonto(a.id);
   }
 
   return (
@@ -66,7 +67,7 @@ export default function ColetaPontos() {
           <MapaTalhoes
             talhoes={[talhao]}
             marcadores={marcadores}
-            aoClicarMapa={(lat, lng) => void adicionarPonto(coletaId, { lat, lng })}
+            aoClicarMapa={(lat, lng) => adicionarPonto(coletaId, { lat, lng })}
             aoClicarMarcador={(i) => remover(comPosicao[i])}
             altura="min(55vh, 520px)"
             zoomMax={17}

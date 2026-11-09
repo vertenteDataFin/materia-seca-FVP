@@ -1,50 +1,61 @@
 // @vitest-environment jsdom
-import 'fake-indexeddb/auto';
-import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { db, listarTalhoes } from './db';
-import { fundirDuplicados, importarTalhoesFazenda } from './importarFazenda';
 import { readFileSync } from 'node:fs';
+import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
+import { definirRepositorio } from './dados';
+import { RepositorioMemoria } from './repositorio';
+import { compararNomes } from './tipos';
+import { fundirDuplicados, importarTalhoesFazenda } from './importarFazenda';
+
+let repo: RepositorioMemoria;
+
+beforeEach(() => {
+  repo = new RepositorioMemoria();
+  repo.iniciar();
+  definirRepositorio(repo);
+});
 
 describe('importarTalhoesFazenda', () => {
-  beforeEach(async () => {
-    await Promise.all([db.talhoes.clear(), db.coletas.clear(), db.amostras.clear()]);
+  beforeEach(() => {
     const kml = readFileSync('public/talhoes-fazenda.kml', 'utf8');
     vi.stubGlobal('fetch', async () => new Response(kml, { status: 200 }));
   });
   afterEach(() => vi.unstubAllGlobals());
 
   it('cria os talhões com o nome padrão e renomeia os que ainda têm o nome do KML', async () => {
-    const antigo = await db.talhoes.add({ nome: 'PD - TALHAO 18', capim: 'Miyagi', areaHa: 118, observacoes: '' });
-    const curto = await db.talhoes.add({ nome: 'TL 21', capim: 'Mombaça', areaHa: 73, observacoes: '' });
-    const custom = await db.talhoes.add({ nome: 'Talhão 23 compostagem', capim: 'Mombaça', areaHa: 49.9, observacoes: '' });
-    await importarTalhoesFazenda();
-    expect((await db.talhoes.get(antigo))!.nome).toBe('Talhão 18 - PD');
-    expect((await db.talhoes.get(curto))!.nome).toBe('Talhão 21 - Conf');
-    expect((await db.talhoes.get(custom))!.nome).toBe('Talhão 23 compostagem'); // personalizado: não mexe
-    const nomes = (await listarTalhoes()).map((t) => t.nome);
+    const antigo = repo.adicionar('talhoes', { nome: 'PD - TALHAO 18', capim: 'Miyagi', areaHa: 118, observacoes: '' });
+    const curto = repo.adicionar('talhoes', { nome: 'TL 21', capim: 'Mombaça', areaHa: 73, observacoes: '' });
+    const custom = repo.adicionar('talhoes', { nome: 'Talhão 23 compostagem', capim: 'Mombaça', areaHa: 49.9, observacoes: '' });
+    const r = await importarTalhoesFazenda();
+    expect(r.atualizados).toBe(2);
+    const d = repo.obter()!;
+    const nome = (id: string) => d.talhoes.find((t) => t.id === id)!.nome;
+    expect(nome(antigo)).toBe('Talhão 18 - PD');
+    expect(nome(curto)).toBe('Talhão 21 - Conf');
+    expect(nome(custom)).toBe('Talhão 23 compostagem'); // personalizado: não mexe
+    expect(d.talhoes.find((t) => t.id === antigo)!.geometria!.length).toBeGreaterThan(0);
+    const nomes = d.talhoes.map((t) => t.nome).sort(compararNomes);
     expect(nomes).toContain('Pivô 1 - Conf');
     expect(nomes).toContain('Talhão 17A - PD');
     expect(nomes).toContain('Talhão C3 - Conf');
     expect(nomes.indexOf('Talhão 13 - PD')).toBeLessThan(nomes.indexOf('Talhão 17A - PD'));
     expect(nomes.indexOf('Talhão 17E - PD')).toBeLessThan(nomes.indexOf('Talhão 18 - PD'));
+    // rodar de novo não cria nada
+    expect(await importarTalhoesFazenda()).toEqual({ criados: 0, atualizados: 14 });
+    expect(repo.obter()!.talhoes).toHaveLength(d.talhoes.length);
   });
 });
 
 describe('fundirDuplicados', () => {
-  beforeEach(async () => {
-    await Promise.all([db.talhoes.clear(), db.coletas.clear(), db.amostras.clear()]);
-  });
+  it('mantém o primeiro, move coletas e preenche campos vazios', () => {
+    const a = repo.adicionar('talhoes', { nome: 'CONF - TALHAO 20', capim: '', areaHa: 0, observacoes: '' }, 'a');
+    const b = repo.adicionar('talhoes', { nome: 'CONF - TALHAO 20', capim: 'Piatã', areaHa: 35, fazenda: 'Confinamento', observacoes: '' }, 'b');
+    repo.adicionar('talhoes', { nome: 'CONF - TALHAO 21', capim: 'Mombaça', areaHa: 73, observacoes: '' });
+    const c = repo.adicionar('coletas', { talhaoId: b, data: '2026-11-06', responsavel: '', areaAmostralM2: 1 });
 
-  it('mantém o mais antigo, move coletas e preenche campos vazios', async () => {
-    const a = await db.talhoes.add({ nome: 'CONF - TALHAO 20', capim: '', areaHa: 0, observacoes: '' });
-    const b = await db.talhoes.add({ nome: 'CONF - TALHAO 20', capim: 'Piatã', areaHa: 35, fazenda: 'Confinamento', observacoes: '' });
-    await db.talhoes.add({ nome: 'CONF - TALHAO 21', capim: 'Mombaça', areaHa: 73, observacoes: '' });
-    const c = await db.coletas.add({ talhaoId: b, data: '2026-11-06', responsavel: '', areaAmostralM2: 1 });
-
-    expect(await fundirDuplicados()).toBe(1);
-    expect(await db.talhoes.count()).toBe(2);
-    const mantido = await db.talhoes.get(a);
-    expect(mantido).toMatchObject({ capim: 'Piatã', areaHa: 35, fazenda: 'Confinamento' });
-    expect((await db.coletas.get(c))!.talhaoId).toBe(a);
+    expect(fundirDuplicados()).toBe(1);
+    const d = repo.obter()!;
+    expect(d.talhoes).toHaveLength(2);
+    expect(d.talhoes.find((t) => t.id === a)).toMatchObject({ capim: 'Piatã', areaHa: 35, fazenda: 'Confinamento' });
+    expect(d.coletas.find((x) => x.id === c)!.talhaoId).toBe(a);
   });
 });

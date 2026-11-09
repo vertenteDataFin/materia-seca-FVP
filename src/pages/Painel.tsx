@@ -1,38 +1,21 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, listarTalhoes, type Amostra, type Coleta } from '../db';
+import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import { estimativaTalhao, resumoColeta, statusMS } from '../calc';
 import { Indicador, SeloMS } from '../components';
 import { fmt, fmtData, lerParametros } from '../util';
 
 export default function Painel() {
   const [parametros] = useState(lerParametros);
-  const dados = useLiveQuery(async () => {
-    const [talhoes, coletas, amostras] = await Promise.all([
-      listarTalhoes(),
-      db.coletas.toArray(),
-      db.amostras.toArray(),
-    ]);
-    return { talhoes, coletas, amostras };
-  }, []);
+  const dados = useDados();
 
   const linhas = useMemo(() => {
     if (!dados) return [];
-    const ultima = new Map<number, Coleta>();
-    for (const c of dados.coletas) {
-      const atual = ultima.get(c.talhaoId);
-      if (!atual || c.data > atual.data || (c.data === atual.data && c.id! > atual.id!)) ultima.set(c.talhaoId, c);
-    }
-    const porColeta = new Map<number, Amostra[]>();
-    for (const a of dados.amostras) {
-      const l = porColeta.get(a.coletaId) ?? [];
-      l.push(a);
-      porColeta.set(a.coletaId, l);
-    }
+    const ultima = ultimaColetaPorTalhao(dados.coletas);
+    const porColeta = amostrasPorColeta(dados.amostras);
     return dados.talhoes.map((t) => {
-      const c = ultima.get(t.id!);
-      const r = c ? resumoColeta(c, porColeta.get(c.id!) ?? []) : null;
+      const c = ultima.get(t.id);
+      const r = c ? resumoColeta(c, porColeta.get(c.id) ?? []) : null;
       const e = r ? estimativaTalhao(t.areaHa, r, parametros) : null;
       return { t, c, r, e };
     });

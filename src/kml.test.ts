@@ -2,7 +2,7 @@
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
 import { areaAnelM2, capimDaAtividade, chaveNome, lerKml, nomePadrao, sugerirCorrespondencias } from './kml';
-import { compararNomes } from './db';
+import { compararNomes } from './tipos';
 
 const KML_MINIMO = `<?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2"><Document><Folder><name>CAPIM</name>
@@ -81,8 +81,8 @@ describe.skipIf(!existsSync(ARQUIVO))('arquivo real da fazenda', () => {
 
   it('associa os nomes do pré-cadastro aos polígonos do KML', () => {
     const nomes = ['Pivô 1', 'Pivô 2', 'C3', 'TL 13', 'TL 17A', 'TL 17B', 'TL 17C', 'TL 17D', 'TL 17E', 'TL 18', 'TL 20', 'TL 21', 'TL 23', 'Cauã 1'];
-    const m = sugerirCorrespondencias(polys, nomes.map((nome, i) => ({ id: i + 1, nome, capim: '', areaHa: 0 })));
-    const porTalhao = new Map([...m].map(([pi, tid]) => [nomes[tid - 1], polys[pi].nomeLimpo]));
+    const m = sugerirCorrespondencias(polys, nomes.map((nome, i) => ({ id: String(i + 1), nome, capim: '', areaHa: 0 })));
+    const porTalhao = new Map([...m].map(([pi, tid]) => [nomes[Number(tid) - 1], polys[pi].nomeLimpo]));
     console.log(Object.fromEntries(porTalhao));
     expect(porTalhao.get('TL 13')).toBe('PD - TALHAO 13');
     expect(porTalhao.get('Pivô 1')).toBe('PIVO 01');

@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, listarTalhoes, type Amostra, type Coleta } from '../db';
+import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
+import type { Coleta } from '../tipos';
 import { resumoColeta, statusMS } from '../calc';
 import { MenuTalhao } from '../components';
 import { fmt, lerParametros } from '../util';
@@ -12,22 +12,15 @@ export const COR_STATUS = { baixo: '#4aa3ff', ideal: '#39d353', alto: '#ffb020' 
 export default function Mapa() {
   const navigate = useNavigate();
   const [parametros] = useState(lerParametros);
-  const [selecionadoId, setSelecionadoId] = useState<number | null>(null);
-  const dados = useLiveQuery(async () => {
-    const [talhoes, coletas, amostras] = await Promise.all([listarTalhoes(), db.coletas.toArray(), db.amostras.toArray()]);
-    return { talhoes, coletas, amostras };
-  }, []);
+  const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
+  const dados = useDados();
 
   const ultimaPorTalhao = useMemo(() => {
-    const m = new Map<number, { c: Coleta; msPct: number | null }>();
+    const m = new Map<string, { c: Coleta; msPct: number | null }>();
     if (!dados) return m;
-    const porColeta = new Map<number, Amostra[]>();
-    for (const a of dados.amostras) porColeta.set(a.coletaId, [...(porColeta.get(a.coletaId) ?? []), a]);
-    for (const c of dados.coletas) {
-      const atual = m.get(c.talhaoId);
-      if (!atual || c.data > atual.c.data || (c.data === atual.c.data && c.id! > atual.c.id!)) {
-        m.set(c.talhaoId, { c, msPct: resumoColeta(c, porColeta.get(c.id!) ?? []).msPct });
-      }
+    const porColeta = amostrasPorColeta(dados.amostras);
+    for (const [talhaoId, c] of ultimaColetaPorTalhao(dados.coletas)) {
+      m.set(talhaoId, { c, msPct: resumoColeta(c, porColeta.get(c.id) ?? []).msPct });
     }
     return m;
   }, [dados]);
@@ -36,7 +29,7 @@ export default function Mapa() {
   const selecionado = dados.talhoes.find((t) => t.id === selecionadoId) ?? null;
 
   if (selecionado) {
-    const u = ultimaPorTalhao.get(selecionado.id!);
+    const u = ultimaPorTalhao.get(selecionado.id);
     return (
       <>
         <h1>Talhão escolhido</h1>
@@ -60,10 +53,10 @@ export default function Mapa() {
         <MapaTalhoes
           talhoes={dados.talhoes}
           selecionadoId={selecionadoId}
-          aoSelecionar={(t) => setSelecionadoId(t.id!)}
+          aoSelecionar={(t) => setSelecionadoId(t.id)}
           altura="min(70vh, 640px)"
           estilo={(t) => {
-            const u = ultimaPorTalhao.get(t.id!);
+            const u = ultimaPorTalhao.get(t.id);
             const s = u ? statusMS(u.msPct, parametros) : null;
             return { cor: s ? COR_STATUS[s] : u ? '#9aa59a' : undefined, rotuloExtra: u?.msPct != null ? `${fmt(u.msPct, 0)}% MS` : t.capim };
           }}

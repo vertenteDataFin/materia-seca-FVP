@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { estimativaTalhao, PARAMETROS_PADRAO, resumoColeta, statusMS, teorMS } from './calc';
-import type { Amostra } from './db';
+import type { Amostra } from './tipos';
 
 const amostra = (pesoVerdeKg: number | null, pesoUmidoG: number | null, pesoSecoG: number | null): Amostra => ({
   coletaId: 1,

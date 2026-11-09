@@ -1,35 +1,39 @@
-import { db, type Talhao } from './db';
+import { dadosAtuais, repositorio } from './dados';
 import { chaveNome, lerKml, sugerirCorrespondencias, type PoligonoKml } from './kml';
+import type { Novo, Talhao } from './tipos';
 
 export const KML_FAZENDA_URL = `${import.meta.env.BASE_URL}talhoes-fazenda.kml`;
 
 /**
- * Funde talhões duplicados (mesmo nome normalizado): mantém o de menor id, move as coletas dos
+ * Funde talhões duplicados (mesmo nome normalizado): mantém o primeiro, move as coletas dos
  * outros para ele e preenche campos vazios. Retorna quantos foram removidos.
  */
-export async function fundirDuplicados(): Promise<number> {
-  return db.transaction('rw', db.talhoes, db.coletas, async () => {
-    const todos = await db.talhoes.orderBy('id').toArray();
-    const porChave = new Map<string, Talhao[]>();
-    for (const t of todos) porChave.set(chaveNome(t.nome), [...(porChave.get(chaveNome(t.nome)) ?? []), t]);
-    let removidos = 0;
-    for (const grupo of porChave.values()) {
-      if (grupo.length < 2) continue;
-      const [principal, ...resto] = grupo;
-      const mesclado: Partial<Talhao> = {};
-      for (const d of resto) {
-        for (const k of ['capim', 'capimKml', 'areaKmlHa', 'fazenda', 'geometria', 'observacoes'] as const) {
-          if (!principal[k] && d[k]) (mesclado as Record<string, unknown>)[k] = d[k];
-        }
-        if (!(principal.areaHa > 0) && d.areaHa > 0) mesclado.areaHa = d.areaHa;
-        await db.coletas.where('talhaoId').equals(d.id!).modify({ talhaoId: principal.id! });
-        await db.talhoes.delete(d.id!);
-        removidos++;
+export function fundirDuplicados(): number {
+  const d = dadosAtuais();
+  const todos = [...d.talhoes].sort((a, b) => a.id.localeCompare(b.id));
+  const porChave = new Map<string, Talhao[]>();
+  for (const t of todos) porChave.set(chaveNome(t.nome), [...(porChave.get(chaveNome(t.nome)) ?? []), t]);
+  const ops: Parameters<ReturnType<typeof repositorio>['lote']>[0] = [];
+  let removidos = 0;
+  for (const grupo of porChave.values()) {
+    if (grupo.length < 2) continue;
+    const [principal, ...resto] = grupo;
+    const mesclado: Partial<Novo<Talhao>> = {};
+    for (const dup of resto) {
+      for (const k of ['capim', 'capimKml', 'areaKmlHa', 'fazenda', 'geometria', 'observacoes'] as const) {
+        if (!principal[k] && dup[k]) (mesclado as Record<string, unknown>)[k] = dup[k];
       }
-      if (Object.keys(mesclado).length) await db.talhoes.update(principal.id!, mesclado);
+      if (!(principal.areaHa > 0) && dup.areaHa > 0) mesclado.areaHa = dup.areaHa;
+      for (const c of d.coletas.filter((c) => c.talhaoId === dup.id)) {
+        ops.push({ tipo: 'atualizar', colecao: 'coletas', id: c.id, dados: { talhaoId: principal.id } });
+      }
+      ops.push({ tipo: 'remover', colecao: 'talhoes', id: dup.id });
+      removidos++;
     }
-    return removidos;
-  });
+    if (Object.keys(mesclado).length) ops.push({ tipo: 'atualizar', colecao: 'talhoes', id: principal.id, dados: mesclado as Record<string, unknown> });
+  }
+  if (ops.length) repositorio().lote(ops);
+  return removidos;
 }
 
 /** O nome atual ainda é derivado do KML (mesma chave, sem personalização do usuário)? */
@@ -54,27 +58,33 @@ async function executar() {
   const resp = await fetch(KML_FAZENDA_URL);
   if (!resp.ok) throw new Error('KML da fazenda não encontrado no app.');
   const polys = lerKml(await resp.text()).filter((p) => p.capim);
-  await fundirDuplicados();
+  fundirDuplicados();
+  const existentes = dadosAtuais().talhoes;
+  const corresp = sugerirCorrespondencias(polys, existentes);
+  const ops: Parameters<ReturnType<typeof repositorio>['lote']>[0] = [];
   let criados = 0;
   let atualizados = 0;
-  await db.transaction('rw', db.talhoes, async () => {
-    const existentes = await db.talhoes.toArray();
-    const corresp = sugerirCorrespondencias(polys, existentes);
-    for (const [i, p] of polys.entries()) {
-      const areaKml = p.areaDeclaradaHa ?? Math.round(p.areaCalculadaHa * 100) / 100;
-      const doKml: Partial<Talhao> = { capimKml: p.capim, areaKmlHa: areaKml, fazenda: p.fazenda, geometria: p.aneis };
-      const id = corresp.get(i);
-      if (id != null) {
-        const atual = existentes.find((t) => t.id === id)!;
-        // Renomeia para o padrão do app se o nome ainda for o do KML ou uma abreviação dele (ex.: "TL 18").
-        const nome = nomeEhDoKml(atual.nome, p) ? p.nomeApp : atual.nome;
-        await db.talhoes.update(id, { ...doKml, nome, capim: atual.capim || p.capim, areaHa: atual.areaHa > 0 ? atual.areaHa : areaKml });
-        atualizados++;
-      } else {
-        await db.talhoes.add({ nome: p.nomeApp, capim: p.capim, areaHa: areaKml, observacoes: '', ...doKml } as Talhao);
-        criados++;
-      }
+  for (const [i, p] of polys.entries()) {
+    const areaKml = p.areaDeclaradaHa ?? Math.round(p.areaCalculadaHa * 100) / 100;
+    const doKml: Partial<Novo<Talhao>> = { capimKml: p.capim, areaKmlHa: areaKml, fazenda: p.fazenda, geometria: p.aneis };
+    const id = corresp.get(i);
+    if (id != null) {
+      const atual = existentes.find((t) => t.id === id)!;
+      // Renomeia para o padrão do app se o nome ainda for o do KML ou uma abreviação dele (ex.: "TL 18").
+      const nome = nomeEhDoKml(atual.nome, p) ? p.nomeApp : atual.nome;
+      ops.push({
+        tipo: 'atualizar',
+        colecao: 'talhoes',
+        id,
+        dados: { ...doKml, nome, capim: atual.capim || p.capim, areaHa: atual.areaHa > 0 ? atual.areaHa : areaKml } as Record<string, unknown>,
+      });
+      atualizados++;
+    } else {
+      const novo: Novo<Talhao> = { nome: p.nomeApp, capim: p.capim, areaHa: areaKml, observacoes: '', ...doKml };
+      ops.push({ tipo: 'adicionar', colecao: 'talhoes', id: repositorio().novoId(), dados: novo as Record<string, unknown> });
+      criados++;
     }
-  });
+  }
+  if (ops.length) repositorio().lote(ops);
   return { criados, atualizados };
 }

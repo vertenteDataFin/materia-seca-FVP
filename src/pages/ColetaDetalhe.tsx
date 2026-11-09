@@ -1,7 +1,7 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, listarTalhoes, excluirColeta, type Amostra, type Coleta, type Talhao } from '../db';
+import { adicionarAmostra, atualizarAmostra, atualizarColeta, excluirAmostra, excluirColeta, useDados } from '../dados';
+import type { Amostra, Coleta, Talhao } from '../tipos';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade } from '../calc';
 import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
@@ -10,38 +10,36 @@ import { fmt, lerParametros } from '../util';
 
 export default function ColetaDetalhe() {
   const navigate = useNavigate();
-  const coletaId = Number(useParams().id);
-  const coleta = useLiveQuery(async () => (await db.coletas.get(coletaId)) ?? null, [coletaId]);
-  const amostras = useLiveQuery(() => db.amostras.where('coletaId').equals(coletaId).sortBy('ponto'), [coletaId]);
-  const talhoes = useLiveQuery(() => listarTalhoes(), []);
+  const coletaId = useParams().id!;
+  const dados = useDados();
   const [parametros] = useState(lerParametros);
-  const [capturando, setCapturando] = useState<number | 'novo' | null>(null);
+  const [capturando, setCapturando] = useState<string | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
   const [mostrarMapa, setMostrarMapa] = useState(false);
   const celular = useCelular();
 
-  if (coleta === null) {
+  if (!dados) return null;
+  const coleta = dados.coletas.find((c) => c.id === coletaId);
+  if (!coleta) {
     return (
       <div className="cartao">
         <p className="vazio">Coleta não encontrada. <Link to="/coletas">Voltar</Link></p>
       </div>
     );
   }
-  if (!coleta || !amostras || !talhoes) return null;
-
+  const amostras = dados.amostras.filter((a) => a.coletaId === coletaId);
+  const talhoes = dados.talhoes;
   const talhao = talhoes.find((t) => t.id === coleta.talhaoId);
   const r = resumoColeta(coleta, amostras);
   const est = talhao ? estimativaTalhao(talhao.areaHa, r, parametros) : null;
 
-  const atualizarAmostra = (id: number, campos: Partial<Amostra>) => db.amostras.update(id, campos);
-
   /** Lê o GPS e grava na amostra. */
-  async function capturarGps(amostraId: number) {
+  async function capturarGps(amostraId: string) {
     setCapturando(amostraId);
     setErroGps('');
     try {
       const p = await capturarPosicao();
-      await atualizarAmostra(amostraId, { lat: p.lat, lng: p.lng, precisaoM: p.precisaoM, capturadoEm: p.capturadoEm });
+      atualizarAmostra(amostraId, { lat: p.lat, lng: p.lng, precisaoM: p.precisaoM, capturadoEm: p.capturadoEm });
     } catch (e) {
       setErroGps((e as Error).message);
     } finally {
@@ -51,15 +49,15 @@ export default function ColetaDetalhe() {
 
   /** Cria um novo ponto e já captura a posição onde o usuário está. */
   async function adicionarPonto() {
-    const proximo = (amostras!.at(-1)?.ponto ?? 0) + 1;
+    const proximo = amostras.reduce((m, a) => Math.max(m, a.ponto), 0) + 1;
     setCapturando('novo');
-    const id = await db.amostras.add({ coletaId, ponto: proximo, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null });
+    const id = adicionarAmostra({ coletaId, ponto: proximo, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null });
     await capturarGps(id);
   }
 
-  async function excluir() {
+  function excluir() {
     if (confirm('Excluir esta coleta e todas as suas amostras?')) {
-      await excluirColeta(coletaId);
+      excluirColeta(coletaId);
       navigate('/coletas');
     }
   }
@@ -87,14 +85,14 @@ export default function ColetaDetalhe() {
         aria-label={`Capturar GPS do ponto ${a.ponto}`}
         title={temGps ? 'Recapturar posição' : 'Capturar posição'}
         disabled={capturando != null}
-        onClick={() => capturarGps(a.id!)}
+        onClick={() => capturarGps(a.id)}
       >
         {capturando === a.id ? '…' : temGps ? '↻' : '📍'}
       </button>
     );
   };
   const botaoRemover = (a: Amostra) => (
-    <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && db.amostras.delete(a.id!)}>✕</button>
+    <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && excluirAmostra(a.id)}>✕</button>
   );
 
   return (
@@ -138,15 +136,15 @@ export default function ColetaDetalhe() {
                   <div className="ponto-campos">
                     <label>
                       Peso verde (kg)
-                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoVerdeKg: v })} />
+                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
                     </label>
                     <label>
                       Úmido (g)
-                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoUmidoG: v })} />
+                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
                     </label>
                     <label>
                       Seco (g)
-                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoSecoG: v })} />
+                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoSecoG: v })} />
                     </label>
                   </div>
                   <div className="ponto-resultado">
@@ -183,14 +181,14 @@ export default function ColetaDetalhe() {
                     <td><strong>{a.ponto}</strong></td>
                     <td>{statusGps(a)} {botaoGps(a)}</td>
                     <td className="n">
-                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoVerdeKg: v })} />
+                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
                     </td>
                     <td className="n">{fmt(producaoPonto(a, coleta.areaAmostralM2), 2)}</td>
                     <td className="n">
-                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoUmidoG: v })} />
+                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
                     </td>
                     <td className="n">
-                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id!, { pesoSecoG: v })} />
+                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoSecoG: v })} />
                     </td>
                     <td className={`n ${invalido ? 'erro' : ''}`}>{invalido ? 'seco > úmido' : fmt(ms)}</td>
                     <td className="n">{fmt(teorUmidade(a))}</td>
@@ -253,13 +251,13 @@ export default function ColetaDetalhe() {
 function CabecalhoColeta({ coleta, talhoes }: { coleta: Coleta; talhoes: Talhao[] }) {
   const [form, setForm] = useState(coleta);
   useEffect(() => setForm(coleta), [coleta]);
-  const salvar = (campos: Partial<Coleta>) => db.coletas.update(coleta.id!, campos);
+  const salvar = (campos: Partial<Coleta>) => atualizarColeta(coleta.id, campos);
 
   return (
     <div className="cartao grade-form">
       <label>
         Talhão
-        <select value={form.talhaoId} onChange={(e) => salvar({ talhaoId: Number(e.target.value) })}>
+        <select value={form.talhaoId} onChange={(e) => salvar({ talhaoId: e.target.value })}>
           {talhoes.map((t) => (
             <option key={t.id} value={t.id}>{t.nome}</option>
           ))}

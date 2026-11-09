@@ -1,6 +1,6 @@
 import { Link, useParams } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Amostra } from '../db';
+import { atualizarAmostra, atualizarColeta, useDados } from '../dados';
+import type { Amostra } from '../tipos';
 import { adicionarPonto, lembrarUltimos } from '../coletas';
 import { producaoPonto, resumoColeta } from '../calc';
 import { CampoNumero, Indicador, PassosColeta } from '../components';
@@ -9,27 +9,28 @@ import { fmt, fmtData } from '../util';
 
 /** Etapa 3: peso verde (massa fresca) de cada ponto. */
 export default function ColetaPesos() {
-  const coletaId = Number(useParams().id);
-  const coleta = useLiveQuery(async () => (await db.coletas.get(coletaId)) ?? null, [coletaId]);
-  const amostras = useLiveQuery(() => db.amostras.where('coletaId').equals(coletaId).sortBy('ponto'), [coletaId]);
-  const talhao = useLiveQuery(async () => (coleta ? await db.talhoes.get(coleta.talhaoId) : undefined), [coleta?.talhaoId]);
+  const coletaId = useParams().id!;
+  const dados = useDados();
 
-  if (coleta === null) {
+  if (!dados) return null;
+  const coleta = dados.coletas.find((c) => c.id === coletaId);
+  if (!coleta) {
     return (
       <div className="cartao">
         <p className="vazio">Coleta não encontrada. <Link to="/coletas">Voltar</Link></p>
       </div>
     );
   }
-  if (!coleta || !amostras) return null;
+  const amostras = dados.amostras.filter((a) => a.coletaId === coletaId);
+  const talhao = dados.talhoes.find((t) => t.id === coleta.talhaoId);
 
   const quadro = coleta.areaAmostralM2;
   const r = resumoColeta(coleta, amostras);
   const fora = (a: Amostra) => (a.lat != null && a.lng != null ? dentroDoTalhao(a.lng, a.lat, talhao?.geometria) === false : false);
-  const salvarPeso = (a: Amostra, v: number | null) => db.amostras.update(a.id!, { pesoVerdeKg: v });
+  const salvarPeso = (a: Amostra, v: number | null) => atualizarAmostra(a.id, { pesoVerdeKg: v });
   const salvarQuadro = (v: number | null) => {
     if (v != null && v > 0) {
-      void db.coletas.update(coletaId, { areaAmostralM2: v });
+      atualizarColeta(coletaId, { areaAmostralM2: v });
       lembrarUltimos(coleta.responsavel, v);
     }
   };
@@ -58,7 +59,7 @@ export default function ColetaPesos() {
         {!amostras.length ? (
           <p className="vazio">
             Nenhum ponto marcado. <Link to={`/coletas/${coletaId}/pontos`}>Marcar no mapa</Link> ou{' '}
-            <button className="link" onClick={() => void adicionarPonto(coletaId)}>adicionar ponto sem posição</button>.
+            <button className="link" onClick={() => adicionarPonto(coletaId)}>adicionar ponto sem posição</button>.
           </p>
         ) : (
           <div className="pesos">
@@ -81,7 +82,7 @@ export default function ColetaPesos() {
         )}
         {amostras.length > 0 && (
           <div className="acoes" style={{ marginTop: '0.75rem' }}>
-            <button onClick={() => void adicionarPonto(coletaId)}>+ Ponto sem posição</button>
+            <button onClick={() => adicionarPonto(coletaId)}>+ Ponto sem posição</button>
           </div>
         )}
       </div>

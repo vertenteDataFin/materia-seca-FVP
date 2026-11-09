@@ -1,4 +1,4 @@
-import type { Talhao } from './db';
+import type { Talhao } from './tipos';
 
 export type Anel = [number, number][]; // [lng, lat]
 
@@ -182,8 +182,8 @@ export function chaveNome(nome: string): string {
 const normalizar = (s: string) => semAcento(s).toUpperCase().replace(/\s+/g, ' ').trim();
 
 /** Sugere, para cada polígono (índice), o talhão existente correspondente. */
-export function sugerirCorrespondencias(poligonos: PoligonoKml[], talhoes: Talhao[]): Map<number, number> {
-  const resultado = new Map<number, number>();
+export function sugerirCorrespondencias(poligonos: PoligonoKml[], talhoes: Talhao[]): Map<number, string> {
+  const resultado = new Map<number, string>();
   const usados = new Set<number>();
   for (const t of talhoes) {
     const livres = poligonos.map((p, i) => ({ p, i })).filter(({ i }) => !usados.has(i));
@@ -191,7 +191,7 @@ export function sugerirCorrespondencias(poligonos: PoligonoKml[], talhoes: Talha
     if (cand.length !== 1) cand = livres.filter(({ p }) => chaveNome(p.nome) === chaveNome(t.nome));
     if (cand.length > 1) cand = cand.filter(({ p }) => p.capim !== ''); // desempate: talhão com atividade
     if (cand.length === 1) {
-      resultado.set(cand[0].i, t.id!);
+      resultado.set(cand[0].i, t.id);
       usados.add(cand[0].i);
     }
   }

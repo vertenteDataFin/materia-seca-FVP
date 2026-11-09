@@ -7,24 +7,30 @@
     "dev": "vite",
     "build": "tsc -b && vite build",
     "preview": "vite preview",
-    "test": "vitest run"
+    "test": "vitest run",
+    "emuladores": "firebase emulators:start --only auth,firestore --project demo-silagem",
+    "regras": "firebase deploy --only firestore:rules",
+    "dev:emulador": "vite --mode emulador"
   },
   "dependencies": {
     "dexie": "^4.4.7",
     "dexie-react-hooks": "^4.4.0",
     "exceljs": "^4.4.0",
+    "firebase": "^13.2.0",
     "leaflet": "^1.9.4",
     "react": "^19.3.1",
     "react-dom": "^19.3.1",
     "react-router-dom": "^7.18.5"
   },
   "devDependencies": {
+    "@firebase/rules-unit-testing": "^6.0.0",
     "@types/leaflet": "^1.9.22",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
     "@vitejs/plugin-basic-ssl": "^2.3.0",
     "@vitejs/plugin-react": "^6.2.1",
     "fake-indexeddb": "^6.2.7",
+    "firebase-tools": "^15.35.0",
     "jsdom": "^29.1.1",
     "puppeteer-core": "^25.16.0",
     "sharp": "^0.35.5",

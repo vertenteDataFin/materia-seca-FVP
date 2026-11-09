@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
-import type { Talhao } from './db';
+import type { Talhao } from './tipos';
 
 export interface EstiloTalhao {
   /** Cor de preenchimento (padrão: verde). */
@@ -23,7 +23,7 @@ export interface Marcador {
 
 interface Props {
   talhoes: Talhao[];
-  selecionadoId?: number | null;
+  selecionadoId?: string | null;
   aoSelecionar?: (t: Talhao) => void;
   estilo?: (t: Talhao) => EstiloTalhao;
   /** Pontos a desenhar (ex.: amostras com GPS). */

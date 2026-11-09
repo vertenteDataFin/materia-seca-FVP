@@ -5,7 +5,7 @@ import { criarColeta } from './coletas';
 import { numParaTexto, parseNum } from './util';
 
 /** Barra de etapas da coleta: Talhão → Pontos → Pesos → Resultado. */
-export function PassosColeta({ coletaId, atual }: { coletaId: number; atual: 1 | 2 | 3 | 4 }) {
+export function PassosColeta({ coletaId, atual }: { coletaId: string; atual: 1 | 2 | 3 | 4 }) {
   const passos: [number, string, string][] = [
     [1, 'Talhão', '/mapa'],
     [2, 'Pontos', `/coletas/${coletaId}/pontos`],
@@ -78,7 +78,7 @@ export function MenuTalhao({
   aoRegistros,
   aoFechar,
 }: {
-  talhao: { id?: number; nome: string; capim: string; areaHa: number; fazenda?: string };
+  talhao: { id: string; nome: string; capim: string; areaHa: number; fazenda?: string };
   aoRegistros: () => void;
   aoFechar?: () => void;
 }) {
@@ -87,7 +87,7 @@ export function MenuTalhao({
   async function novaColeta() {
     setCriando(true);
     try {
-      const id = await criarColeta(talhao.id!);
+      const id = criarColeta(talhao.id);
       navigate(`/coletas/${id}/pontos`);
     } finally {
       setCriando(false);

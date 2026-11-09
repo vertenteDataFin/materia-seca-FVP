@@ -1,7 +1,7 @@
 import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, type Talhao } from '../db';
+import { amostrasPorColeta, atualizarTalhao, useDados } from '../dados';
+import { compararColetasDesc, type Talhao } from '../tipos';
 import { areaAnelM2 } from '../kml';
 import { capimFoto, mesmoCapim } from '../capinsFoto';
 import { resumoColeta, statusMS } from '../calc';
@@ -23,14 +23,15 @@ function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; conf
 
 export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talhao: Talhao; aoFechar: () => void; aoEditar: (t: Talhao) => void }) {
   const parametros = lerParametros();
-  const coletas = useLiveQuery(
-    async () => {
-      const cs = await db.coletas.where('talhaoId').equals(t.id!).toArray();
-      cs.sort((a, b) => b.data.localeCompare(a.data) || b.id! - a.id!);
-      return Promise.all(cs.map(async (c) => ({ c, r: resumoColeta(c, await db.amostras.where('coletaId').equals(c.id!).toArray()) })));
-    },
-    [t.id],
-  );
+  const dados = useDados();
+  const coletas = useMemo(() => {
+    if (!dados) return [];
+    const porColeta = amostrasPorColeta(dados.amostras);
+    return dados.coletas
+      .filter((c) => c.talhaoId === t.id)
+      .sort(compararColetasDesc)
+      .map((c) => ({ c, r: resumoColeta(c, porColeta.get(c.id) ?? []) }));
+  }, [dados, t.id]);
 
   const areaPoligono = useMemo(
     () => (t.geometria?.length ? t.geometria.reduce((s, anel) => s + areaAnelM2(anel), 0) / 10000 : null),
@@ -40,8 +41,8 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
   const kmlVsFoto = t.capimKml && foto ? mesmoCapim(t.capimKml, foto) : null;
   const difArea = t.areaKmlHa && areaPoligono ? (areaPoligono / t.areaKmlHa - 1) * 100 : null;
 
-  const usarCapim = (c: string) => db.talhoes.update(t.id!, { capim: c });
-  const usarArea = (a: number) => db.talhoes.update(t.id!, { areaHa: Math.round(a * 100) / 100 });
+  const usarCapim = (c: string) => atualizarTalhao(t.id, { capim: c });
+  const usarArea = (a: number) => atualizarTalhao(t.id, { areaHa: Math.round(a * 100) / 100 });
 
   return (
     <div className="cartao detalhe">
@@ -109,7 +110,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
       </div>
 
       <h3>Coletas neste talhão</h3>
-      {!coletas ? null : !coletas.length ? (
+      {!dados ? null : !coletas.length ? (
         <p className="vazio">Nenhuma coleta ainda.</p>
       ) : (
         <div className="rolagem">

@@ -1,0 +1,52 @@
+rules_version = '2';
+
+// Regras de acesso do Silagem MS.
+// Só pessoas autorizadas (administradores abaixo ou documentos em fazendas/<id>/membros/<e-mail>) leem e gravam.
+service cloud.firestore {
+  match /databases/{db}/documents {
+
+    // E-mails administradores (minúsculas). Mantenha igual a ADMINS em src/firebaseConfig.ts.
+    function admins() {
+      return ['marialauragcardoso@gmail.com', 'maria.mesquita@fazendavertente.com.br'];
+    }
+
+    function logado() {
+      return request.auth != null && request.auth.token.email is string;
+    }
+
+    function email() {
+      return request.auth.token.email.lower();
+    }
+
+    // Contas com senha precisam confirmar o e-mail; Google e similares já vêm verificados.
+    function verificado() {
+      return logado() && (request.auth.token.email_verified == true || request.auth.token.firebase.sign_in_provider != 'password');
+    }
+
+    function docMembro(fid) {
+      return /databases/$(db)/documents/fazendas/$(fid)/membros/$(email());
+    }
+
+    function ehAdmin(fid) {
+      return verificado() && (email() in admins() || (exists(docMembro(fid)) && get(docMembro(fid)).data.papel == 'admin'));
+    }
+
+    function ehMembro(fid) {
+      return verificado() && (email() in admins() || exists(docMembro(fid)));
+    }
+
+    match /fazendas/{fid}/membros/{m} {
+      allow read: if ehMembro(fid);
+      allow create, update: if ehAdmin(fid)
+        && m == m.lower()
+        && request.resource.data.papel in ['admin', 'membro']
+        && request.resource.data.nome is string;
+      // Um admin não remove a si mesmo (evita ficar sem acesso).
+      allow delete: if ehAdmin(fid) && m != email();
+    }
+
+    match /fazendas/{fid}/{col}/{id} {
+      allow read, write: if ehMembro(fid) && col in ['talhoes', 'coletas', 'amostras'];
+    }
+  }
+}

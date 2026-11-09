@@ -1,7 +1,6 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { listarTalhoes } from '../db';
+import { useDados } from '../dados';
 import { CHAVE_QUADRO, CHAVE_RESP, criarColeta, lembrarUltimos } from '../coletas';
 import { fmt, hoje, parseNum } from '../util';
 
@@ -9,7 +8,7 @@ import { fmt, hoje, parseNum } from '../util';
 export default function NovaColeta() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
-  const talhoes = useLiveQuery(() => listarTalhoes(), []);
+  const dados = useDados();
   const [form, setForm] = useState({
     talhaoId: params.get('talhao') ?? '',
     data: hoje(),
@@ -18,19 +17,20 @@ export default function NovaColeta() {
   });
   const [erro, setErro] = useState('');
 
-  async function criar(e: FormEvent) {
+  function criar(e: FormEvent) {
     e.preventDefault();
     const areaAmostralM2 = parseNum(form.area);
     if (!form.talhaoId) return setErro('Selecione o talhão.');
     if (!form.data) return setErro('Informe a data.');
     if (areaAmostralM2 == null || areaAmostralM2 <= 0) return setErro('Informe a área do quadro amostral (m²).');
     lembrarUltimos(form.responsavel, areaAmostralM2);
-    const id = await criarColeta(Number(form.talhaoId), { data: form.data, responsavel: form.responsavel.trim(), areaAmostralM2 });
+    const id = criarColeta(form.talhaoId, { data: form.data, responsavel: form.responsavel.trim(), areaAmostralM2 });
     navigate(`/coletas/${id}/pontos`, { replace: true });
   }
 
-  if (!talhoes) return null;
-  const talhao = talhoes.find((t) => String(t.id) === form.talhaoId);
+  if (!dados) return null;
+  const talhoes = dados.talhoes;
+  const talhao = talhoes.find((t) => t.id === form.talhaoId);
 
   if (!talhoes.length) {
     return (

@@ -1,21 +1,22 @@
-import { db, type Amostra, type Coleta } from './db';
+import { dadosAtuais, repositorio } from './dados';
+import type { Amostra, Coleta, Novo } from './tipos';
 import { hoje, parseNum } from './util';
 
 export const CHAVE_RESP = 'silagem-ms:ultimo-responsavel';
 export const CHAVE_QUADRO = 'silagem-ms:ultimo-quadro';
 
 /** Cria uma coleta para o talhão com data de hoje e os últimos responsável/quadro usados. Devolve o id. */
-export async function criarColeta(talhaoId: number, extra: Partial<Coleta> = {}): Promise<number> {
+export function criarColeta(talhaoId: string, extra: Partial<Novo<Coleta>> = {}): string {
   const quadro = parseNum(localStorage.getItem(CHAVE_QUADRO) ?? '') ?? 1;
-  const id = await db.coletas.add({
+  return repositorio().adicionar('coletas', {
     talhaoId,
     data: hoje(),
     responsavel: localStorage.getItem(CHAVE_RESP) ?? '',
     areaAmostralM2: quadro > 0 ? quadro : 1,
     observacoes: '',
+    criadoEm: new Date().toISOString(),
     ...extra,
   });
-  return id;
 }
 
 export function lembrarUltimos(responsavel: string, quadro: number) {
@@ -24,19 +25,23 @@ export function lembrarUltimos(responsavel: string, quadro: number) {
 }
 
 /** Adiciona um ponto (amostra) à coleta com o próximo número; posição opcional. Devolve o id. */
-export async function adicionarPonto(coletaId: number, pos: Pick<Amostra, 'lat' | 'lng' | 'precisaoM' | 'capturadoEm'> = {}): Promise<number> {
-  const existentes = await db.amostras.where('coletaId').equals(coletaId).toArray();
+export function adicionarPonto(coletaId: string, pos: Pick<Amostra, 'lat' | 'lng' | 'precisaoM' | 'capturadoEm'> = {}): string {
+  const existentes = dadosAtuais().amostras.filter((a) => a.coletaId === coletaId);
   const ponto = existentes.reduce((m, a) => Math.max(m, a.ponto), 0) + 1;
-  return db.amostras.add({ coletaId, ponto, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null, ...pos });
+  return repositorio().adicionar('amostras', { coletaId, ponto, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null, ...pos });
 }
 
 /** Remove um ponto e renumera os restantes (1, 2, 3…) para não ficar buraco na sequência. */
-export async function removerPonto(amostraId: number) {
-  await db.transaction('rw', db.amostras, async () => {
-    const a = await db.amostras.get(amostraId);
-    if (!a) return;
-    await db.amostras.delete(amostraId);
-    const restantes = await db.amostras.where('coletaId').equals(a.coletaId).sortBy('ponto');
-    await Promise.all(restantes.map((r, i) => (r.ponto === i + 1 ? null : db.amostras.update(r.id!, { ponto: i + 1 }))));
-  });
+export function removerPonto(amostraId: string) {
+  const d = dadosAtuais();
+  const a = d.amostras.find((x) => x.id === amostraId);
+  if (!a) return;
+  const restantes = d.amostras.filter((x) => x.coletaId === a.coletaId && x.id !== amostraId).sort((x, y) => x.ponto - y.ponto);
+  repositorio().lote([
+    { tipo: 'remover', colecao: 'amostras', id: amostraId },
+    ...restantes
+      .map((r, i) => ({ r, n: i + 1 }))
+      .filter(({ r, n }) => r.ponto !== n)
+      .map(({ r, n }) => ({ tipo: 'atualizar' as const, colecao: 'amostras' as const, id: r.id, dados: { ponto: n } })),
+  ]);
 }

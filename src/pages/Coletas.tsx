@@ -1,31 +1,23 @@
 import { useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
-import { useLiveQuery } from 'dexie-react-hooks';
-import { db, listarTalhoes, type Amostra } from '../db';
+import { amostrasPorColeta, useDados } from '../dados';
+import { compararColetasDesc } from '../tipos';
 import { resumoColeta } from '../calc';
 import { fmt, fmtData } from '../util';
 
 /** Histórico de coletas. A criação fica em /coletas/nova (talhão escolhido no Mapa). */
 export default function Coletas() {
-  const dados = useLiveQuery(async () => {
-    const [talhoes, coletas, amostras] = await Promise.all([
-      listarTalhoes(),
-      db.coletas.toArray(),
-      db.amostras.toArray(),
-    ]);
-    return { talhoes, coletas, amostras };
-  }, []);
+  const dados = useDados();
   const [filtro, setFiltro] = useState('');
 
   const linhas = useMemo(() => {
     if (!dados) return [];
-    const porColeta = new Map<number, Amostra[]>();
-    for (const a of dados.amostras) porColeta.set(a.coletaId, [...(porColeta.get(a.coletaId) ?? []), a]);
-    const nomes = new Map(dados.talhoes.map((t) => [t.id!, t.nome]));
+    const porColeta = amostrasPorColeta(dados.amostras);
+    const nomes = new Map(dados.talhoes.map((t) => [t.id, t.nome]));
     return dados.coletas
-      .filter((c) => !filtro || c.talhaoId === Number(filtro))
-      .sort((a, b) => b.data.localeCompare(a.data) || b.id! - a.id!)
-      .map((c) => ({ c, talhao: nomes.get(c.talhaoId) ?? '?', r: resumoColeta(c, porColeta.get(c.id!) ?? []) }));
+      .filter((c) => !filtro || c.talhaoId === filtro)
+      .sort(compararColetasDesc)
+      .map((c) => ({ c, talhao: nomes.get(c.talhaoId) ?? '?', r: resumoColeta(c, porColeta.get(c.id) ?? []) }));
   }, [dados, filtro]);
 
   if (!dados) return null;

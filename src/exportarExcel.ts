@@ -1,5 +1,6 @@
 import type ExcelJS from 'exceljs';
-import { db, listarTalhoes, type Amostra, type Coleta, type Talhao } from './db';
+import { amostrasPorColeta, dadosAtuais } from './dados';
+import type { Coleta, Dados, Talhao } from './tipos';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade, type Parametros } from './calc';
 import { areaAnelM2 } from './kml';
 import { hoje, lerParametros } from './util';
@@ -29,14 +30,13 @@ function situacao(msPct: number | null, cvPct: number | null, p: Parametros): st
   return cvPct != null && cvPct > CV_LIMITE ? `${ms}; CV alto` : ms;
 }
 
-/** Monta as planilhas (dados puros) a partir do banco — separado da escrita para ser testável. */
-export async function montarPlanilhas(p: Parametros = lerParametros()): Promise<Planilha[]> {
-  const [talhoes, coletas, amostras] = await Promise.all([listarTalhoes(), db.coletas.toArray(), db.amostras.toArray()]);
-  coletas.sort((a, b) => a.data.localeCompare(b.data) || a.id! - b.id!);
-  const talhaoPorId = new Map<number, Talhao>(talhoes.map((t) => [t.id!, t]));
-  const porColeta = new Map<number, Amostra[]>();
-  for (const a of amostras) porColeta.set(a.coletaId, [...(porColeta.get(a.coletaId) ?? []), a]);
-  const idColeta = new Map<number, string>(coletas.map((c, i) => [c.id!, `C${String(i + 1).padStart(3, '0')}`]));
+/** Monta as planilhas (dados puros) — separado da escrita para ser testável. */
+export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerParametros()): Planilha[] {
+  const talhoes = [...d.talhoes].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true }));
+  const coletas = [...d.coletas].sort((a, b) => a.data.localeCompare(b.data) || (a.criadoEm ?? '').localeCompare(b.criadoEm ?? '') || a.id.localeCompare(b.id));
+  const talhaoPorId = new Map<string, Talhao>(talhoes.map((t) => [t.id, t]));
+  const porColeta = amostrasPorColeta(d.amostras);
+  const idColeta = new Map<string, string>(coletas.map((c, i) => [c.id, `C${String(i + 1).padStart(3, '0')}`]));
   const nome = (c: Coleta) => {
     const t = talhaoPorId.get(c.talhaoId);
     return t ? nomeCurto(t.nome) : '?';
@@ -68,11 +68,11 @@ export async function montarPlanilhas(p: Parametros = lerParametros()): Promise<
       { titulo: 'Silagem est. (t)', largura: 10, formato: '#,##0' }, { titulo: 'Silo (m³)', largura: 10, formato: '#,##0' }, { titulo: 'Situação', largura: 24 },
     ],
     linhas: coletas.map((c) => {
-      const r = resumoColeta(c, porColeta.get(c.id!) ?? []);
+      const r = resumoColeta(c, porColeta.get(c.id) ?? []);
       const t = talhaoPorId.get(c.talhaoId);
       const e = estimativaTalhao(t?.areaHa ?? 0, r, p);
       return [
-        idColeta.get(c.id!)!, nome(c), dataLocal(c.data), c.responsavel, c.areaAmostralM2, c.observacoes ?? '',
+        idColeta.get(c.id)!, nome(c), dataLocal(c.data), c.responsavel, c.areaAmostralM2, c.observacoes ?? '',
         r.nPontos, n(r.mvKgM2), n(r.tMVha), n(r.desvioKgM2), n(r.cvPct), n(r.msPct), n(r.tMSha), n(t?.areaHa),
         n(e.tMVtotal), n(e.tMStotal), n(e.silagemT), n(e.volumeM3), r.nPontos ? situacao(r.msPct, r.cvPct, p) : '',
       ];
@@ -90,17 +90,15 @@ export async function montarPlanilhas(p: Parametros = lerParametros()): Promise<
       { titulo: 'MS (%)', largura: 8, formato: '0.0' }, { titulo: 'Umidade (%)', largura: 9, formato: '0.0' }, { titulo: 'MS (t/ha)', largura: 9, formato: '0.0' },
     ],
     linhas: coletas.flatMap((c) =>
-      (porColeta.get(c.id!) ?? [])
-        .sort((a, b) => a.ponto - b.ponto)
-        .map((a) => {
-          const mv = producaoPonto(a, c.areaAmostralM2);
-          const ms = teorMS(a);
-          return [
-            idColeta.get(c.id!)!, nome(c), dataLocal(c.data), a.ponto, n(a.pesoVerdeKg), n(a.pesoUmidoG), n(a.pesoSecoG),
-            n(a.lat), n(a.lng), n(a.precisaoM), a.capturadoEm ? new Date(a.capturadoEm).toLocaleString('pt-BR') : '', a.observacoes ?? '',
-            c.areaAmostralM2, n(mv), mv == null ? null : mv * 10, n(ms), n(teorUmidade(a)), mv == null || ms == null ? null : (mv * 10 * ms) / 100,
-          ];
-        }),
+      (porColeta.get(c.id) ?? []).map((a) => {
+        const mv = producaoPonto(a, c.areaAmostralM2);
+        const ms = teorMS(a);
+        return [
+          idColeta.get(c.id)!, nome(c), dataLocal(c.data), a.ponto, n(a.pesoVerdeKg), n(a.pesoUmidoG), n(a.pesoSecoG),
+          n(a.lat), n(a.lng), n(a.precisaoM), a.capturadoEm ? new Date(a.capturadoEm).toLocaleString('pt-BR') : '', a.observacoes ?? '',
+          c.areaAmostralM2, n(mv), mv == null ? null : mv * 10, n(ms), n(teorUmidade(a)), mv == null || ms == null ? null : (mv * 10 * ms) / 100,
+        ];
+      }),
     ),
   };
 
@@ -122,7 +120,7 @@ export async function montarPlanilhas(p: Parametros = lerParametros()): Promise<
 
 /** Gera o .xlsx (ExcelJS carregado sob demanda) e dispara o download. */
 export async function exportarExcel() {
-  const planilhas = await montarPlanilhas();
+  const planilhas = montarPlanilhas();
   const { Workbook } = (await import('exceljs')).default;
   const wb: ExcelJS.Workbook = new Workbook();
   wb.creator = 'Silagem MS';

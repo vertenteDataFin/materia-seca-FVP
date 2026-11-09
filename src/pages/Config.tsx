@@ -1,9 +1,13 @@
-import { useRef, useState } from 'react';
-import { db } from '../db';
+import { useRef, useState, type FormEvent } from 'react';
+import type { User } from 'firebase/auth';
+import { dadosAtuais, restaurarBackup, type Backup } from '../dados';
 import { PARAMETROS_PADRAO, producaoPonto, teorMS, teorUmidade, type Parametros } from '../calc';
 import { baixarArquivo, hoje, lerParametros, numParaTexto, parseNum, salvarParametros } from '../util';
 import { exportarExcel } from '../exportarExcel';
-import { COLETAS_INICIAIS, importarColetasIniciais, OBS_COLETA_INICIAL } from '../coletasIniciais';
+import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
+import { FIREBASE_ATIVO } from '../firebase';
+import { sair } from '../sessao';
+import { adicionarMembro, ehAdmin, removerMembro, useMembros } from '../membros';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -12,7 +16,7 @@ const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'msMax', rotulo: 'MS máxima ideal (%)', ajuda: 'Acima disso a compactação fica difícil.' },
 ];
 
-export default function Config() {
+export default function Config({ usuario }: { usuario?: User }) {
   const [texto, setTexto] = useState(() => {
     const p = lerParametros();
     return Object.fromEntries(CAMPOS.map((c) => [c.chave, numParaTexto(p[c.chave])])) as Record<keyof Parametros, string>;
@@ -21,8 +25,8 @@ export default function Config() {
   const [exportando, setExportando] = useState(false);
   const arquivo = useRef<HTMLInputElement>(null);
 
-  async function carregarColetasIniciais() {
-    const r = await importarColetasIniciais();
+  function carregarColetasIniciais() {
+    const r = importarColetasIniciais();
     const partes = [`${r.criadas} coleta(s) criada(s)`, `${r.existentes} já existia(m)`];
     if (r.semTalhao.length) partes.push(`talhão não encontrado: ${r.semTalhao.join(', ')}`);
     setMensagem(`Coletas da ficha de campo: ${partes.join(' · ')}.`);
@@ -53,16 +57,16 @@ export default function Config() {
     setMensagem('Parâmetros salvos.');
   }
 
-  async function exportarJSON() {
-    const [talhoes, coletas, amostras] = await Promise.all([db.talhoes.toArray(), db.coletas.toArray(), db.amostras.toArray()]);
-    const backup = { app: 'silagem-ms', versao: 1, exportadoEm: new Date().toISOString(), parametros: lerParametros(), talhoes, coletas, amostras };
+  function exportarJSON() {
+    const { talhoes, coletas, amostras } = dadosAtuais();
+    const backup: Backup = { app: 'silagem-ms', versao: 2, exportadoEm: new Date().toISOString(), parametros: lerParametros(), talhoes, coletas, amostras };
     baixarArquivo(`silagem-ms-backup-${hoje()}.json`, JSON.stringify(backup, null, 2), 'application/json');
   }
 
-  async function exportarCSV() {
-    const [talhoes, coletas, amostras] = await Promise.all([db.talhoes.toArray(), db.coletas.toArray(), db.amostras.toArray()]);
-    const t = new Map(talhoes.map((x) => [x.id!, x]));
-    const c = new Map(coletas.map((x) => [x.id!, x]));
+  function exportarCSV() {
+    const { talhoes, coletas, amostras } = dadosAtuais();
+    const t = new Map(talhoes.map((x) => [x.id, x]));
+    const c = new Map(coletas.map((x) => [x.id, x]));
     const n = (v: number | null | undefined) => (v == null ? '' : String(Math.round(v * 1000) / 1000).replace('.', ','));
     const s = (v: string | undefined) => `"${(v ?? '').replace(/"/g, '""')}"`;
     const linhas = [
@@ -84,18 +88,14 @@ export default function Config() {
 
   async function importar(f: File) {
     try {
-      const b = JSON.parse(await f.text());
+      const b = JSON.parse(await f.text()) as Backup;
       if (b.app !== 'silagem-ms' || !Array.isArray(b.talhoes) || !Array.isArray(b.coletas) || !Array.isArray(b.amostras)) {
         throw new Error('Arquivo não é um backup do Silagem MS.');
       }
-      if (!confirm(`Restaurar ${b.talhoes.length} talhão(ões), ${b.coletas.length} coleta(s) e ${b.amostras.length} amostra(s)?\n\nOS DADOS ATUAIS SERÃO SUBSTITUÍDOS.`)) return;
-      await db.transaction('rw', db.talhoes, db.coletas, db.amostras, async () => {
-        await Promise.all([db.talhoes.clear(), db.coletas.clear(), db.amostras.clear()]);
-        await db.talhoes.bulkAdd(b.talhoes);
-        await db.coletas.bulkAdd(b.coletas);
-        await db.amostras.bulkAdd(b.amostras);
-      });
-      if (b.parametros) salvarParametros({ ...PARAMETROS_PADRAO, ...b.parametros });
+      const onde = FIREBASE_ATIVO ? 'EM TODOS OS APARELHOS' : 'NESTE APARELHO';
+      if (!confirm(`Restaurar ${b.talhoes.length} talhão(ões), ${b.coletas.length} coleta(s) e ${b.amostras.length} amostra(s)?\n\nOS DADOS ATUAIS SERÃO SUBSTITUÍDOS ${onde}.`)) return;
+      restaurarBackup(b);
+      if (b.parametros) salvarParametros({ ...PARAMETROS_PADRAO, ...(b.parametros as Partial<Parametros>) });
       setMensagem('Backup restaurado com sucesso.');
     } catch (e) {
       setMensagem(`Falha ao importar: ${(e as Error).message}`);
@@ -107,6 +107,9 @@ export default function Config() {
   return (
     <>
       <h1>Configurações</h1>
+
+      {FIREBASE_ATIVO && usuario && <Conta usuario={usuario} />}
+
       <div className="cartao grade-form">
         <h2>Parâmetros da estimativa</h2>
         {CAMPOS.map((c) => (
@@ -124,9 +127,10 @@ export default function Config() {
       <div className="cartao">
         <h2>Dados e backup</h2>
         <p className="dica">
-          Os dados ficam salvos neste navegador/dispositivo. Faça backups regulares e use-os para transferir dados entre
-          aparelhos (ex.: do celular usado em campo para o computador do escritório). O Excel traz as planilhas Talhões,
-          Coletas (com os resultados calculados), Amostras e Parâmetros.
+          {FIREBASE_ATIVO
+            ? 'Os dados ficam na nuvem (Firebase) e sincronizam entre os aparelhos logados; sem sinal, o app segue funcionando e envia quando a conexão volta. '
+            : 'Os dados ficam salvos neste navegador/dispositivo. Faça backups regulares e use-os para transferir dados entre aparelhos. '}
+          O Excel traz as planilhas Talhões, Coletas (com os resultados calculados), Amostras e Parâmetros.
         </p>
         <div className="acoes">
           <button className="primario" onClick={exportarXlsx} disabled={exportando}>{exportando ? 'Gerando…' : 'Exportar Excel (.xlsx)'}</button>
@@ -140,8 +144,7 @@ export default function Config() {
         <h2>Coletas da ficha de campo</h2>
         <p className="dica">
           As coletas já feitas ({COLETAS_INICIAIS.map((c) => `${c.talhao} em ${c.data.split('-').reverse().join('/')}`).join(', ')}) entram
-          automaticamente na primeira abertura do app, sem posição GPS. Use o botão se precisar recarregá-las — as que já estão lançadas
-          (marcadas "{OBS_COLETA_INICIAL}") não são duplicadas.
+          automaticamente na primeira abertura do app, sem posição GPS. Use o botão se precisar recarregá-las — as que já estão lançadas não são duplicadas.
         </p>
         <div className="acoes">
           <button onClick={carregarColetasIniciais}>Carregar coletas da ficha</button>
@@ -162,5 +165,84 @@ export default function Config() {
         </ul>
       </div>
     </>
+  );
+}
+
+/** Conta logada e, para administradores, a lista de pessoas com acesso. */
+function Conta({ usuario }: { usuario: User }) {
+  const membros = useMembros();
+  const admin = ehAdmin(usuario.email, membros);
+  const [email, setEmail] = useState('');
+  const [nome, setNome] = useState('');
+  const [papel, setPapel] = useState<'membro' | 'admin'>('membro');
+  const [msg, setMsg] = useState('');
+
+  async function incluir(e: FormEvent) {
+    e.preventDefault();
+    setMsg('');
+    try {
+      await adicionarMembro(email, nome, papel, usuario.email ?? '');
+      setEmail('');
+      setNome('');
+      setMsg(`${email.trim().toLowerCase()} incluído(a).`);
+    } catch (err) {
+      setMsg((err as Error).message);
+    }
+  }
+
+  return (
+    <div className="cartao">
+      <div className="cabecalho-cartao">
+        <h2>Conta</h2>
+        <button onClick={() => void sair()}>Sair</button>
+      </div>
+      <p>
+        Logado como <strong>{usuario.email}</strong>{admin && <span className="selo selo-ideal" style={{ marginLeft: '0.5rem' }}>administrador</span>}
+      </p>
+
+      {admin && (
+        <>
+          <h3>Pessoas com acesso</h3>
+          {membros === undefined ? null : membros === null ? (
+            <p className="mudo">Sem permissão para ver a lista.</p>
+          ) : (
+            <ul className="lista-pontos">
+              {membros.map((m) => (
+                <li key={m.email}>
+                  <strong>{m.email}</strong>
+                  <span className="mudo">{m.nome}{m.papel === 'admin' ? ' · admin' : ''}</span>
+                  <span className="espaco" />
+                  {m.email !== usuario.email?.toLowerCase() && (
+                    <button className="perigo mini" aria-label={`Remover ${m.email}`} onClick={() => confirm(`Remover o acesso de ${m.email}?`) && removerMembro(m.email).catch((e) => setMsg(e.message))}>✕</button>
+                  )}
+                </li>
+              ))}
+              {!membros.length && <li className="mudo">Só os administradores fixos têm acesso por enquanto.</li>}
+            </ul>
+          )}
+          <form className="grade-form" onSubmit={incluir}>
+            <label>
+              E-mail (conta Google)
+              <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="pessoa@gmail.com" />
+            </label>
+            <label>
+              Nome
+              <input value={nome} onChange={(e) => setNome(e.target.value)} />
+            </label>
+            <label>
+              Papel
+              <select value={papel} onChange={(e) => setPapel(e.target.value as 'membro' | 'admin')}>
+                <option value="membro">Membro (usa o app)</option>
+                <option value="admin">Administrador (também inclui pessoas)</option>
+              </select>
+            </label>
+            <div className="acoes largo">
+              <button type="submit" className="primario" disabled={!email.trim()}>Incluir pessoa</button>
+            </div>
+          </form>
+        </>
+      )}
+      {msg && <p className="aviso">{msg}</p>}
+    </div>
   );
 }
