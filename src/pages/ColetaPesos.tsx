@@ -5,6 +5,7 @@ import { adicionarPonto, lembrarUltimos } from '../coletas';
 import { producaoPonto, resumoColeta } from '../calc';
 import { CampoNumero, Indicador, PassosColeta } from '../components';
 import { dentroDoTalhao, fmtCoord } from '../geo';
+import { codigoAmostra } from '../fluxo';
 import { fmt, fmtData } from '../util';
 
 /** Etapa 3: peso verde (massa fresca) de cada ponto. */
@@ -53,7 +54,8 @@ export default function ColetaPesos() {
         </div>
         <p className="dica">
           Pese o capim cortado dentro do quadro em cada ponto.{' '}
-          {quadro === 1 ? 'Com quadro de 1 m², o peso em kg já é a massa verde em kg/m².' : `O app divide pelo quadro de ${fmt(quadro, 2)} m² para obter kg/m².`}
+          {quadro === 1 ? 'Com quadro de 1 m², o peso em kg já é a massa verde em kg/m².' : `O app divide pelo quadro de ${fmt(quadro, 2)} m² para obter kg/m².`}{' '}
+          Separe a subamostra para MS e etiquete o saco com o <strong>código</strong> do ponto.
         </p>
 
         {!amostras.length ? (
@@ -66,7 +68,7 @@ export default function ColetaPesos() {
             {amostras.map((a) => (
               <div key={a.id} className={`peso-linha ${fora(a) ? 'fora' : ''}`}>
                 <div>
-                  <strong>Ponto {a.ponto}</strong>
+                  <strong>Ponto {a.ponto}</strong> <code className="codigo">{codigoAmostra(talhao?.nome ?? '', coleta.data, a.ponto)}</code>
                   <div className="mudo"><small>{a.lat != null && a.lng != null ? fmtCoord(a.lat, a.lng) : 'sem posição'}{fora(a) ? ' · fora do talhão' : ''}</small></div>
                 </div>
                 <label>
@@ -102,8 +104,10 @@ export default function ColetaPesos() {
 
       <div className="acoes">
         <Link className="botao" to={`/coletas/${coletaId}/pontos`}>← Pontos</Link>
-        <Link className="botao primario" to={`/coletas/${coletaId}`}>Concluir → resultado e MS</Link>
+        <Link className="botao primario" to="/coletas">Concluir coleta de campo</Link>
+        <Link className="botao" to={`/laboratorio?coleta=${coletaId}`}>Lançar MS agora (laboratório)</Link>
       </div>
+      <p className="dica">A MS (peso úmido e seco da subamostra) é lançada depois, no módulo Laboratório. O resultado completo fica em "Abrir" na lista de coletas.</p>
     </>
   );
 }

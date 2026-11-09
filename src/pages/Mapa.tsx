@@ -66,7 +66,7 @@ export default function Mapa() {
           <span className="selo" style={{ background: COR_STATUS.baixo, color: '#fff' }}>MS baixa</span>{' '}
           <span className="selo" style={{ background: COR_STATUS.ideal, color: '#fff' }}>ponto de ensilagem</span>{' '}
           <span className="selo" style={{ background: COR_STATUS.alto, color: '#fff' }}>MS alta</span>{' '}
-          <span className="selo" style={{ background: '#9aa59a', color: '#fff' }}>coletado, sem MS</span>{' '}
+          <span className="selo" style={{ background: '#9aa59a', color: '#fff' }}>coletado, aguardando laboratório</span>{' '}
           <span className="selo" style={{ background: '#2e9e3f', color: '#fff' }}>sem coleta</span>
         </p>
       </div>

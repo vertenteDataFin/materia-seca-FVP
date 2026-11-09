@@ -8,6 +8,7 @@ import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmt, lerParametros } from '../util';
 import { usePermissoes } from '../permissoes';
+import { codigoAmostra, ROTULO_STATUS_COLETA, statusColeta } from '../fluxo';
 
 export default function ColetaDetalhe() {
   const navigate = useNavigate();
@@ -116,8 +117,9 @@ export default function ColetaDetalhe() {
           </button>
         </div>
         <p className="dica">
-          Lance aqui a subamostra de umidade de cada ponto (pesos <strong>úmido</strong> e <strong>seco</strong>, já sem a tara) para obter a MS.
-          Peso verde = massa cortada no quadro de {fmt(coleta.areaAmostralM2, 2)} m². <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
+          Situação: <strong>{ROTULO_STATUS_COLETA[statusColeta(amostras)]}</strong>. Peso verde = massa cortada no quadro de {fmt(coleta.areaAmostralM2, 2)} m² (campo);
+          úmido e seco da subamostra (já sem a tara) dão a MS e normalmente são lançados em <Link to={`/laboratorio?coleta=${coletaId}`}>Laboratório</Link>, mas
+          também podem ser editados aqui. <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
         {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use ↻ para tentar de novo.</p>}
         {nFora > 0 && <p className="aviso">{nFora} ponto(s) com GPS fora do contorno do talhão (marcados em vermelho). Confira o talhão da coleta.</p>}
@@ -131,6 +133,7 @@ export default function ColetaDetalhe() {
                 <div key={a.id} className={`ponto ${fora(a) ? 'ponto-fora' : ''}`}>
                   <div className="ponto-topo">
                     <strong>Ponto {a.ponto}</strong>
+                    <code className="codigo">{codigoAmostra(talhao?.nome ?? '', coleta.data, a.ponto)}</code>
                     {statusGps(a)}
                     {botaoGps(a)}
                     <span className="espaco" />
@@ -181,7 +184,7 @@ export default function ColetaDetalhe() {
                 const invalido = a.pesoUmidoG != null && a.pesoSecoG != null && ms == null;
                 return (
                   <tr key={a.id}>
-                    <td><strong>{a.ponto}</strong></td>
+                    <td><strong>{a.ponto}</strong> <code className="codigo">{codigoAmostra(talhao?.nome ?? '', coleta.data, a.ponto)}</code></td>
                     <td>{statusGps(a)} {botaoGps(a)}</td>
                     <td className="n">
                       <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />

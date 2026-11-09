@@ -18,6 +18,7 @@ import NovaColeta from './pages/NovaColeta';
 import ColetaDetalhe from './pages/ColetaDetalhe';
 import ColetaPontos from './pages/ColetaPontos';
 import ColetaPesos from './pages/ColetaPesos';
+import Laboratorio from './pages/Laboratorio';
 import Config from './pages/Config';
 import Login from './pages/Login';
 
@@ -120,7 +121,8 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
           <nav>
             <NavLink to="/" end><span className="icone" aria-hidden>📊</span><span>Painel</span></NavLink>
             <NavLink to="/mapa"><span className="icone" aria-hidden>🗺️</span><span>Mapa</span></NavLink>
-            <NavLink to="/coletas"><span className="icone" aria-hidden>📋</span><span>Coletas</span></NavLink>
+            <NavLink to="/coletas"><span className="icone" aria-hidden>📋</span><span>Campo</span></NavLink>
+            <NavLink to="/laboratorio"><span className="icone" aria-hidden>🧪</span><span>Lab</span></NavLink>
             <NavLink to="/talhoes"><span className="icone" aria-hidden>🌱</span><span>Talhões</span></NavLink>
             <NavLink to="/config"><span className="icone" aria-hidden>⚙️</span><span>Config.</span></NavLink>
           </nav>
@@ -145,6 +147,7 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
             <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
             <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
             <Route path="/coletas/:id" element={<ColetaDetalhe />} />
+            <Route path="/laboratorio" element={<Laboratorio />} />
             <Route path="/config" element={<Config usuario={usuario} />} />
           </Routes>
         </main>
