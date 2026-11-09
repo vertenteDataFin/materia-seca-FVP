@@ -22,8 +22,9 @@ export interface ResultadoImportacao {
 }
 
 /**
- * Cria as coletas iniciais nos talhões correspondentes (pelo nome). Se já houver coleta do mesmo
- * talhão na mesma data, não cria de novo — pode ser chamada quantas vezes for preciso.
+ * Cria as coletas iniciais nos talhões correspondentes (pelo nome). Se a coleta da ficha daquele
+ * talhão/data já existir (identificada pela observação), não cria de novo — pode ser chamada
+ * quantas vezes for preciso. Coletas feitas pelo usuário no mesmo dia não impedem a importação.
  */
 export async function importarColetasIniciais(): Promise<ResultadoImportacao> {
   const r: ResultadoImportacao = { criadas: 0, existentes: 0, semTalhao: [] };
@@ -35,7 +36,11 @@ export async function importarColetasIniciais(): Promise<ResultadoImportacao> {
         r.semTalhao.push(c.talhao);
         continue;
       }
-      const jaTem = await db.coletas.where('talhaoId').equals(t.id!).filter((x) => x.data === c.data).count();
+      const jaTem = await db.coletas
+        .where('talhaoId')
+        .equals(t.id!)
+        .filter((x) => x.data === c.data && x.observacoes === OBS_COLETA_INICIAL)
+        .count();
       if (jaTem) {
         r.existentes++;
         continue;

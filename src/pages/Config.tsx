@@ -3,7 +3,7 @@ import { db } from '../db';
 import { PARAMETROS_PADRAO, producaoPonto, teorMS, teorUmidade, type Parametros } from '../calc';
 import { baixarArquivo, hoje, lerParametros, numParaTexto, parseNum, salvarParametros } from '../util';
 import { exportarExcel } from '../exportarExcel';
-import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
+import { COLETAS_INICIAIS, importarColetasIniciais, OBS_COLETA_INICIAL } from '../coletasIniciais';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -140,7 +140,8 @@ export default function Config() {
         <h2>Coletas da ficha de campo</h2>
         <p className="dica">
           As coletas já feitas ({COLETAS_INICIAIS.map((c) => `${c.talhao} em ${c.data.split('-').reverse().join('/')}`).join(', ')}) entram
-          automaticamente na primeira abertura do app, sem posição GPS. Use o botão se precisar recarregá-las — coletas que já existem não são duplicadas.
+          automaticamente na primeira abertura do app, sem posição GPS. Use o botão se precisar recarregá-las — as que já estão lançadas
+          (marcadas "{OBS_COLETA_INICIAL}") não são duplicadas.
         </p>
         <div className="acoes">
           <button onClick={carregarColetasIniciais}>Carregar coletas da ficha</button>

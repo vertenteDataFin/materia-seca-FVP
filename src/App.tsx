@@ -15,7 +15,8 @@ import Config from './pages/Config';
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
 const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v3';
 // Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
-const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v1';
+// Mude a versão para rodar a importação de novo nos aparelhos que já abriram o app.
+const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v2';
 
 /** Na primeira abertura (ou nova versão do KML), carrega/sincroniza os talhões da fazenda e as coletas já feitas. */
 function useTalhoesIniciais() {

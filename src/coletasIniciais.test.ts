@@ -35,6 +35,16 @@ describe('importarColetasIniciais', () => {
     expect(r18.tMSha).toBeCloseTo(4.0, 1);
   });
 
+  it('importa mesmo se o usuário já tiver outra coleta do talhão no mesmo dia', async () => {
+    const t18 = (await db.talhoes.toArray()).find((t) => t.nome.includes('18'))!;
+    await db.coletas.add({ talhaoId: t18.id!, data: '2026-11-07', responsavel: 'Teste', areaAmostralM2: 1, observacoes: 'teste do app' });
+    const r = await importarColetasIniciais();
+    expect(r).toEqual({ criadas: 3, existentes: 0, semTalhao: [] });
+    const c18 = await db.coletas.where('talhaoId').equals(t18.id!).toArray();
+    expect(c18).toHaveLength(2);
+    expect(c18.filter((c) => c.observacoes === OBS_COLETA_INICIAL)).toHaveLength(1);
+  });
+
   it('não duplica ao rodar de novo e avisa talhão ausente', async () => {
     await importarColetasIniciais();
     const r = await importarColetasIniciais();
