@@ -227,7 +227,7 @@ function Conta({ usuario }: { usuario: User }) {
           )}
           <form className="grade-form" onSubmit={incluir}>
             <label>
-              E-mail (o mesmo cadastrado em Authentication → Usuários)
+              E-mail
               <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="pessoa@fazendavertente.com.br" />
             </label>
             <label>

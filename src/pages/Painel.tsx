@@ -4,6 +4,7 @@ import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import { estimativaTalhao, resumoColeta, statusMS } from '../calc';
 import { Indicador, SeloMS } from '../components';
 import { fmt, fmtData, lerParametros } from '../util';
+import { nomeCurto } from '../MapaTalhoes';
 
 export default function Painel() {
   const [parametros] = useState(lerParametros);
@@ -68,63 +69,41 @@ export default function Painel() {
 
       <div className="cartao">
         <h2>Por talhão</h2>
+        <p className="dica">Última coleta de cada talhão. Toque no talhão para ver o cadastro ou na data para abrir a coleta.</p>
         <div className="rolagem">
           <table className="tabela-cartoes">
             <thead>
               <tr>
                 <th>Talhão</th>
                 <th className="oculta-cel">Capim</th>
-                <th className="n">Área (ha)</th>
                 <th className="oculta-cel">Última coleta</th>
-                <th className="n">t MV/ha</th>
-                <th className="n">MS %</th>
-                <th className="n">t MS/ha</th>
-                <th className="n oculta-cel">MV total (t)</th>
-                <th className="n oculta-cel">MS total (t)</th>
-                <th className="n">Silagem (t)</th>
-                <th className="n oculta-cel">Silo (m³)</th>
-                <th className="oculta-cel">Situação</th>
+                <th className="n">Amostras</th>
+                <th className="n">MV (kg/m²)</th>
+                <th className="n">MV (t/ha)</th>
+                <th className="n">MS (%)</th>
+                <th className="n">MS (t/ha)</th>
               </tr>
             </thead>
             <tbody>
-              {linhas.map(({ t, c, r, e }) => (
+              {linhas.map(({ t, c, r }) => (
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
-                    <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{t.nome}</strong></Link>
+                    <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{nomeCurto(t.nome)}</strong></Link>
                     <div className="mudo so-cel">
                       <small>{t.capim || '—'}{c ? <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></> : ' · sem coleta'}</small>
                       {c && <> <SeloMS status={statusMS(r?.msPct ?? null, parametros)} /></>}
                     </div>
-                    {t.fazenda && <div className="mudo oculta-cel"><small>{t.fazenda}</small></div>}
                   </td>
                   <td className="oculta-cel">{t.capim || '—'}</td>
-                  <td className="n" data-rotulo="Área (ha)">{t.areaHa > 0 ? fmt(t.areaHa, 1) : <Link to="/talhoes" className="selo selo-alto">informar</Link>}</td>
                   <td className="oculta-cel">{c ? <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link> : <span className="mudo">sem coleta</span>}</td>
-                  <td className="n" data-rotulo="t MV/ha">{fmt(r?.tMVha)}</td>
-                  <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
-                  <td className="n" data-rotulo="t MS/ha">{fmt(r?.tMSha)}</td>
-                  <td className="n oculta-cel">{fmt(e?.tMVtotal)}</td>
-                  <td className="n oculta-cel">{fmt(e?.tMStotal)}</td>
-                  <td className="n" data-rotulo="Silagem (t)">{fmt(e?.silagemT)}</td>
-                  <td className="n oculta-cel">{fmt(e?.volumeM3, 0)}</td>
-                  <td className="oculta-cel">{c && <SeloMS status={statusMS(r?.msPct ?? null, parametros)} />}</td>
+                  <td className="n" data-rotulo="Amostras">{r ? r.nPontos : '—'}</td>
+                  <td className="n" data-rotulo="MV (kg/m²)">{fmt(r?.mvKgM2, 2)}</td>
+                  <td className="n" data-rotulo="MV (t/ha)">{fmt(r?.tMVha)}</td>
+                  <td className="n" data-rotulo="MS (%)">{fmt(r?.msPct)}</td>
+                  <td className="n" data-rotulo="MS (t/ha)">{fmt(r?.tMSha)}</td>
                 </tr>
               ))}
             </tbody>
-            <tfoot>
-              <tr>
-                <td className="largo-cel">Total</td>
-                <td className="oculta-cel" />
-                <td className="n" data-rotulo="Área (ha)">{fmt(areaTotal, 1)}</td>
-                <td className="oculta-cel" />
-                <td colSpan={3} />
-                <td className="n oculta-cel">{fmt(mvTotal)}</td>
-                <td className="n oculta-cel">{fmt(msTotal)}</td>
-                <td className="n" data-rotulo="Silagem (t)">{fmt(silagemTotal)}</td>
-                <td className="n oculta-cel">{fmt(volumeTotal, 0)}</td>
-                <td className="oculta-cel" />
-              </tr>
-            </tfoot>
           </table>
         </div>
       </div>
