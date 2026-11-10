@@ -89,7 +89,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
           <h3>Área (ha)</h3>
           <table className="tabela-fontes">
             <tbody>
-              <Fonte rotulo="Declarada no KML" valor={fmt(t.areaKmlHa, 2)} />
+              <Fonte rotulo="Informada no KML" valor={fmt(t.areaKmlHa, 2)} />
               <Fonte
                 rotulo="Polígono desenhado"
                 valor={areaPoligono != null ? `${fmt(areaPoligono, 2)}${difArea != null ? ` (${difArea > 0 ? '+' : ''}${fmt(difArea, 0)}%)` : ''}` : ''}

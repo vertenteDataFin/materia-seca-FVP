@@ -1,7 +1,8 @@
 ﻿// @vitest-environment jsdom
 import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vitest';
-import { areaAnelM2, capimDaAtividade, chaveNome, lerKml, nomePadrao, sugerirCorrespondencias } from './kml';
+import { areaAnelM2, capimDaAtividade, chaveNome, chaveTalhao, lerKml, nomePadrao, sugerirCorrespondencias } from './kml';
+import { areaDoKml } from './importarFazenda';
 import { compararNomes } from './tipos';
 
 const KML_MINIMO = `<?xml version="1.0" encoding="UTF-8"?>
@@ -44,6 +45,22 @@ describe('kml', () => {
     expect(chaveNome('Pivô 1 - Conf')).toBe(chaveNome('PIVO 01'));
     expect(chaveNome('Talhão C3 - Conf')).toBe('C3');
     expect(chaveNome('Talhão 18 - PD')).toBe(chaveNome('TL 18'));
+    // partes do mesmo talhão com capins diferentes não se confundem
+    expect(chaveNome('Talhão 17A Miyagi - PD')).not.toBe(chaveNome('Talhão 17A Mombaça - PD'));
+    expect(chaveNome('TL17B -MOMBAÇA')).toBe('17B');
+  });
+
+  it('chave do talhão ignora o capim escrito no nome', () => {
+    expect(chaveTalhao('TL 18 MIYAGI')).toBe('18');
+    expect(chaveTalhao('TL17A - MOMBAÇA')).toBe('17A');
+    expect(chaveTalhao('Talhão 17A Miyagi - PD')).toBe('17A');
+    expect(chaveTalhao('PD - TALHAO 13A — CAPIM MIYAGI')).toBe('13A');
+  });
+
+  it('área do KML: usa a declarada, salvo quando ficou velha após redesenho', () => {
+    expect(areaDoKml({ areaDeclaradaHa: 118, areaCalculadaHa: 109 })).toBe(118);
+    expect(areaDoKml({ areaDeclaradaHa: 73.3, areaCalculadaHa: 45.13 })).toBe(45.13);
+    expect(areaDoKml({ areaDeclaradaHa: null, areaCalculadaHa: 28.449 })).toBe(28.45);
   });
 
   it('gera o nome no padrão "Talhão N - Fazenda"', () => {
@@ -55,6 +72,11 @@ describe('kml', () => {
     expect(nomePadrao('PIVO 01', 'Confinamento')).toBe('Pivô 1 - Conf');
     expect(nomePadrao('SA - TALHAO 05A', 'Santo Antonio')).toBe('Talhão 5A - SA');
     expect(nomePadrao('TALHÃO 08- JIBOIA/ORIDIO', 'Jiboia/Vovo Oridio')).toBe('Talhão 8 - JI');
+    // polígonos desenhados à mão no Google Earth
+    expect(nomePadrao('TL 18 MIYAGI', 'Pedra')).toBe('Talhão 18 - PD');
+    expect(nomePadrao('TL13B - MOMBAÇA', 'Pedra')).toBe('Talhão 13B - PD');
+    expect(nomePadrao('TL17B -MOMBAÇA', 'Pedra', 'Mombaça')).toBe('Talhão 17B Mombaça - PD');
+    expect(nomePadrao('PD - TALHAO 17 A', 'Pedra', 'Miyagi')).toBe('Talhão 17A Miyagi - PD');
   });
 
   it('ordena nomes em ordem natural', () => {
@@ -62,6 +84,40 @@ describe('kml', () => {
     expect([...nomes].sort(compararNomes)).toEqual([
       'Pivô 1 - Conf', 'Pivô 2 - Conf', 'Talhão 13 - PD', 'Talhão 17A - PD', 'Talhão 17B - PD', 'Talhão 18 - PD', 'Talhão 20 - Conf', 'Talhão C3 - Conf',
     ]);
+  });
+});
+
+describe('KML embutido no app (public/talhoes-fazenda.kml)', () => {
+  const polys = lerKml(readFileSync('public/talhoes-fazenda.kml', 'utf8')).filter((p) => p.capim);
+  const por = (nomeApp: string) => polys.find((p) => p.nomeApp === nomeApp)!;
+
+  it('lê 16 talhões com capim, com nomes distintos no padrão do app', () => {
+    expect(polys.map((p) => p.nomeApp).sort(compararNomes)).toEqual([
+      'Pivô 1 - Conf', 'Pivô 2 - Conf',
+      'Talhão 13A - PD', 'Talhão 13B - PD',
+      'Talhão 17A Miyagi - PD', 'Talhão 17A Mombaça - PD', 'Talhão 17B Miyagi - PD', 'Talhão 17B Mombaça - PD',
+      'Talhão 17C - PD', 'Talhão 17D - PD', 'Talhão 17E - PD', 'Talhão 18 - PD',
+      'Talhão 20 - Conf', 'Talhão 21 - Conf', 'Talhão 23 - Conf', 'Talhão C3 - Conf',
+    ]);
+  });
+
+  it('capim vem do sufixo do nome ou da pasta, não da descrição desatualizada', () => {
+    expect(por('Talhão 17A Miyagi - PD').capim).toBe('Miyagi'); // descrição ainda dizia MOMBACA
+    expect(por('Talhão 17A Mombaça - PD').capim).toBe('Mombaça'); // sem descrição: pasta CAPIM MOMBACA
+    expect(por('Talhão 13B - PD').capim).toBe('Mombaça');
+    expect(por('Talhão 23 - Conf').capim).toBe('Mombaça');
+  });
+
+  it('polígono sem descrição herda a fazenda do vizinho; partes do mesmo capim se juntam', () => {
+    expect(por('Talhão 13B - PD').fazenda).toBe('Pedra');
+    expect(por('Talhão 17B Mombaça - PD').fazenda).toBe('Pedra');
+    const t18 = por('Talhão 18 - PD');
+    expect(t18.aneis).toHaveLength(5); // 4 do "PD - TALHAO 18" + "TL 18 MIYAGI"
+    expect(t18.areaCalculadaHa).toBeCloseTo(109, 0);
+    expect(t18.areaDeclaradaHa).toBe(118);
+    expect(areaDoKml(t18)).toBe(118);
+    expect(areaDoKml(por('Talhão 17A Miyagi - PD'))).toBeCloseTo(45.1, 1); // declarada (73,3) ficou velha
+    expect(areaDoKml(por('Talhão 17C - PD'))).toBe(43);
   });
 });
 

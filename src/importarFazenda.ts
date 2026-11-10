@@ -1,5 +1,5 @@
 import { dadosAtuais, repositorio } from './dados';
-import { chaveNome, lerKml, sugerirCorrespondencias, type PoligonoKml } from './kml';
+import { chaveNome, lerKml, semAcento, sugerirCorrespondencias, type PoligonoKml } from './kml';
 import type { Novo, Talhao } from './tipos';
 
 export const KML_FAZENDA_URL = `${import.meta.env.BASE_URL}talhoes-fazenda.kml`;
@@ -38,48 +38,66 @@ export function fundirDuplicados(): number {
 
 /** O nome atual ainda é derivado do KML (mesma chave, sem personalização do usuário)? */
 function nomeEhDoKml(nomeAtual: string, p: PoligonoKml): boolean {
-  return chaveNome(nomeAtual) === chaveNome(p.nome);
+  return chaveNome(nomeAtual) === chaveNome(p.nome) || normalizar(nomeAtual) === normalizar(p.nomeApp);
 }
 
-let emAndamento: Promise<{ criados: number; atualizados: number }> | null = null;
+const normalizar = (s: string) => semAcento(s).toUpperCase().replace(/\s+/g, ' ').trim();
+
+/**
+ * Área que o KML informa para o talhão: a declarada na descrição, salvo quando ela ficou velha
+ * (talhão redesenhado/dividido e a descrição não acompanhou) — aí vale a área do contorno.
+ */
+export function areaDoKml(p: Pick<PoligonoKml, 'areaDeclaradaHa' | 'areaCalculadaHa'>): number {
+  const calculada = Math.round(p.areaCalculadaHa * 100) / 100;
+  const declarada = p.areaDeclaradaHa;
+  return declarada && Math.abs(calculada / declarada - 1) <= 0.25 ? declarada : calculada;
+}
+
+export interface ResultadoSincronizacao {
+  criados: number;
+  atualizados: number;
+  /** Talhões que vieram do KML, saíram do mapa e não tinham coletas. */
+  removidos: number;
+}
+
+let emAndamento: Promise<ResultadoSincronizacao> | null = null;
 
 /**
  * Carrega/atualiza os talhões com capim a partir do KML embutido no app.
- * Talhões existentes (pelo nome) recebem os dados do KML (capimKml, areaKmlHa, fazenda, contorno),
- * mas capim e área em uso só são preenchidos se estiverem vazios — edições do usuário são preservadas.
+ * Talhões existentes (pelo nome) recebem os dados do KML (capimKml, areaKmlHa, fazenda, contorno);
+ * capim e área em uso só acompanham o KML se o usuário não os tiver alterado — edições são preservadas.
+ * Talhões que vieram de um KML anterior, não existem mais no mapa e não têm coletas são removidos.
  * Chamadas simultâneas compartilham a mesma execução (evita duplicar no StrictMode).
  */
-export function importarTalhoesFazenda(): Promise<{ criados: number; atualizados: number }> {
+export function importarTalhoesFazenda(): Promise<ResultadoSincronizacao> {
   if (!emAndamento) emAndamento = executar().finally(() => (emAndamento = null));
   return emAndamento;
 }
 
-async function executar() {
+async function executar(): Promise<ResultadoSincronizacao> {
   const resp = await fetch(KML_FAZENDA_URL);
   if (!resp.ok) throw new Error('KML da fazenda não encontrado no app.');
   const polys = lerKml(await resp.text()).filter((p) => p.capim);
   fundirDuplicados();
-  const existentes = dadosAtuais().talhoes;
+  const d = dadosAtuais();
+  const existentes = d.talhoes;
   const corresp = sugerirCorrespondencias(polys, existentes);
   const ops: Parameters<ReturnType<typeof repositorio>['lote']>[0] = [];
   let criados = 0;
   let atualizados = 0;
+  let removidos = 0;
   for (const [i, p] of polys.entries()) {
-    const areaKml = p.areaDeclaradaHa ?? Math.round(p.areaCalculadaHa * 100) / 100;
+    const areaKml = areaDoKml(p);
     const doKml: Partial<Novo<Talhao>> = { capimKml: p.capim, areaKmlHa: areaKml, fazenda: p.fazenda, geometria: p.aneis };
     const id = corresp.get(i);
     if (id != null) {
       const atual = existentes.find((t) => t.id === id)!;
       // Renomeia para o padrão do app se o nome ainda for o do KML ou uma abreviação dele (ex.: "TL 18").
       const nome = nomeEhDoKml(atual.nome, p) ? p.nomeApp : atual.nome;
-      // Capim: mantém o que o usuário escolheu; se ainda era o derivado do KML (ou vazio), acompanha o KML.
+      // Capim e área: mantém o que o usuário escolheu; se ainda eram os do KML (ou vazios), acompanham o KML.
       const capim = atual.capim && atual.capim !== atual.capimKml ? atual.capim : p.capim;
-      ops.push({
-        tipo: 'atualizar',
-        colecao: 'talhoes',
-        id,
-        dados: { ...doKml, nome, capim, areaHa: atual.areaHa > 0 ? atual.areaHa : areaKml } as Record<string, unknown>,
-      });
+      const areaHa = atual.areaHa > 0 && atual.areaHa !== atual.areaKmlHa ? atual.areaHa : areaKml;
+      ops.push({ tipo: 'atualizar', colecao: 'talhoes', id, dados: { ...doKml, nome, capim, areaHa } as Record<string, unknown> });
       atualizados++;
     } else {
       const novo: Novo<Talhao> = { nome: p.nomeApp, capim: p.capim, areaHa: areaKml, observacoes: '', ...doKml };
@@ -87,6 +105,12 @@ async function executar() {
       criados++;
     }
   }
+  const casados = new Set(corresp.values());
+  for (const t of existentes) {
+    if (casados.has(t.id) || !t.capimKml || d.coletas.some((c) => c.talhaoId === t.id)) continue;
+    ops.push({ tipo: 'remover', colecao: 'talhoes', id: t.id });
+    removidos++;
+  }
   if (ops.length) repositorio().lote(ops);
-  return { criados, atualizados };
+  return { criados, atualizados, removidos };
 }

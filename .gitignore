@@ -6,6 +6,7 @@ dev-dist
 capturas/
 info/*.xlsx
 info/*.docx
+info/*.pdf
 info/~$*
 
 # Firebase (emulador/CLI)

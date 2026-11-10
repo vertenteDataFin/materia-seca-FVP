@@ -5,7 +5,7 @@ import { migrarLegadoUmaVez } from './migracaoLegado';
 import type { Permissoes } from './permissoes';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
-export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v6';
+export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v7';
 // Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
 export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v4';
 
@@ -30,8 +30,11 @@ export async function inicializarDados(p: Permissoes): Promise<string[]> {
 
   if (p.podeEditarTalhoes && (localStorage.getItem(CHAVE_SEED) !== '1' || !dadosAtuais().talhoes.length)) {
     try {
-      await importarTalhoesFazenda();
+      const r = await importarTalhoesFazenda();
       localStorage.setItem(CHAVE_SEED, '1');
+      if (r.criados || r.removidos) {
+        msgs.push(`Talhões sincronizados com o mapa da fazenda: ${r.criados} novo(s), ${r.removidos} removido(s), ${r.atualizados} atualizado(s).`);
+      }
     } catch (e) {
       console.error('Falha ao carregar talhões iniciais', e);
     }

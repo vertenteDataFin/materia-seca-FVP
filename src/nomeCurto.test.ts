@@ -18,5 +18,7 @@ describe('nomeCurto', () => {
     expect(nomeCurto('Talhão 18 - PD')).toBe('TL 18');
     expect(nomeCurto('Pivô 1 - Conf')).toBe('Pivô 1');
     expect(nomeCurto('Talhão C3 - Conf')).toBe('C3');
+    expect(nomeCurto('Talhão 17A Miyagi - PD')).toBe('TL 17A Miyagi');
+    expect(nomeCurto('Talhão 13B - PD')).toBe('TL 13B');
   });
 });
