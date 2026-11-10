@@ -2,7 +2,7 @@ import { dadosAtuais, repositorio } from './dados';
 import { chaveNome } from './kml';
 import type { Operacao } from './repositorio';
 
-/** Coletas já feitas na fazenda (fichas de campo de 06 e 07/11/2026), sem posição GPS. */
+/** Coletas já feitas na fazenda (fichas de campo de 06, 07 e 10/11/2026), sem posição GPS. */
 export const COLETAS_INICIAIS: {
   talhao: string;
   data: string;
@@ -12,6 +12,10 @@ export const COLETAS_INICIAIS: {
   { talhao: 'TL 23', data: '2026-11-06', amostras: [[3.6, 100, 22], [4.1, 100, 24]] },
   { talhao: 'TL 21', data: '2026-11-06', amostras: [[1.2, 100, 22], [3.0, 100, 20]] },
   { talhao: 'TL 18', data: '2026-11-07', amostras: [[2.02, 100, 22], [1.0, 100, 26], [2.3, 100, 24], [1.0, 100, 26], [2.0, 100, 22], [1.68, 100, 22]] },
+  // Ficha de 10/11: sacos reaproveitados (etiquetas "T18 AM4", "T20 AM2", "Branco", "T18 AM3"); o talhão/amostra
+  // real estava entre parênteses. MS ainda a aferir.
+  { talhao: 'TL 23', data: '2026-11-10', amostras: [[3.23], [2.4]] },
+  { talhao: 'TL 21', data: '2026-11-10', amostras: [[4.52], [3.51]] },
 ];
 
 export const OBS_COLETA_INICIAL = 'Lançada da ficha de campo (sem GPS)';
