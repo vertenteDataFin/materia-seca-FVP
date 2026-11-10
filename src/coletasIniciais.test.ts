@@ -17,23 +17,12 @@ describe('importarColetasIniciais', () => {
     repo.adicionar('talhoes', { nome: 'Talhão 18 - PD', capim: 'Miyagi', areaHa: 118, observacoes: '' });
   });
 
-  it('cria as 5 coletas com 14 amostras e reproduz a ficha', () => {
+  it('cria as 3 coletas com 10 amostras e reproduz a ficha', () => {
     const r = importarColetasIniciais();
-    expect(r).toEqual({ criadas: 5, existentes: 0, completadas: 0, semTalhao: [] });
+    expect(r).toEqual({ criadas: 3, existentes: 0, completadas: 0, semTalhao: [] });
     const d = repo.obter()!;
-    expect(d.coletas).toHaveLength(5);
-    expect(d.amostras).toHaveLength(14);
-
-    // ficha de 10/11: só massa verde, MS a aferir
-    const t23 = d.talhoes.find((t) => t.nome.includes('23'))!;
-    const c23 = d.coletas.find((c) => c.talhaoId === t23.id && c.data === '2026-11-10')!;
-    const am23 = d.amostras.filter((a) => a.coletaId === c23.id).sort((a, b) => a.ponto - b.ponto);
-    expect(am23.map((a) => a.pesoVerdeKg)).toEqual([3.23, 2.4]);
-    expect(am23.every((a) => a.pesoUmidoG == null && a.pesoSecoG == null)).toBe(true);
-    const r23 = resumoColeta(c23, am23);
-    expect(r23.nPontos).toBe(2);
-    expect(r23.nPontosMS).toBe(0);
-    expect(r23.tMVha).toBeCloseTo(28.15, 1);
+    expect(d.coletas).toHaveLength(3);
+    expect(d.amostras).toHaveLength(10);
 
     const t18 = d.talhoes.find((t) => t.nome.includes('18'))!;
     const c18 = d.coletas.find((c) => c.talhaoId === t18.id)!;
@@ -62,7 +51,7 @@ describe('importarColetasIniciais', () => {
     repo.atualizar('amostras', am[1].id, { pesoUmidoG: 120, pesoSecoG: 30 });
 
     const r = importarColetasIniciais();
-    expect(r).toEqual({ criadas: 0, existentes: 5, completadas: 4, semTalhao: [] });
+    expect(r).toEqual({ criadas: 0, existentes: 3, completadas: 4, semTalhao: [] });
     const depois = repo.obter()!.amostras.filter((a) => a.coletaId === c18.id).sort((a, b) => a.ponto - b.ponto);
     expect(depois.map((a) => a.pesoSecoG)).toEqual([22, 30, 24, 26, 22, 22]);
     expect(depois.map((a) => a.pesoUmidoG)).toEqual([100, 120, 100, 100, 100, 100]);
@@ -73,7 +62,7 @@ describe('importarColetasIniciais', () => {
   it('importa mesmo se o usuário já tiver outra coleta do talhão no mesmo dia', () => {
     const t18 = repo.obter()!.talhoes.find((t) => t.nome.includes('18'))!;
     repo.adicionar('coletas', { talhaoId: t18.id, data: '2026-11-07', responsavel: 'Teste', areaAmostralM2: 1, observacoes: 'teste do app' });
-    expect(importarColetasIniciais()).toEqual({ criadas: 5, existentes: 0, completadas: 0, semTalhao: [] });
+    expect(importarColetasIniciais()).toEqual({ criadas: 3, existentes: 0, completadas: 0, semTalhao: [] });
     const c18 = repo.obter()!.coletas.filter((c) => c.talhaoId === t18.id);
     expect(c18).toHaveLength(2);
     expect(c18.filter((c) => c.observacoes === OBS_COLETA_INICIAL)).toHaveLength(1);
@@ -81,12 +70,12 @@ describe('importarColetasIniciais', () => {
 
   it('não duplica ao rodar de novo e avisa talhão ausente', () => {
     importarColetasIniciais();
-    expect(importarColetasIniciais()).toEqual({ criadas: 0, existentes: 5, completadas: 0, semTalhao: [] });
-    expect(repo.obter()!.amostras).toHaveLength(14);
+    expect(importarColetasIniciais()).toEqual({ criadas: 0, existentes: 3, completadas: 0, semTalhao: [] });
+    expect(repo.obter()!.amostras).toHaveLength(10);
 
     const t18 = repo.obter()!.talhoes.find((t) => t.nome.includes('18'))!;
     repo.remover('talhoes', t18.id);
     for (const c of repo.obter()!.coletas) repo.remover('coletas', c.id);
-    expect(importarColetasIniciais()).toEqual({ criadas: 4, existentes: 0, completadas: 0, semTalhao: ['TL 18'] });
+    expect(importarColetasIniciais()).toEqual({ criadas: 2, existentes: 0, completadas: 0, semTalhao: ['TL 18'] });
   });
 });
