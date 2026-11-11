@@ -9,6 +9,7 @@ com cache offline no aparelho. Só entra quem fizer login com um e-mail autoriza
 |---|---|
 | Dados da fazenda | Firestore → `fazendas/vertente/{talhoes,coletas,amostras}` |
 | Pessoas com acesso | Firestore → `fazendas/vertente/membros/<e-mail em minúsculas>` com `{ nome, papel }` |
+| Histórico de alterações | Firestore → `fazendas/vertente/historico/<id>` com `{ em, quem, acao, descricao, itensJson? }`; exclusões e edições guardam os dados anteriores (`itensJson`) e podem ser desfeitas em **Config → Histórico**. Nunca se apaga; ao desfazer, marca `restauradoEm` |
 | Administradores fixos | `src/firebaseConfig.ts` (`ADMINS`) **e** `firestore.rules` (`admins()`) — manter iguais |
 | Configuração do app web | `src/firebaseConfig.ts` (valores públicos; a proteção são as regras) |
 | Regras de segurança | `firestore.rules` |

@@ -1,10 +1,17 @@
 import { COLECOES, type Colecao, type Dados, type Entidade, type Novo } from './tipos';
+import type { RotuloLote } from './historico';
 
 /** Operação de um lote atômico. */
 export type Operacao =
   | { tipo: 'adicionar'; colecao: Colecao; id: string; dados: Record<string, unknown> }
   | { tipo: 'atualizar'; colecao: Colecao; id: string; dados: Record<string, unknown> }
   | { tipo: 'remover'; colecao: Colecao; id: string };
+
+/** O que o gancho de persistência recebe além das operações: o estado anterior (para o histórico) e o rótulo. */
+export interface ContextoLote {
+  anterior: Dados;
+  rotulo?: RotuloLote;
+}
 
 /**
  * Fonte de dados do app (nuvem ou local). As escritas são síncronas do ponto de vista da interface:
@@ -27,7 +34,8 @@ export interface Repositorio {
   adicionar<C extends Colecao>(colecao: C, dados: Novo<Entidade<C>>, id?: string): string;
   atualizar<C extends Colecao>(colecao: C, id: string, dados: Partial<Novo<Entidade<C>>>): void;
   remover(colecao: Colecao, id: string): void;
-  lote(ops: Operacao[]): void;
+  /** Várias operações de uma vez (atômicas na fonte). `rotulo` ajusta como o lote entra no histórico. */
+  lote(ops: Operacao[], rotulo?: RotuloLote): void;
 }
 
 export function gerarId(): string {
@@ -96,8 +104,9 @@ export class RepositorioMemoria implements Repositorio {
     this.lote([{ tipo: 'remover', colecao, id }]);
   }
 
-  lote(ops: Operacao[]) {
+  lote(ops: Operacao[], rotulo?: RotuloLote) {
     if (!this.dados) throw new Error('Repositório não iniciado.');
+    const anterior = this.dados;
     const novo: Dados = { ...this.dados };
     const tocadas = new Set<Colecao>();
     for (const op of ops) {
@@ -115,12 +124,12 @@ export class RepositorioMemoria implements Repositorio {
       }
     }
     this.dados = novo;
-    this.persistir(ops, novo);
+    this.persistir(ops, novo, { anterior, rotulo });
     this.notificar();
   }
 
   /** Gancho para subclasses gravarem as mudanças. */
-  protected persistir(_ops: Operacao[], _estado: Dados): void {}
+  protected persistir(_ops: Operacao[], _estado: Dados, _contexto: ContextoLote): void {}
 
   protected substituir(dados: Dados) {
     this.dados = dados;

@@ -66,6 +66,14 @@ service cloud.firestore {
       allow write: if podeExcluir(fid);
     }
 
+    // Histórico de alterações: todo membro registra e lê; nunca se apaga. Só se marca como restaurado.
+    match /fazendas/{fid}/historico/{id} {
+      allow read, create: if ehMembro(fid);
+      allow update: if podeExcluir(fid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['restauradoEm', 'restauradoPor']);
+      allow delete: if false;
+    }
+
     // Coletas e amostras: todo membro registra e edita; só quem não é operador exclui.
     match /fazendas/{fid}/{col}/{id} {
       allow read, create, update: if ehMembro(fid) && col in ['coletas', 'amostras'];

@@ -10,6 +10,7 @@ import { sair } from '../sessao';
 import { adicionarMembro, papelDe, removerMembro, ROTULO_PAPEL, useMembros, type Papel } from '../membros';
 import { usePermissoes } from '../permissoes';
 import { liberarSolicitacao, recusarSolicitacao, useSolicitacoes } from '../solicitacoes';
+import Historico from '../HistoricoCard';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -113,6 +114,7 @@ export default function Config({ usuario }: { usuario?: User }) {
       <h1>Configurações</h1>
 
       {FIREBASE_ATIVO && usuario && <Conta usuario={usuario} />}
+      {FIREBASE_ATIVO && usuario && <Historico meuEmail={usuario.email ?? ''} />}
 
       <div className="cartao grade-form">
         <h2>Parâmetros da estimativa</h2>

@@ -57,7 +57,7 @@ function AppNuvem() {
       return;
     }
     // A conexão com os dados só é aberta em CascaNuvem, depois de confirmar que a conta foi liberada.
-    const r = new RepositorioFirestore(obterFirebase().firestore, FAZENDA_ID);
+    const r = new RepositorioFirestore(obterFirebase().firestore, FAZENDA_ID, obterFirebase().auth.currentUser?.email ?? '');
     definirRepositorio(r);
     setRepo(r);
     return () => {
