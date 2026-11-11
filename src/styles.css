@@ -388,3 +388,16 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
 .grafico-ms-dica.esq { transform: translate(-12px, calc(-100% - 10px)); }
 .grafico-ms-dica.dir { transform: translate(calc(-100% + 12px), calc(-100% - 10px)); }
 .grafico-ms .ponto.pendente { fill: #fff; stroke: var(--verde); stroke-width: 1.2; }
+
+/* ---- Ordenação das colunas do Painel ---- */
+th.ordenavel { padding: 0; }
+th.ordenavel button { all: unset; cursor: pointer; display: block; width: 100%; box-sizing: border-box; padding: 0.45rem 0.5rem; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; white-space: nowrap; min-height: 0; }
+th.ordenavel.n button { text-align: right; }
+th.ordenavel button:hover, th.ordenavel.ativa button { color: var(--verde); }
+th.ordenavel .seta { margin-left: 0.25rem; font-size: 0.7em; opacity: 0.55; }
+th.ordenavel.ativa .seta { opacity: 1; }
+.ordenar-cel { display: none; }
+@media (max-width: 700px) {
+  .ordenar-cel { display: flex; gap: 0.4rem; align-items: center; margin: 0 0 0.5rem; }
+  .ordenar-cel select { flex: 1; }
+}

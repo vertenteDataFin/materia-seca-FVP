@@ -1,7 +1,8 @@
-import { useMemo, useState } from 'react';
+import { useMemo, useState, type ReactNode } from 'react';
 import { Link } from 'react-router-dom';
 import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
-import { estimativaTalhao, resumoColeta, statusMS } from '../calc';
+import { estimativaTalhao, resumoColeta, statusMS, type ResumoColeta } from '../calc';
+import { compararNomes, type Coleta, type Talhao } from '../tipos';
 import { Bolinha, Indicador, SeloMS } from '../components';
 import { fmt, fmtData, lerParametros } from '../util';
 import { nomeCurto } from '../MapaTalhoes';
@@ -9,11 +10,49 @@ import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 import { seriesMS } from '../evolucaoMS';
 import GraficoMS from '../GraficoMS';
 
+type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'mvKgM2' | 'tMVha' | 'msPct' | 'tMSha';
+
+const ROTULO_COLUNA: Record<Coluna, string> = {
+  nome: 'talhão', capim: 'capim', data: 'última coleta', area: 'área (ha)', amostras: 'amostras',
+  mvKgM2: 'MV (kg/m²)', tMVha: 'MV (t/ha)', msPct: 'MS (%)', tMSha: 'MS (t/ha)',
+};
+
+interface Linha {
+  t: Talhao;
+  c?: Coleta;
+  r: ResumoColeta | null;
+}
+
+/** Valor da coluna para ordenar; null = sem valor (fica sempre no fim). */
+function valorColuna(l: Linha, col: Coluna): string | number | null {
+  switch (col) {
+    case 'nome': return l.t.nome;
+    case 'capim': return l.t.capim || null;
+    case 'data': return l.c?.data ?? null;
+    case 'area': return l.t.areaHa;
+    case 'amostras': return l.r?.nPontos ?? null;
+    default: return l.r?.[col] ?? null;
+  }
+}
+
+export function comparadorColuna(col: Coluna, asc: boolean) {
+  return (a: Linha, b: Linha) => {
+    const va = valorColuna(a, col);
+    const vb = valorColuna(b, col);
+    if (va == null && vb == null) return compararNomes(a.t.nome, b.t.nome);
+    if (va == null) return 1;
+    if (vb == null) return -1;
+    const r = typeof va === 'number' && typeof vb === 'number' ? va - vb : compararNomes(String(va), String(vb));
+    return (asc ? r : -r) || compararNomes(a.t.nome, b.t.nome);
+  };
+}
+
 export default function Painel() {
   const [parametros] = useState(lerParametros);
   const dados = useDados();
   const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', busca: '', data: '' };
   const [filtro, setFiltro] = useState(FILTRO_VAZIO);
+  const [ordem, setOrdem] = useState<{ col: Coluna; asc: boolean } | null>(null);
 
   const linhas = useMemo(() => {
     if (!dados) return [];
@@ -53,6 +92,23 @@ export default function Painel() {
       (!filtro.data || l.c?.data === filtro.data),
   );
   const temFiltro = !!(filtro.semaforo || filtro.capim || filtro.busca || filtro.data);
+  if (ordem) filtradas.sort(comparadorColuna(ordem.col, ordem.asc));
+
+  function alternarOrdem(col: Coluna) {
+    // 1º clique: crescente; 2º: decrescente; 3º: volta à ordem natural
+    setOrdem(!ordem || ordem.col !== col ? { col, asc: true } : ordem.asc ? { col, asc: false } : null);
+  }
+  const Th = ({ col, children, className = '' }: { col: Coluna; children: ReactNode; className?: string }) => {
+    const ativa = ordem?.col === col;
+    return (
+      <th className={`${className} ordenavel${ativa ? ' ativa' : ''}`} aria-sort={ativa ? (ordem!.asc ? 'ascending' : 'descending') : 'none'}>
+        <button type="button" onClick={() => alternarOrdem(col)} title="Ordenar por esta coluna">
+          {children}
+          <span className="seta" aria-hidden="true">{ativa ? (ordem!.asc ? '▲' : '▼') : '⇅'}</span>
+        </button>
+      </th>
+    );
+  };
 
   if (!dados.talhoes.length) {
     return (
@@ -104,19 +160,36 @@ export default function Painel() {
             </>
           )}
         </p>
+        <div className="ordenar-cel">
+          <select
+            value={ordem?.col ?? ''}
+            onChange={(e) => setOrdem(e.target.value ? { col: e.target.value as Coluna, asc: ordem?.asc ?? true } : null)}
+            aria-label="Ordenar por"
+          >
+            <option value="">Ordenar: ordem natural</option>
+            {(Object.keys(ROTULO_COLUNA) as Coluna[]).map((c) => (
+              <option key={c} value={c}>Ordenar por {ROTULO_COLUNA[c]}</option>
+            ))}
+          </select>
+          {ordem && (
+            <button type="button" className="mini" onClick={() => setOrdem({ ...ordem, asc: !ordem.asc })} aria-label={ordem.asc ? 'Crescente' : 'Decrescente'}>
+              {ordem.asc ? '▲' : '▼'}
+            </button>
+          )}
+        </div>
         <div className="rolagem">
           <table className="tabela-cartoes">
             <thead className="com-filtros">
               <tr className="titulos">
-                <th>Talhão</th>
-                <th className="oculta-cel">Capim</th>
-                <th className="oculta-cel">Última coleta</th>
-                <th className="n" title="Área usada nos cálculos (cadastro do talhão)">Área (ha)</th>
-                <th className="n">Amostras</th>
-                <th className="n">MV (kg/m²)</th>
-                <th className="n">MV (t/ha)</th>
-                <th className="n">MS (%)</th>
-                <th className="n">MS (t/ha)</th>
+                <Th col="nome">Talhão</Th>
+                <Th col="capim" className="oculta-cel">Capim</Th>
+                <Th col="data" className="oculta-cel">Última coleta</Th>
+                <Th col="area" className="n">Área (ha)</Th>
+                <Th col="amostras" className="n">Amostras</Th>
+                <Th col="mvKgM2" className="n">MV (kg/m²)</Th>
+                <Th col="tMVha" className="n">MV (t/ha)</Th>
+                <Th col="msPct" className="n">MS (%)</Th>
+                <Th col="tMSha" className="n">MS (t/ha)</Th>
               </tr>
               <tr className="filtros-linha">
                 <th>
