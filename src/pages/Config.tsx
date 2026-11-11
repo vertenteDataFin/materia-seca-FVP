@@ -33,6 +33,7 @@ export default function Config({ usuario }: { usuario?: User }) {
     const r = importarColetasIniciais();
     const partes = [`${r.criadas} coleta(s) criada(s)`, `${r.existentes} já existia(m)`];
     if (r.completadas) partes.push(`${r.completadas} amostra(s) receberam a MS da ficha`);
+    if (r.repostas) partes.push(`${r.repostas} amostra(s) excluída(s) foram repostas`);
     if (r.semTalhao.length) partes.push(`talhão não encontrado: ${r.semTalhao.join(', ')}`);
     setMensagem(`Coletas da ficha de campo: ${partes.join(' · ')}.`);
   }
