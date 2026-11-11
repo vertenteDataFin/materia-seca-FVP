@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import { dadosAtuais, repositorio } from './dados';
-import { FAZENDA_ID } from './firebaseConfig';
+import { ehAuditor, FAZENDA_ID } from './firebaseConfig';
 import { FIREBASE_ATIVO, obterFirebase } from './firebase';
 import { marcarRestaurado, opsDeRestauracao, ROTULO_ACAO, useHistorico, type EntradaHistorico } from './historico';
 import { usePermissoes } from './permissoes';
@@ -14,9 +14,10 @@ function pessoa(email: string): string {
   return email ? email.split('@')[0] : '—';
 }
 
-/** Card de Configurações: últimas alterações feitas no app, com "Desfazer" em exclusões e edições. */
+/** Card de Configurações, só para auditores: últimas alterações feitas no app, com "Desfazer" em exclusões e edições. */
 export default function Historico({ meuEmail }: { meuEmail: string }) {
-  const fs = FIREBASE_ATIVO ? obterFirebase().firestore : null;
+  const auditor = ehAuditor(meuEmail);
+  const fs = FIREBASE_ATIVO && auditor ? obterFirebase().firestore : null;
   const lista = useHistorico(fs, FAZENDA_ID);
   const { podeExcluir } = usePermissoes();
   const [msg, setMsg] = useState('');
@@ -45,8 +46,8 @@ export default function Historico({ meuEmail }: { meuEmail: string }) {
     <div className="cartao">
       <h2>Histórico de alterações</h2>
       <p className="dica">
-        Tudo o que foi criado, editado ou excluído, por quem e quando, em qualquer aparelho. Exclusões e edições podem ser desfeitas
-        por quem tem permissão de excluir.
+        Tudo o que foi criado, editado ou excluído, por quem e quando, em qualquer aparelho. Só a sua conta vê esta lista.
+        Exclusões e edições podem ser desfeitas.
       </p>
       {lista === undefined ? (
         <p className="vazio">Carregando…</p>

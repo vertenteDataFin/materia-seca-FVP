@@ -111,15 +111,20 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(getDoc(talhao(novo))); // liberado
   });
 
-  it('histórico: membro registra e lê; operador não marca restaurado; ninguém apaga', async () => {
+  it('histórico: todo membro registra; só a auditora lê e marca restaurado; ninguém apaga', async () => {
     const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
     await assertSucceeds(setDoc(membro(admin, 'campo@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
+    await assertSucceeds(setDoc(membro(admin, 'outro.admin@fazenda.com.br'), { nome: 'Outro', papel: 'admin' }));
     const op = env.authenticatedContext('o', senha('campo@fazenda.com.br', false)).firestore();
+    const outroAdmin = env.authenticatedContext('x', senha('outro.admin@fazenda.com.br', false)).firestore();
     const h = (db: Firestore) => doc(collection(db, 'fazendas', FID, 'historico'), 'h1');
     await assertSucceeds(setDoc(h(op), { em: '2026-11-11T10:00:00Z', quem: 'campo@fazenda.com.br', acao: 'excluiu', descricao: 'coleta X' }));
-    await assertSucceeds(getDocs(collection(op, 'fazendas', FID, 'historico')));
+    await assertFails(getDocs(collection(op, 'fazendas', FID, 'historico')));
+    await assertFails(getDocs(collection(outroAdmin, 'fazendas', FID, 'historico'))); // admin, mas não auditor
+    await assertSucceeds(getDocs(collection(admin, 'fazendas', FID, 'historico')));
     const { deleteDoc, updateDoc } = await import('firebase/firestore');
     await assertFails(updateDoc(h(op), { restauradoEm: '2026-11-11T11:00:00Z', restauradoPor: 'campo@fazenda.com.br' }));
+    await assertFails(updateDoc(h(outroAdmin), { restauradoEm: '2026-11-11T11:00:00Z', restauradoPor: 'outro.admin@fazenda.com.br' }));
     await assertFails(updateDoc(h(admin), { descricao: 'outra' }));
     await assertSucceeds(updateDoc(h(admin), { restauradoEm: '2026-11-11T11:00:00Z', restauradoPor: ADMIN }));
     await assertFails(deleteDoc(h(admin)));

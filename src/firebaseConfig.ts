@@ -20,3 +20,13 @@ export const FAZENDA_ID = 'vertente';
  * Mantenha igual à lista admins() em firestore.rules.
  */
 export const ADMINS: string[] = ['marialauragcardoso@gmail.com', 'maria.mesquita@fazendavertente.com.br'];
+
+/**
+ * Quem vê o histórico de alterações (Config → Histórico) e pode desfazer exclusões/edições.
+ * Mantenha igual à lista auditores() em firestore.rules.
+ */
+export const AUDITORES: string[] = ['marialauragcardoso@gmail.com'];
+
+export function ehAuditor(email: string | null | undefined): boolean {
+  return !!email && AUDITORES.includes(email.trim().toLowerCase());
+}

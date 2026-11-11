@@ -66,10 +66,17 @@ service cloud.firestore {
       allow write: if podeExcluir(fid);
     }
 
-    // Histórico de alterações: todo membro registra e lê; nunca se apaga. Só se marca como restaurado.
+    // Quem lê o histórico de alterações e desfaz exclusões/edições. Mantenha igual a AUDITORES em src/firebaseConfig.ts.
+    function auditores() {
+      return ['marialauragcardoso@gmail.com'];
+    }
+
+    // Histórico de alterações: todo membro registra (o app grava a cada alteração); só auditores leem;
+    // nunca se apaga. Só se marca como restaurado.
     match /fazendas/{fid}/historico/{id} {
-      allow read, create: if ehMembro(fid);
-      allow update: if podeExcluir(fid)
+      allow create: if ehMembro(fid);
+      allow read: if ehMembro(fid) && email() in auditores();
+      allow update: if ehMembro(fid) && email() in auditores()
         && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['restauradoEm', 'restauradoPor']);
       allow delete: if false;
     }
