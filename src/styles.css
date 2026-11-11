@@ -387,3 +387,4 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
 .grafico-ms-dica { position: absolute; transform: translate(-50%, calc(-100% - 10px)); background: #fff; border: 1px solid var(--borda); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.8rem; white-space: nowrap; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12); pointer-events: auto; z-index: 2; }
 .grafico-ms-dica.esq { transform: translate(-12px, calc(-100% - 10px)); }
 .grafico-ms-dica.dir { transform: translate(calc(-100% + 12px), calc(-100% - 10px)); }
+.grafico-ms .ponto.pendente { fill: #fff; stroke: var(--verde); stroke-width: 1.2; }

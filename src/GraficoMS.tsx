@@ -48,8 +48,11 @@ function dataCurta(iso: string): string {
 function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametros }) {
   const [ativo, setAtivo] = useState<PontoMS | null>(null);
   const pontos = serie.pontos;
-  const caminho = pontos.map((pt, i) => `${i ? 'L' : 'M'}${esc.x(diaDe(pt.data)).toFixed(1)},${esc.y(pt.msPct).toFixed(1)}`).join(' ');
-  const ultimo = pontos[pontos.length - 1];
+  const medidos = pontos.filter((pt): pt is PontoMS & { msPct: number } => pt.msPct != null);
+  const caminho = medidos.map((pt, i) => `${i ? 'L' : 'M'}${esc.x(diaDe(pt.data)).toFixed(1)},${esc.y(pt.msPct).toFixed(1)}`).join(' ');
+  const ultimo = medidos[medidos.length - 1];
+  const yBase = A - M.base;
+  const yDe = (pt: PontoMS) => (pt.msPct == null ? yBase : esc.y(pt.msPct));
   const yTicks: number[] = [];
   for (let v = esc.ms[0]; v <= esc.ms[1]; v += 10) yTicks.push(v);
 
@@ -70,8 +73,9 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
 
   const yFaixaTopo = esc.y(p.msMax);
   const yFaixaBase = esc.y(p.msMin);
-  const xUltimo = esc.x(diaDe(ultimo.data));
+  const xUltimo = ultimo ? esc.x(diaDe(ultimo.data)) : 0;
   const rotuloADireita = xUltimo < L - M.dir - 22;
+  const descricao = pontos.map((pt) => `${fmtData(pt.data)} ${pt.msPct == null ? 'a aferir' : `${fmt(pt.msPct)}%`}`).join(', ');
 
   return (
     <figure className="grafico-ms">
@@ -83,7 +87,7 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
         <svg
           viewBox={`0 0 ${L} ${A}`}
           role="img"
-          aria-label={`Evolução da MS de ${nomeCurto(serie.talhao.nome)}: ${pontos.map((pt) => `${fmtData(pt.data)} ${fmt(pt.msPct)}%`).join(', ')}`}
+          aria-label={`Evolução da MS de ${nomeCurto(serie.talhao.nome)}: ${descricao}`}
           onPointerMove={aoMover}
           onPointerDown={aoMover}
           onPointerLeave={() => setAtivo(null)}
@@ -100,18 +104,18 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
               {dataCurta(dataDoDia(d))}
             </text>
           ))}
-          <path className="linha" d={caminho} />
-          {ativo && <line className="cursor" x1={esc.x(diaDe(ativo.data))} x2={esc.x(diaDe(ativo.data))} y1={M.topo} y2={A - M.base} />}
+          {caminho && <path className="linha" d={caminho} />}
+          {ativo && <line className="cursor" x1={esc.x(diaDe(ativo.data))} x2={esc.x(diaDe(ativo.data))} y1={M.topo} y2={yBase} />}
           {pontos.map((pt) => (
             <circle
               key={pt.coletaId}
-              className={`ponto${ativo?.coletaId === pt.coletaId ? ' ativo' : ''}`}
+              className={`ponto${pt.msPct == null ? ' pendente' : ''}${ativo?.coletaId === pt.coletaId ? ' ativo' : ''}`}
               cx={esc.x(diaDe(pt.data))}
-              cy={esc.y(pt.msPct)}
+              cy={yDe(pt)}
               r={ativo?.coletaId === pt.coletaId ? 4.5 : 3.5}
             />
           ))}
-          {!ativo && (
+          {!ativo && ultimo && (
             // rótulo do último valor: à direita do ponto; se não couber, acima dele
             <text
               className="valor"
@@ -126,11 +130,11 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
         {ativo && (
           <div
             className={`grafico-ms-dica ${esc.x(diaDe(ativo.data)) < L * 0.3 ? 'esq' : esc.x(diaDe(ativo.data)) > L * 0.7 ? 'dir' : ''}`}
-            style={{ left: `${(esc.x(diaDe(ativo.data)) / L) * 100}%`, top: `${(esc.y(ativo.msPct) / A) * 100}%` }}
+            style={{ left: `${(esc.x(diaDe(ativo.data)) / L) * 100}%`, top: `${(yDe(ativo) / A) * 100}%` }}
           >
-            <strong>{fmt(ativo.msPct)}% MS</strong>
+            <strong>{ativo.msPct == null ? 'MS a aferir' : `${fmt(ativo.msPct)}% MS`}</strong>
             <br />
-            <Link to={`/coletas/${ativo.coletaId}`}>{fmtData(ativo.data)}</Link> · {ativo.nPontosMS} amostra(s)
+            <Link to={`/coletas/${ativo.coletaId}`}>{fmtData(ativo.data)}</Link> · {ativo.msPct == null ? ativo.nPontos : ativo.nPontosMS} amostra(s)
           </div>
         )}
       </div>
@@ -141,15 +145,15 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
 /** Pequenos múltiplos: um painel por talhão, mesmas escalas de tempo e de MS. Alterna para tabela. */
 export default function GraficoMS({ series, parametros }: { series: SerieMS[]; parametros: Parametros }) {
   const [tabela, setTabela] = useState(false);
-  if (!series.length) return <p className="vazio">Nenhuma coleta com MS medida ainda.</p>;
+  if (!series.length) return <p className="vazio">Nenhuma coleta ainda.</p>;
   const esc = escalas(series, parametros);
   const datas = [...new Set(series.flatMap((s) => s.pontos.map((pt) => pt.data)))].sort();
 
   return (
     <>
       <p className="dica">
-        MS média de cada coleta, por talhão. A faixa verde é o ponto de ensilar ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}%).
-        Toque num ponto para ver a coleta.{' '}
+        MS média de cada coleta, por talhão, ao longo do tempo. A faixa verde é o ponto de ensilar ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}%).
+        Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). Toque num ponto para ver a coleta.{' '}
         <button type="button" className="link" onClick={() => setTabela(!tabela)}>{tabela ? 'ver gráfico' : 'ver tabela'}</button>
       </p>
       {tabela ? (
@@ -167,7 +171,11 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
                   <td className="largo-cel"><strong>{nomeCurto(s.talhao.nome)}</strong></td>
                   {datas.map((d) => {
                     const pt = s.pontos.find((x) => x.data === d);
-                    return <td key={d} className="n" data-rotulo={dataCurta(d)}>{pt ? `${fmt(pt.msPct)}%` : '—'}</td>;
+                    return (
+                      <td key={d} className="n" data-rotulo={dataCurta(d)}>
+                        {!pt ? '—' : pt.msPct == null ? <span className="mudo">a aferir</span> : `${fmt(pt.msPct)}%`}
+                      </td>
+                    );
                   })}
                 </tr>
               ))}

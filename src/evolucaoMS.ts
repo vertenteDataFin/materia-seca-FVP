@@ -2,11 +2,12 @@ import { resumoColeta } from './calc';
 import { amostrasPorColeta } from './dados';
 import { compararNomes, type Amostra, type Coleta, type Talhao } from './tipos';
 
-/** Um ponto da evolução: a MS média de uma coleta. */
+/** Um ponto da evolução: uma coleta, com a MS média (null enquanto o laboratório não mediu). */
 export interface PontoMS {
   coletaId: string;
   data: string; // AAAA-MM-DD
-  msPct: number;
+  msPct: number | null;
+  nPontos: number;
   nPontosMS: number;
 }
 
@@ -15,15 +16,14 @@ export interface SerieMS {
   pontos: PontoMS[]; // em ordem de data
 }
 
-/** Uma série por talhão com pelo menos uma coleta com MS medida, em ordem natural de nome. */
+/** Uma série por talhão com pelo menos uma coleta, em ordem natural de nome. Coletas sem MS entram como "a aferir". */
 export function seriesMS(talhoes: Talhao[], coletas: Coleta[], amostras: Amostra[]): SerieMS[] {
   const porColeta = amostrasPorColeta(amostras);
   const porTalhao = new Map<string, PontoMS[]>();
   for (const c of coletas) {
     const r = resumoColeta(c, porColeta.get(c.id) ?? []);
-    if (r.msPct == null) continue;
     const lista = porTalhao.get(c.talhaoId) ?? [];
-    lista.push({ coletaId: c.id, data: c.data, msPct: r.msPct, nPontosMS: r.nPontosMS });
+    lista.push({ coletaId: c.id, data: c.data, msPct: r.msPct, nPontos: r.nPontos, nPontosMS: r.nPontosMS });
     porTalhao.set(c.talhaoId, lista);
   }
   return [...talhoes]
@@ -51,7 +51,7 @@ export function faixaDias(series: SerieMS[]): [number, number] {
 
 /** Faixa do eixo de MS (%): sempre inclui a faixa ideal e os dados, em múltiplos de 10. */
 export function faixaMS(series: SerieMS[], msMin: number, msMax: number): [number, number] {
-  const valores = series.flatMap((s) => s.pontos.map((p) => p.msPct));
+  const valores = series.flatMap((s) => s.pontos.map((p) => p.msPct)).filter((v): v is number => v != null);
   const lo = Math.min(msMin, ...valores);
   const hi = Math.max(msMax, ...valores);
   return [Math.max(0, Math.floor(lo / 10) * 10 - 10), Math.min(100, Math.ceil(hi / 10) * 10)];
