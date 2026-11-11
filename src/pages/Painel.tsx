@@ -109,6 +109,7 @@ export default function Painel() {
                 <th>Talhão</th>
                 <th className="oculta-cel">Capim</th>
                 <th className="oculta-cel">Última coleta</th>
+                <th className="n" title="Área usada nos cálculos (cadastro do talhão)">Área (ha)</th>
                 <th className="n">Amostras</th>
                 <th className="n">MV (kg/m²)</th>
                 <th className="n">MV (t/ha)</th>
@@ -133,6 +134,7 @@ export default function Painel() {
                 <th />
                 <th />
                 <th />
+                <th />
                 <th>
                   <select value={filtro.semaforo} onChange={(e) => setFiltro({ ...filtro, semaforo: e.target.value as Semaforo | '' })} aria-label="Filtrar por situação da MS">
                     <option value="">MS: todas</option>
@@ -147,7 +149,7 @@ export default function Painel() {
             <tbody>
               {!filtradas.length && (
                 <tr>
-                  <td colSpan={8} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
+                  <td colSpan={9} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
                 </tr>
               )}
               {filtradas.map(({ t, c, r }) => (
@@ -162,6 +164,7 @@ export default function Painel() {
                   </td>
                   <td className="oculta-cel">{t.capim || '—'}</td>
                   <td className="oculta-cel">{c ? <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link> : <span className="mudo">sem coleta</span>}</td>
+                  <td className="n" data-rotulo="Área (ha)">{fmt(t.areaHa, 1)}</td>
                   <td className="n" data-rotulo="Amostras">{r ? r.nPontos : '—'}</td>
                   <td className="n" data-rotulo="MV (kg/m²)">{fmt(r?.mvKgM2, 2)}</td>
                   <td className="n" data-rotulo="MV (t/ha)">{fmt(r?.tMVha)}</td>
