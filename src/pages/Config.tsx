@@ -150,7 +150,7 @@ export default function Config({ usuario }: { usuario?: User }) {
           {FIREBASE_ATIVO
             ? 'Os dados ficam na nuvem (Firebase) e sincronizam entre os aparelhos logados; sem sinal, o app segue funcionando e envia quando a conexão volta. '
             : 'Os dados ficam salvos neste navegador/dispositivo. Faça backups regulares e use-os para transferir dados entre aparelhos. '}
-          O relatório em PDF segue o modelo do relatório de coletas (premissas, resultados por amostra e por talhão, leitura e pendências).
+          O relatório em PDF segue o modelo do relatório de coletas (premissas, resultados por amostra e por talhão e leitura dos resultados).
           O Excel traz as planilhas Talhões, Coletas (com os resultados calculados), Amostras e Parâmetros.
         </p>
         <div className="acoes">

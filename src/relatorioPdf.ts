@@ -280,9 +280,7 @@ export async function gerarRelatorioPdf(rel: Relatorio = montarRelatorio()) {
 
   titulo('4. Leitura dos resultados');
   marcadores(rel.leitura, 20);
-
-  titulo('5. Pendências');
-  marcadores(rel.pendencias);
+  // (as pendências continuam em `rel.pendencias`, mas não vão para o PDF a pedido do usuário)
 
   // Rodapé em todas as páginas
   const paginas = doc.getNumberOfPages();
