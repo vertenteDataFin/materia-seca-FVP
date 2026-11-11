@@ -10,6 +10,7 @@ import { PERMISSOES_LOCAL, PermissoesContext, permissoesDoPapel, type Permissoes
 import { RepositorioLocal, type Repositorio } from './repositorio';
 import { RepositorioFirestore } from './repositorioFirestore';
 import { sair, useUsuario } from './sessao';
+import { registrarSolicitacao } from './solicitacoes';
 import Painel from './pages/Painel';
 import Mapa from './pages/Mapa';
 import Talhoes from './pages/Talhoes';
@@ -97,6 +98,24 @@ function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
 }
 
 function AguardandoLiberacao({ usuario }: { usuario: User }) {
+  const [erroPedido, setErroPedido] = useState('');
+
+  // (Re)envia o pedido de acesso a cada abertura: garante que o administrador veja a conta mesmo que o envio
+  // no cadastro tenha falhado (sem internet, regras antigas) e mostra o erro em vez de esconder.
+  useEffect(() => {
+    if (!usuario.email) return;
+    registrarSolicitacao(usuario.email, usuario.displayName ?? '')
+      .then(() => setErroPedido(''))
+      .catch((e: { code?: string; message?: string }) => {
+        console.error('Falha ao registrar pedido de acesso', e);
+        setErroPedido(
+          e.code === 'permission-denied'
+            ? 'Não foi possível registrar seu pedido: o banco recusou a gravação (regras do Firestore desatualizadas). Peça ao administrador para publicar as regras do app ou incluir seu e-mail manualmente em Config → Pessoas com acesso.'
+            : `Não foi possível registrar seu pedido (${e.code ?? e.message ?? 'erro'}). Peça ao administrador para incluir seu e-mail manualmente em Config → Pessoas com acesso.`,
+        );
+      });
+  }, [usuario]);
+
   return (
     <main className="login">
       <div className="cartao login-cartao">
@@ -109,6 +128,7 @@ function AguardandoLiberacao({ usuario }: { usuario: User }) {
           Sua conta <strong>{usuario.email}</strong> foi criada. Um administrador da fazenda precisa liberar o acesso em
           Config → Pessoas com acesso. Avise a Maria Laura ou a Maria. Esta tela atualiza sozinha quando o acesso for liberado.
         </p>
+        {erroPedido && <p className="erro">{erroPedido}</p>}
         <div className="acoes">
           <button onClick={() => void sair()}>Sair</button>
         </div>

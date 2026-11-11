@@ -50,15 +50,14 @@ service cloud.firestore {
       allow delete: if ehAdmin(fid) && m != email();
     }
 
-    // Pedidos de acesso: quem criou conta registra o próprio pedido; só admins leem e apagam.
+    // Pedidos de acesso: quem criou conta registra (e pode reenviar) o próprio pedido; só admins leem e apagam.
     match /fazendas/{fid}/solicitacoes/{m} {
-      allow create: if logado()
+      allow create, update: if logado()
         && m == email()
         && request.resource.data.email == email()
         && request.resource.data.nome is string
         && request.resource.data.em is string;
       allow read, delete: if ehAdmin(fid);
-      allow update: if false;
     }
 
     // Cadastro de talhões: operador só lê.

@@ -176,6 +176,15 @@ export default function Config({ usuario }: { usuario?: User }) {
 function PedidosDeAcesso({ porQuem, aoMensagem }: { porQuem: string; aoMensagem: (m: string) => void }) {
   const pedidos = useSolicitacoes(true);
   const [papeis, setPapeis] = useState<Record<string, Papel>>({});
+  if (pedidos === null) {
+    return (
+      <p className="erro">
+        Não foi possível ler os pedidos de acesso: o banco recusou a leitura. As regras do Firestore publicadas estão desatualizadas —
+        publique o arquivo <code>firestore.rules</code> do app (console do Firebase → Firestore → Regras, ou <code>npm run regras</code>).
+        Enquanto isso, inclua as pessoas pelo formulário abaixo.
+      </p>
+    );
+  }
   if (!pedidos || !pedidos.length) return null;
   const papelDe = (email: string) => papeis[email] ?? 'operador';
   return (

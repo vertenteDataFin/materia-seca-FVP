@@ -98,6 +98,8 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     const novo = env.authenticatedContext('n', senha('novo@gmail.com', false)).firestore();
     const pedido = (db: Firestore, e: string) => doc(collection(db, 'fazendas', FID, 'solicitacoes'), e);
     await assertSucceeds(setDoc(pedido(novo, 'novo@gmail.com'), { email: 'novo@gmail.com', nome: 'Novo', em: '2026-11-09T12:00:00Z' }));
+    // reenvio do próprio pedido (tela "Aguardando liberação" reenvia a cada abertura)
+    await assertSucceeds(setDoc(pedido(novo, 'novo@gmail.com'), { email: 'novo@gmail.com', nome: 'Novo', em: '2026-11-10T12:00:00Z' }));
     await assertFails(setDoc(pedido(novo, 'outro@gmail.com'), { email: 'outro@gmail.com', nome: 'X', em: '2026-11-09T12:00:00Z' }));
     await assertFails(getDocs(collection(novo, 'fazendas', FID, 'solicitacoes')));
     await assertFails(getDoc(talhao(novo))); // ainda sem acesso aos dados
