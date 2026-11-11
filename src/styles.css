@@ -401,3 +401,7 @@ th.ordenavel.ativa .seta { opacity: 1; }
   .ordenar-cel { display: flex; gap: 0.4rem; align-items: center; margin: 0 0 0.5rem; }
   .ordenar-cel select { flex: 1; }
 }
+
+/* ---- Pontos da coleta: alvo do próximo toque ---- */
+.lista-pontos li.alvo { background: var(--verde-claro); border-radius: 8px; }
+.alvo-ponto { margin: 0.25rem 0 0.6rem; }

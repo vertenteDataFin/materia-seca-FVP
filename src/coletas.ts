@@ -31,6 +31,16 @@ export function adicionarPonto(coletaId: string, pos: Pick<Amostra, 'lat' | 'lng
   return repositorio().adicionar('amostras', { coletaId, ponto, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null, ...pos });
 }
 
+/** Define (ou corrige) a posição de um ponto já existente — marcado no mapa ou pelo GPS. */
+export function posicionarPonto(amostraId: string, pos: Pick<Amostra, 'lat' | 'lng'> & Partial<Pick<Amostra, 'precisaoM' | 'capturadoEm'>>) {
+  repositorio().atualizar('amostras', amostraId, {
+    lat: pos.lat,
+    lng: pos.lng,
+    precisaoM: pos.precisaoM ?? null,
+    capturadoEm: pos.capturadoEm ?? new Date().toISOString(),
+  });
+}
+
 /** Remove um ponto e renumera os restantes (1, 2, 3…) para não ficar buraco na sequência. */
 export function removerPonto(amostraId: string) {
   const d = dadosAtuais();
