@@ -7,7 +7,8 @@ import { exportarExcel } from '../exportarExcel';
 import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
 import { FIREBASE_ATIVO } from '../firebase';
 import { sair } from '../sessao';
-import { adicionarMembro, papelDe, removerMembro, ROTULO_PAPEL, useMembros, type Papel } from '../membros';
+import { adicionarMembro, alterarPapel, papelDe, removerMembro, ROTULO_PAPEL, useMembros, type Papel } from '../membros';
+import { gerarRelatorioPdf } from '../relatorioPdf';
 import { usePermissoes } from '../permissoes';
 import { liberarSolicitacao, recusarSolicitacao, useSolicitacoes } from '../solicitacoes';
 import Historico from '../HistoricoCard';
@@ -45,6 +46,18 @@ export default function Config({ usuario }: { usuario?: User }) {
       await exportarExcel();
     } catch (e) {
       setMensagem(`Falha ao gerar o Excel: ${(e as Error).message}`);
+    } finally {
+      setExportando(false);
+    }
+  }
+
+  async function gerarPdf() {
+    setExportando(true);
+    setMensagem('');
+    try {
+      await gerarRelatorioPdf();
+    } catch (e) {
+      setMensagem(`Falha ao gerar o relatório: ${(e as Error).message}`);
     } finally {
       setExportando(false);
     }
@@ -137,10 +150,12 @@ export default function Config({ usuario }: { usuario?: User }) {
           {FIREBASE_ATIVO
             ? 'Os dados ficam na nuvem (Firebase) e sincronizam entre os aparelhos logados; sem sinal, o app segue funcionando e envia quando a conexão volta. '
             : 'Os dados ficam salvos neste navegador/dispositivo. Faça backups regulares e use-os para transferir dados entre aparelhos. '}
+          O relatório em PDF segue o modelo do relatório de coletas (premissas, resultados por amostra e por talhão, leitura e pendências).
           O Excel traz as planilhas Talhões, Coletas (com os resultados calculados), Amostras e Parâmetros.
         </p>
         <div className="acoes">
-          <button className="primario" onClick={exportarXlsx} disabled={exportando}>{exportando ? 'Gerando…' : 'Exportar Excel (.xlsx)'}</button>
+          <button className="primario" onClick={gerarPdf} disabled={exportando}>{exportando ? 'Gerando…' : 'Gerar relatório (PDF)'}</button>
+          <button onClick={exportarXlsx} disabled={exportando}>Exportar Excel (.xlsx)</button>
           <button onClick={exportarCSV}>Exportar amostras (CSV)</button>
           <button onClick={exportarJSON}>Exportar backup (JSON)</button>
           {podeEditarTalhoes && <button onClick={() => arquivo.current?.click()}>Restaurar backup…</button>}
@@ -270,22 +285,45 @@ function Conta({ usuario }: { usuario: User }) {
             <p className="mudo">Sem permissão para ver a lista.</p>
           ) : (
             <ul className="lista-pontos">
-              {membros.map((m) => (
-                <li key={m.email}>
-                  <strong>{m.email}</strong>
-                  <span className="mudo">{m.nome} · {ROTULO_PAPEL[m.papel]?.split(' (')[0].toLowerCase() ?? m.papel}</span>
-                  <span className="espaco" />
-                  {m.email !== usuario.email?.toLowerCase() && (
-                    <button className="perigo mini" aria-label={`Remover ${m.email}`} onClick={() => confirm(`Remover o acesso de ${m.email}?`) && removerMembro(m.email).catch((e) => setMsg(e.message))}>✕</button>
-                  )}
-                </li>
-              ))}
+              {membros.map((m) => {
+                const euMesmo = m.email === usuario.email?.toLowerCase();
+                return (
+                  <li key={m.email}>
+                    <strong>{m.email}</strong>
+                    <span className="mudo">{m.nome}</span>
+                    <span className="espaco" />
+                    {euMesmo ? (
+                      <span className="mudo">{ROTULO_PAPEL[m.papel]?.split(' (')[0].toLowerCase() ?? m.papel} (você)</span>
+                    ) : (
+                      <select
+                        value={m.papel}
+                        aria-label={`Papel de ${m.email}`}
+                        title={ROTULO_PAPEL[m.papel]}
+                        onChange={(e) => {
+                          const papel = e.target.value as Papel;
+                          if (!confirm(`Mudar ${m.email} para ${ROTULO_PAPEL[papel]}?`)) return;
+                          alterarPapel(m.email, papel)
+                            .then(() => setMsg(`${m.email} agora é ${ROTULO_PAPEL[papel].split(' (')[0].toLowerCase()}.`))
+                            .catch((err) => setMsg(err.message));
+                        }}
+                      >
+                        {(Object.keys(ROTULO_PAPEL) as Papel[]).map((p) => (
+                          <option key={p} value={p}>{ROTULO_PAPEL[p].split(' (')[0]}</option>
+                        ))}
+                      </select>
+                    )}
+                    {!euMesmo && (
+                      <button className="perigo mini" aria-label={`Remover ${m.email}`} onClick={() => confirm(`Remover o acesso de ${m.email}?`) && removerMembro(m.email).catch((e) => setMsg(e.message))}>✕</button>
+                    )}
+                  </li>
+                );
+              })}
               {!membros.length && <li className="mudo">Só os administradores fixos têm acesso por enquanto.</li>}
             </ul>
           )}
           <p className="dica">
-            O caminho normal é a pessoa criar a conta na tela de login e você liberar o pedido acima. O formulário abaixo serve para liberar um
-            e-mail antes mesmo de a conta existir.
+            Para mudar o papel de alguém, escolha na lista ao lado do nome (ninguém muda o próprio papel). O caminho normal é a pessoa criar a
+            conta na tela de login e você liberar o pedido acima. O formulário abaixo serve para liberar um e-mail antes mesmo de a conta existir.
           </p>
           <form className="grade-form" onSubmit={incluir}>
             <label>

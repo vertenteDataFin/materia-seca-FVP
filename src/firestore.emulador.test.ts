@@ -132,11 +132,19 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(getDocs(collection(anon, 'fazendas', FID, 'historico')));
   });
 
-  it('admin não remove a si mesmo da lista', async () => {
+  it('admin não remove a si mesmo da lista nem muda o próprio papel; muda o dos outros', async () => {
     const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
     await assertSucceeds(setDoc(membro(admin, ADMIN), { nome: 'Eu', papel: 'admin' }));
-    const { deleteDoc } = await import('firebase/firestore');
+    const { deleteDoc, updateDoc } = await import('firebase/firestore');
     await assertFails(deleteDoc(membro(admin, ADMIN)));
+    await assertFails(updateDoc(membro(admin, ADMIN), { papel: 'membro' }));
+    await assertSucceeds(updateDoc(membro(admin, ADMIN), { nome: 'Eu mesma' }));
+    await assertSucceeds(setDoc(membro(admin, 'campo@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
+    await assertSucceeds(updateDoc(membro(admin, 'campo@fazenda.com.br'), { papel: 'membro' }));
+    await assertFails(updateDoc(membro(admin, 'campo@fazenda.com.br'), { papel: 'chefe' }));
+    // membro comum não muda papel de ninguém
+    const campo = env.authenticatedContext('c', senha('campo@fazenda.com.br', false)).firestore();
+    await assertFails(updateDoc(membro(campo, 'campo@fazenda.com.br'), { papel: 'admin' }));
   });
 });
 

@@ -45,7 +45,9 @@ service cloud.firestore {
       allow create, update: if ehAdmin(fid)
         && m == m.lower()
         && request.resource.data.papel in ['admin', 'membro', 'operador']
-        && request.resource.data.nome is string;
+        && request.resource.data.nome is string
+        // Ninguém muda o próprio papel (evita um admin se rebaixar sem querer).
+        && (m != email() || resource == null || request.resource.data.papel == resource.data.papel);
       // Um admin não remove a si mesmo (evita ficar sem acesso).
       allow delete: if ehAdmin(fid) && m != email();
     }

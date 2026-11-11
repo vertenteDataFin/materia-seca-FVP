@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { collection, deleteDoc, doc, onSnapshot, setDoc } from 'firebase/firestore';
+import { collection, deleteDoc, doc, onSnapshot, setDoc, updateDoc } from 'firebase/firestore';
 import { obterFirebase } from './firebase';
 import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 
@@ -73,6 +73,11 @@ export function adicionarMembro(email: string, nome: string, papel: Papel, porQu
   const e = normalizarEmail(email);
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(e)) throw new Error('E-mail inválido.');
   return setDoc(doc(ref(), e), { nome: nome.trim(), papel, adicionadoPor: porQuem, em: new Date().toISOString() });
+}
+
+/** Troca o papel de uma pessoa (só administradores; as regras impedem mudar o próprio). */
+export function alterarPapel(email: string, papel: Papel) {
+  return updateDoc(doc(ref(), normalizarEmail(email)), { papel });
 }
 
 export function removerMembro(email: string) {
