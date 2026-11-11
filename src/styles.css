@@ -370,3 +370,20 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
   .lista-pontos li.pedido > div:first-child { width: 100%; }
   .lista-pontos li.pedido select { flex: 1; }
 }
+/* ---- Evolução da MS (pequenos múltiplos) ---- */
+.graficos-ms { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem 1rem; }
+.grafico-ms { margin: 0; }
+.grafico-ms figcaption { margin-bottom: 0.15rem; }
+.grafico-ms-area { position: relative; }
+.grafico-ms svg { width: 100%; height: auto; display: block; touch-action: pan-y; }
+.grafico-ms .faixa-ideal { fill: var(--verde-claro); }
+.grafico-ms .grade { stroke: var(--borda); stroke-width: 0.5; }
+.grafico-ms .eixo { font-size: 5.5px; fill: var(--mudo); }
+.grafico-ms .linha { fill: none; stroke: var(--verde); stroke-width: 1.5; stroke-linejoin: round; stroke-linecap: round; }
+.grafico-ms .ponto { fill: var(--verde); stroke: #fff; stroke-width: 1.2; }
+.grafico-ms .ponto.ativo { fill: var(--verde-escuro); }
+.grafico-ms .cursor { stroke: var(--mudo); stroke-width: 0.5; }
+.grafico-ms .valor { font-size: 6.5px; font-weight: 700; fill: var(--texto); }
+.grafico-ms-dica { position: absolute; transform: translate(-50%, calc(-100% - 10px)); background: #fff; border: 1px solid var(--borda); border-radius: 6px; padding: 0.3rem 0.5rem; font-size: 0.8rem; white-space: nowrap; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.12); pointer-events: auto; z-index: 2; }
+.grafico-ms-dica.esq { transform: translate(-12px, calc(-100% - 10px)); }
+.grafico-ms-dica.dir { transform: translate(calc(-100% + 12px), calc(-100% - 10px)); }

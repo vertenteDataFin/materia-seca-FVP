@@ -6,6 +6,8 @@ import { Bolinha, Indicador, SeloMS } from '../components';
 import { fmt, fmtData, lerParametros } from '../util';
 import { nomeCurto } from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
+import { seriesMS } from '../evolucaoMS';
+import GraficoMS from '../GraficoMS';
 
 export default function Painel() {
   const [parametros] = useState(lerParametros);
@@ -175,6 +177,11 @@ export default function Painel() {
             </tbody>
           </table>
         </div>
+      </div>
+
+      <div className="cartao">
+        <h2>Evolução da MS por talhão</h2>
+        <GraficoMS series={seriesMS(filtradas.map((l) => l.t), dados.coletas, dados.amostras)} parametros={parametros} />
       </div>
     </>
   );
