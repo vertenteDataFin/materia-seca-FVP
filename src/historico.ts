@@ -45,7 +45,7 @@ const ROTULO_CAMPO: Record<string, string> = {
   nome: 'nome', areaHa: 'área (ha)', capim: 'capim', observacoes: 'observações', fazenda: 'fazenda',
   data: 'data', responsavel: 'responsável', areaAmostralM2: 'quadro (m²)',
   ponto: 'nº do ponto', pesoVerdeKg: 'peso verde (kg)', pesoUmidoG: 'úmido (g)', pesoSecoG: 'seco (g)',
-  lat: 'posição', lng: 'posição', precisaoM: 'precisão GPS', capturadoEm: 'posição',
+  lat: 'posição', lng: 'posição', precisaoM: 'precisão GPS', capturadoEm: 'posição', origemPos: 'origem da posição',
 };
 
 function valor(v: unknown): string {

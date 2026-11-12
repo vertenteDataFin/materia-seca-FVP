@@ -5,6 +5,26 @@ export interface Posicao {
   capturadoEm: string;
 }
 
+export type OrigemPosicao = 'gps' | 'mapa';
+
+export const ROTULO_ORIGEM: Record<OrigemPosicao, string> = { gps: 'GPS do celular', mapa: 'marcado no mapa' };
+
+/**
+ * Origem da posição de um ponto. Pontos gravados antes do campo `origemPos` são deduzidos:
+ * o GPS sempre informa a precisão (precisaoM); o toque no mapa, não.
+ */
+export function origemPosicao(a: { lat?: number | null; lng?: number | null; precisaoM?: number | null; origemPos?: OrigemPosicao | null }): OrigemPosicao | null {
+  if (a.lat == null || a.lng == null) return null;
+  if (a.origemPos) return a.origemPos;
+  return a.precisaoM != null ? 'gps' : 'mapa';
+}
+
+/** Texto da origem para listas e exportações ('' se o ponto não tem posição). */
+export function rotuloOrigem(a: Parameters<typeof origemPosicao>[0]): string {
+  const o = origemPosicao(a);
+  return o ? ROTULO_ORIGEM[o] : '';
+}
+
 /** Lê a posição atual do GPS do aparelho (alta precisão). */
 export function capturarPosicao(timeoutMs = 20000): Promise<Posicao> {
   return new Promise((resolve, reject) => {

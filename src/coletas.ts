@@ -25,19 +25,24 @@ export function lembrarUltimos(responsavel: string, quadro: number) {
 }
 
 /** Adiciona um ponto (amostra) à coleta com o próximo número; posição opcional. Devolve o id. */
-export function adicionarPonto(coletaId: string, pos: Pick<Amostra, 'lat' | 'lng' | 'precisaoM' | 'capturadoEm'> = {}): string {
+export function adicionarPonto(coletaId: string, pos: Pick<Amostra, 'lat' | 'lng' | 'precisaoM' | 'capturadoEm' | 'origemPos'> = {}): string {
   const existentes = dadosAtuais().amostras.filter((a) => a.coletaId === coletaId);
   const ponto = existentes.reduce((m, a) => Math.max(m, a.ponto), 0) + 1;
   return repositorio().adicionar('amostras', { coletaId, ponto, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null, ...pos });
 }
 
-/** Define (ou corrige) a posição de um ponto já existente — marcado no mapa ou pelo GPS. */
-export function posicionarPonto(amostraId: string, pos: Pick<Amostra, 'lat' | 'lng'> & Partial<Pick<Amostra, 'precisaoM' | 'capturadoEm'>>) {
+/** Define (ou corrige) a posição de um ponto já existente, registrando se veio do GPS ou de um toque no mapa. */
+export function posicionarPonto(
+  amostraId: string,
+  pos: Pick<Amostra, 'lat' | 'lng'> & Partial<Pick<Amostra, 'precisaoM' | 'capturadoEm'>>,
+  origem: NonNullable<Amostra['origemPos']>,
+) {
   repositorio().atualizar('amostras', amostraId, {
     lat: pos.lat,
     lng: pos.lng,
     precisaoM: pos.precisaoM ?? null,
     capturadoEm: pos.capturadoEm ?? new Date().toISOString(),
+    origemPos: origem,
   });
 }
 

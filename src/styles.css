@@ -129,7 +129,15 @@ button.mini { padding: 0.15rem 0.45rem; font-size: 0.9rem; line-height: 1.2; }
 .leaflet-marker-icon.rotulo-talhao { background: none; border: none; }
 .tooltip-ponto { background: #ff7a00; color: #fff; border: 1px solid #fff; border-radius: 10px; padding: 0 6px; font-weight: 700; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
 .tooltip-ponto.alerta { background: #ff3b30; }
+.tooltip-ponto.mapa { background: #fff; color: #c25e00; border-color: #ff7a00; }
+.tooltip-ponto.mapa.alerta { color: #ff3b30; border-color: #ff3b30; }
 .tooltip-ponto::before { display: none; }
+/* Legenda da origem dos pontos (GPS = cheia, mapa = vazada) */
+.legenda-origem { display: flex; align-items: center; gap: 0.35rem 0.5rem; flex-wrap: wrap; }
+.ponto-legenda { display: inline-block; width: 12px; height: 12px; border-radius: 50%; box-sizing: border-box; vertical-align: middle; }
+.ponto-legenda.gps { background: #ff7a00; border: 2px solid #fff; box-shadow: 0 0 0 1px #c25e00; }
+.ponto-legenda.mapa { background: #fff; border: 3px solid #ff7a00; }
+.legenda-origem .ponto-legenda.mapa { margin-left: 0.6rem; }
 .gps-ok { color: #1d5a24; font-weight: 600; white-space: nowrap; }
 .gps-fora { color: var(--perigo); font-weight: 600; white-space: nowrap; }
 .menu-talhao { display: flex; justify-content: space-between; align-items: center; gap: 1rem; flex-wrap: wrap; margin-top: 0.75rem; padding: 0.75rem 1rem; background: var(--verde-claro); border: 1px solid var(--verde); border-radius: 8px; }

@@ -5,6 +5,7 @@ import { PARAMETROS_PADRAO, producaoPonto, teorMS, teorUmidade, type Parametros 
 import { baixarArquivo, hoje, numParaTexto, parseNum } from '../util';
 import { salvarParametrosNuvem, useParametros } from '../parametros';
 import { exportarExcel } from '../exportarExcel';
+import { rotuloOrigem } from '../geo';
 import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
 import { FIREBASE_ATIVO } from '../firebase';
 import { sair } from '../sessao';
@@ -97,7 +98,7 @@ export default function Config({ usuario }: { usuario?: User }) {
     const n = (v: number | null | undefined) => (v == null ? '' : String(Math.round(v * 1000) / 1000).replace('.', ','));
     const s = (v: string | undefined) => `"${(v ?? '').replace(/"/g, '""')}"`;
     const linhas = [
-      ['Talhão', 'Fazenda', 'Capim', 'Área talhão (ha)', 'Data', 'Responsável', 'Área quadro (m²)', 'Ponto', 'Peso verde (kg)', 'MV (kg/m²)', 'Peso úmido (g)', 'Peso seco (g)', 'MS (%)', 'Umidade (%)', 'Latitude', 'Longitude', 'Precisão GPS (m)', 'Capturado em'].join(';'),
+      ['Talhão', 'Fazenda', 'Capim', 'Área talhão (ha)', 'Data', 'Responsável', 'Área quadro (m²)', 'Ponto', 'Peso verde (kg)', 'MV (kg/m²)', 'Peso úmido (g)', 'Peso seco (g)', 'MS (%)', 'Umidade (%)', 'Latitude', 'Longitude', 'Precisão GPS (m)', 'Origem da posição', 'Capturado em'].join(';'),
     ];
     for (const a of amostras) {
       const col = c.get(a.coletaId);
@@ -107,7 +108,7 @@ export default function Config({ usuario }: { usuario?: User }) {
         [s(tal.nome), s(tal.fazenda), s(tal.capim), n(tal.areaHa), col.data, s(col.responsavel), n(col.areaAmostralM2), a.ponto, n(a.pesoVerdeKg),
           n(producaoPonto(a, col.areaAmostralM2)), n(a.pesoUmidoG), n(a.pesoSecoG), n(teorMS(a)), n(teorUmidade(a)),
           a.lat != null ? String(a.lat.toFixed(6)).replace('.', ',') : '', a.lng != null ? String(a.lng.toFixed(6)).replace('.', ',') : '',
-          n(a.precisaoM), a.capturadoEm ?? ''].join(';'),
+          n(a.precisaoM), rotuloOrigem(a), a.capturadoEm ?? ''].join(';'),
       );
     }
     baixarArquivo(`silagem-ms-amostras-${hoje()}.csv`, '﻿' + linhas.join('\r\n'), 'text/csv;charset=utf-8');

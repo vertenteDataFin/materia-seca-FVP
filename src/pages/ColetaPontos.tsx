@@ -4,7 +4,7 @@ import { useDados } from '../dados';
 import type { Amostra } from '../tipos';
 import { adicionarPonto, posicionarPonto, removerPonto } from '../coletas';
 import { PassosColeta } from '../components';
-import { capturarPosicao, dentroDoTalhao, fmtCoord, type Posicao } from '../geo';
+import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM, type OrigemPosicao, type Posicao } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmtData } from '../util';
 import { usePermissoes } from '../permissoes';
@@ -46,16 +46,19 @@ export default function ColetaPontos() {
     lng: a.lng!,
     rotulo: String(a.ponto),
     alerta: fora(a),
-    titulo: `Ponto ${a.ponto} · ${fmtCoord(a.lat!, a.lng!)}`,
+    origem: origemPosicao(a) ?? undefined,
+    titulo: `Ponto ${a.ponto} · ${fmtCoord(a.lat!, a.lng!)} · ${ROTULO_ORIGEM[origemPosicao(a)!]}`,
   }));
   const nFora = amostras.filter(fora).length;
+  const nMapa = amostras.filter((a) => origemPosicao(a) === 'mapa').length;
+  const nGps = amostras.filter((a) => origemPosicao(a) === 'gps').length;
 
-  function aplicar(pos: Pick<Posicao, 'lat' | 'lng'> & Partial<Posicao>) {
+  function aplicar(pos: Pick<Posicao, 'lat' | 'lng'> & Partial<Posicao>, origem: OrigemPosicao) {
     if (alvo) {
-      posicionarPonto(alvo.id, pos);
+      posicionarPonto(alvo.id, pos, origem);
       setAlvoId(null); // segue para o próximo sem posição
     } else {
-      adicionarPonto(coletaId, { lat: pos.lat, lng: pos.lng, precisaoM: pos.precisaoM ?? null, capturadoEm: pos.capturadoEm ?? null });
+      adicionarPonto(coletaId, { lat: pos.lat, lng: pos.lng, precisaoM: pos.precisaoM ?? null, capturadoEm: pos.capturadoEm ?? null, origemPos: origem });
     }
   }
 
@@ -63,7 +66,7 @@ export default function ColetaPontos() {
     setCapturando(true);
     setErro('');
     try {
-      aplicar(await capturarPosicao());
+      aplicar(await capturarPosicao(), 'gps');
     } catch (e) {
       setErro((e as Error).message);
     } finally {
@@ -110,7 +113,7 @@ export default function ColetaPontos() {
           <MapaTalhoes
             talhoes={[talhao]}
             marcadores={marcadores}
-            aoClicarMapa={(lat, lng) => aplicar({ lat, lng })}
+            aoClicarMapa={(lat, lng) => aplicar({ lat, lng }, 'mapa')}
             aoClicarMarcador={podeExcluir ? (i) => remover(comPosicao[i]) : undefined}
             altura="min(55vh, 520px)"
             zoomMax={17}
@@ -122,7 +125,13 @@ export default function ColetaPontos() {
           <button className="primario" onClick={porGps} disabled={capturando}>{capturando ? 'Lendo GPS…' : '📍 Ponto no meu GPS'}</button>
         </div>
         {erro && <p className="aviso">{erro}</p>}
-        {nFora > 0 && <p className="aviso">{nFora} ponto(s) fora do contorno do talhão (em vermelho). Confira se o talhão da coleta está certo.</p>}
+        {comPosicao.length > 0 && (
+          <p className="dica legenda-origem">
+            <span className="ponto-legenda gps" aria-hidden="true" /> GPS do celular ({nGps}){' '}
+            <span className="ponto-legenda mapa" aria-hidden="true" /> marcado no mapa ({nMapa})
+          </p>
+        )}
+        {nFora > 0 &&<p className="aviso">{nFora} ponto(s) fora do contorno do talhão (em vermelho). Confira se o talhão da coleta está certo.</p>}
       </div>
 
       <div className="cartao">
@@ -140,7 +149,7 @@ export default function ColetaPontos() {
                   {temPosicao(a) ? (
                     <>
                       {fmtCoord(a.lat!, a.lng!)}
-                      {a.precisaoM != null ? ` · GPS ±${a.precisaoM} m` : ' · marcado no mapa'}
+                      {origemPosicao(a) === 'gps' ? ` · GPS do celular${a.precisaoM != null ? ` ±${a.precisaoM} m` : ''}` : ' · marcado no mapa'}
                       {fora(a) && <span className="gps-fora"> · fora do talhão</span>}
                     </>
                   ) : (

@@ -4,7 +4,7 @@ import { adicionarAmostra, atualizarAmostra, atualizarColeta, excluirAmostra, ex
 import type { Amostra, Coleta, Talhao } from '../tipos';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade } from '../calc';
 import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
-import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
+import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmt } from '../util';
 import { useParametros } from '../parametros';
@@ -43,7 +43,7 @@ export default function ColetaDetalhe() {
     setErroGps('');
     try {
       const p = await capturarPosicao();
-      atualizarAmostra(amostraId, { lat: p.lat, lng: p.lng, precisaoM: p.precisaoM, capturadoEm: p.capturadoEm });
+      atualizarAmostra(amostraId, { lat: p.lat, lng: p.lng, precisaoM: p.precisaoM, capturadoEm: p.capturadoEm, origemPos: 'gps' });
     } catch (e) {
       setErroGps((e as Error).message);
     } finally {
@@ -69,14 +69,14 @@ export default function ColetaDetalhe() {
   const fora = (a: Amostra) => (a.lat != null && a.lng != null ? dentroDoTalhao(a.lng, a.lat, talhao?.geometria) === false : false);
   const marcadores: Marcador[] = amostras
     .filter((a) => a.lat != null && a.lng != null)
-    .map((a) => ({ lat: a.lat!, lng: a.lng!, rotulo: String(a.ponto), alerta: fora(a), titulo: fmtCoord(a.lat!, a.lng!) }));
+    .map((a) => ({ lat: a.lat!, lng: a.lng!, rotulo: String(a.ponto), alerta: fora(a), origem: origemPosicao(a) ?? undefined, titulo: `${fmtCoord(a.lat!, a.lng!)} · ${ROTULO_ORIGEM[origemPosicao(a)!]}` }));
   const nFora = amostras.filter(fora).length;
   const nSemGps = amostras.filter((a) => a.lat == null).length;
 
   const statusGps = (a: Amostra) =>
     a.lat != null && a.lng != null ? (
       <span className={fora(a) ? 'gps-fora' : 'gps-ok'} title={`${fmtCoord(a.lat, a.lng)}${a.capturadoEm ? ` · ${new Date(a.capturadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}`}>
-        {fora(a) ? '⚠ fora' : '✓'}{a.precisaoM != null && ` ±${a.precisaoM} m`}
+        {fora(a) ? '⚠ fora' : '✓'} {origemPosicao(a) === 'gps' ? 'GPS' : 'mapa'}{a.precisaoM != null && ` ±${a.precisaoM} m`}
       </span>
     ) : (
       <span className="mudo">sem posição</span>

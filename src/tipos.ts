@@ -46,6 +46,8 @@ export interface Amostra {
   precisaoM?: number | null;
   /** Instante da captura (ISO). */
   capturadoEm?: string | null;
+  /** De onde veio a posição: lida no GPS do aparelho ou marcada tocando no mapa. Pontos antigos sem o campo: ver origemPosicao(). */
+  origemPos?: 'gps' | 'mapa' | null;
   observacoes?: string;
 }
 

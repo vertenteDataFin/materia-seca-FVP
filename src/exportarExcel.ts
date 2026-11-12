@@ -3,6 +3,7 @@ import { amostrasPorColeta, dadosAtuais } from './dados';
 import type { Coleta, Dados, Talhao } from './tipos';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade, type Parametros } from './calc';
 import { areaAnelM2 } from './kml';
+import { rotuloOrigem } from './geo';
 import { hoje, lerParametros } from './util';
 import { nomeCurto } from './MapaTalhoes';
 
@@ -85,7 +86,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
       { titulo: 'ID coleta', largura: 10 }, { titulo: 'Talhão', largura: 10 }, { titulo: 'Data', largura: 11, formato: 'dd/mm/yyyy' }, { titulo: 'Amostra nº', largura: 9 },
       { titulo: 'Peso verde do quadro (kg)', largura: 12, formato: '0.00' }, { titulo: 'Subamostra úmida (g)', largura: 11, formato: '0' },
       { titulo: 'Subamostra seca (g)', largura: 11, formato: '0' }, { titulo: 'Latitude', largura: 12, formato: '0.000000' }, { titulo: 'Longitude', largura: 12, formato: '0.000000' },
-      { titulo: 'Precisão GPS (m)', largura: 10, formato: '0' }, { titulo: 'Capturado em', largura: 18 }, { titulo: 'Observações', largura: 28 },
+      { titulo: 'Precisão GPS (m)', largura: 10, formato: '0' }, { titulo: 'Origem da posição', largura: 16 }, { titulo: 'Capturado em', largura: 18 }, { titulo: 'Observações', largura: 28 },
       { titulo: 'Quadro (m²)', largura: 9, formato: '0.00' }, { titulo: 'MV (kg/m²)', largura: 9, formato: '0.00' }, { titulo: 'MV (t/ha)', largura: 9, formato: '0.0' },
       { titulo: 'MS (%)', largura: 8, formato: '0.0' }, { titulo: 'Umidade (%)', largura: 9, formato: '0.0' }, { titulo: 'MS (t/ha)', largura: 9, formato: '0.0' },
     ],
@@ -95,7 +96,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
         const ms = teorMS(a);
         return [
           idColeta.get(c.id)!, nome(c), dataLocal(c.data), a.ponto, n(a.pesoVerdeKg), n(a.pesoUmidoG), n(a.pesoSecoG),
-          n(a.lat), n(a.lng), n(a.precisaoM), a.capturadoEm ? new Date(a.capturadoEm).toLocaleString('pt-BR') : '', a.observacoes ?? '',
+          n(a.lat), n(a.lng), n(a.precisaoM), rotuloOrigem(a), a.capturadoEm ? new Date(a.capturadoEm).toLocaleString('pt-BR') : '', a.observacoes ?? '',
           c.areaAmostralM2, n(mv), mv == null ? null : mv * 10, n(ms), n(teorUmidade(a)), mv == null || ms == null ? null : (mv * 10 * ms) / 100,
         ];
       }),

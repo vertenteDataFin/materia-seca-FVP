@@ -18,6 +18,8 @@ export interface Marcador {
   rotulo: string;
   /** Destaque (ex.: ponto fora do talhão). */
   alerta?: boolean;
+  /** Origem da posição: 'gps' = bolinha cheia; 'mapa' = bolinha vazada. */
+  origem?: 'gps' | 'mapa';
   titulo?: string;
 }
 
@@ -123,16 +125,18 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
     }
 
     (marcadores ?? []).forEach((m, i) => {
+      const cor = m.alerta ? '#ff3b30' : '#ff7a00';
+      const vazado = m.origem === 'mapa';
       const cm = L.circleMarker([m.lat, m.lng], {
         radius: aoClicarMarcador ? 9 : 7,
-        color: '#fff',
-        weight: 2,
-        fillColor: m.alerta ? '#ff3b30' : '#ff7a00',
+        color: vazado ? cor : '#fff',
+        weight: vazado ? 3 : 2,
+        fillColor: vazado ? '#fff' : cor,
         fillOpacity: 1,
         interactive: !!aoClicarMarcador,
         bubblingMouseEvents: false, // o toque no ponto não vira um toque no mapa
       })
-        .bindTooltip(m.rotulo, { permanent: true, direction: 'top', offset: [0, -8], className: `tooltip-ponto ${m.alerta ? 'alerta' : ''}` })
+        .bindTooltip(m.rotulo, { permanent: true, direction: 'top', offset: [0, -8], className: `tooltip-ponto ${m.alerta ? 'alerta' : ''} ${vazado ? 'mapa' : ''}` })
         .addTo(camada);
       if (aoClicarMarcador) cm.on('click', () => aoClicarMarcador(i));
       limites.extend([m.lat, m.lng]);
