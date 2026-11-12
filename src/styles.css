@@ -247,6 +247,18 @@ tr.linha-sel td { background: var(--verde-claro); }
   .tabela-cartoes tfoot td { border: none; }
   .tabela-cartoes .nome-talhao strong { font-size: 1.1rem; }
   .tabela-cartoes tr.inativa td { opacity: 1; }
+
+  /* Painel no celular: lista compacta — nome à esquerda, produtividade e teor de MS à direita */
+  .tabela-cartoes.painel-lista tr {
+    grid-template-columns: minmax(0, 1fr) auto auto auto; align-items: center;
+    gap: 0 0.7rem; padding: 0.5rem 0.7rem; margin-bottom: 0.4rem;
+  }
+  .tabela-cartoes.painel-lista td.largo-cel { grid-column: auto; }
+  .tabela-cartoes.painel-lista .nome-talhao strong { font-size: 1rem; }
+  .tabela-cartoes.painel-lista .nome-talhao .so-cel { font-size: 0.78rem; line-height: 1.25; margin-top: 0.1rem; }
+  .tabela-cartoes.painel-lista td.n { text-align: right; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; }
+  .tabela-cartoes.painel-lista td[data-rotulo]::before { font-size: 0.58rem; letter-spacing: 0.02em; margin-bottom: 0; white-space: nowrap; }
+  .tabela-cartoes.painel-lista td.vazio { grid-column: 1 / -1; text-align: center; font-weight: normal; }
 }
 
 /* ---- Login / conta ---- */

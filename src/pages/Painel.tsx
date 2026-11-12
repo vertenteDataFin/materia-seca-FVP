@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import { estimativaTalhao, resumoColeta, statusMS, type ResumoColeta } from '../calc';
 import { compararNomes, type Coleta, type Talhao } from '../tipos';
-import { Bolinha, Indicador, SeloMS } from '../components';
+import { Bolinha, Indicador } from '../components';
 import { fmt, fmtData } from '../util';
 import { useParametros } from '../parametros';
 import { nomeCurto } from '../MapaTalhoes';
@@ -179,7 +179,7 @@ export default function Painel() {
           )}
         </div>
         <div className="rolagem">
-          <table className="tabela-cartoes">
+          <table className="tabela-cartoes painel-lista">
             <thead className="com-filtros">
               <tr className="titulos">
                 <Th col="nome">Talhão</Th>
@@ -234,18 +234,21 @@ export default function Painel() {
                     <Bolinha cor={semaforoDe(statusMS(r?.msPct ?? null, parametros))} />{' '}
                     <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{nomeCurto(t.nome)}</strong></Link>
                     <div className="mudo so-cel">
-                      <small>{t.capim || '—'}{c && <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></>}</small>{' '}
-                      <SeloMS status={statusMS(r?.msPct ?? null, parametros)} semColeta={!c} />
+                      <small>
+                        {t.capim || '—'}
+                        {c ? <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></> : <> · sem coleta</>}
+                        {c && r?.msPct == null && <> · MS a aferir</>}
+                      </small>
                     </div>
                   </td>
                   <td className="oculta-cel">{t.capim || '—'}</td>
                   <td className="oculta-cel">{c ? <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link> : <span className="mudo">sem coleta</span>}</td>
-                  <td className="n" data-rotulo="Área (ha)">{fmt(t.areaHa, 1)}</td>
-                  <td className="n" data-rotulo="Amostras">{r ? r.nPontos : '—'}</td>
-                  <td className="n" data-rotulo="MV (kg/m²)">{fmt(r?.mvKgM2, 2)}</td>
-                  <td className="n" data-rotulo="MV (t/ha)">{fmt(r?.tMVha)}</td>
-                  <td className="n" data-rotulo="MS (%)">{fmt(r?.msPct)}</td>
-                  <td className="n" data-rotulo="MS (t/ha)">{fmt(r?.tMSha)}</td>
+                  <td className="n oculta-cel">{fmt(t.areaHa, 1)}</td>
+                  <td className="n oculta-cel">{r ? r.nPontos : '—'}</td>
+                  <td className="n oculta-cel">{fmt(r?.mvKgM2, 2)}</td>
+                  <td className="n" data-rotulo="MV t/ha">{fmt(r?.tMVha)}</td>
+                  <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
+                  <td className="n" data-rotulo="MS t/ha">{fmt(r?.tMSha)}</td>
                 </tr>
               ))}
             </tbody>
