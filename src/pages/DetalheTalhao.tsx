@@ -6,7 +6,8 @@ import { areaAnelM2 } from '../kml';
 import { capimFoto, mesmoCapim } from '../capinsFoto';
 import { resumoColeta, statusMS } from '../calc';
 import { CampoNumero, SeloMS } from '../components';
-import { fmt, fmtData, lerParametros } from '../util';
+import { fmt, fmtData } from '../util';
+import { useParametros } from '../parametros';
 import { usePermissoes } from '../permissoes';
 
 function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; confere?: boolean | null }) {
@@ -23,7 +24,7 @@ function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; conf
 }
 
 export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talhao: Talhao; aoFechar: () => void; aoEditar: (t: Talhao) => void }) {
-  const parametros = lerParametros();
+  const parametros = useParametros();
   const dados = useDados();
   const { podeEditarTalhoes } = usePermissoes();
   const coletas = useMemo(() => {

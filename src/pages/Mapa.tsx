@@ -4,13 +4,14 @@ import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import type { Coleta } from '../tipos';
 import { resumoColeta, statusMS } from '../calc';
 import { MenuTalhao } from '../components';
-import { fmt, lerParametros } from '../util';
+import { fmt } from '../util';
+import { useParametros } from '../parametros';
 import MapaTalhoes from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe } from '../semaforo';
 
 export default function Mapa() {
   const navigate = useNavigate();
-  const [parametros] = useState(lerParametros);
+  const parametros = useParametros();
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const dados = useDados();
 

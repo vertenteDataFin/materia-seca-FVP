@@ -6,7 +6,8 @@ import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUm
 import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
-import { fmt, lerParametros } from '../util';
+import { fmt } from '../util';
+import { useParametros } from '../parametros';
 import { usePermissoes } from '../permissoes';
 import { codigoAmostra, ROTULO_STATUS_COLETA, statusColeta } from '../fluxo';
 
@@ -14,7 +15,7 @@ export default function ColetaDetalhe() {
   const navigate = useNavigate();
   const coletaId = useParams().id!;
   const dados = useDados();
-  const [parametros] = useState(lerParametros);
+  const parametros = useParametros();
   const [capturando, setCapturando] = useState<string | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
   const [mostrarMapa, setMostrarMapa] = useState(false);

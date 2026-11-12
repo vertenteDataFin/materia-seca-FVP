@@ -6,6 +6,7 @@ import { FIREBASE_ATIVO, obterFirebase } from './firebase';
 import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 import { inicializarDados } from './inicializacao';
 import { papelDe, useMembros } from './membros';
+import { assinarParametrosNuvem } from './parametros';
 import { PERMISSOES_LOCAL, PermissoesContext, permissoesDoPapel, type Permissoes } from './permissoes';
 import { RepositorioLocal, type Repositorio } from './repositorio';
 import { RepositorioFirestore } from './repositorioFirestore';
@@ -87,7 +88,11 @@ function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
     }
     repo.iniciar();
     setIniciado(true);
-    return () => repo.parar();
+    const pararParametros = assinarParametrosNuvem(obterFirebase().firestore, FAZENDA_ID);
+    return () => {
+      repo.parar();
+      pararParametros();
+    };
   }, [repo, liberado]);
 
   if (membros === undefined) return <p className="vazio">Conectando…</p>;

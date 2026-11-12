@@ -1,8 +1,9 @@
-import { useRef, useState, type FormEvent } from 'react';
+import { useEffect, useRef, useState, type FormEvent } from 'react';
 import type { User } from 'firebase/auth';
 import { dadosAtuais, restaurarBackup, type Backup } from '../dados';
 import { PARAMETROS_PADRAO, producaoPonto, teorMS, teorUmidade, type Parametros } from '../calc';
-import { baixarArquivo, hoje, lerParametros, numParaTexto, parseNum, salvarParametros } from '../util';
+import { baixarArquivo, hoje, numParaTexto, parseNum } from '../util';
+import { salvarParametrosNuvem, useParametros } from '../parametros';
 import { exportarExcel } from '../exportarExcel';
 import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
 import { FIREBASE_ATIVO } from '../firebase';
@@ -20,15 +21,18 @@ const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'msMax', rotulo: 'MS máxima ideal (%)', ajuda: 'Acima disso a compactação fica difícil.' },
 ];
 
+const textoDe = (p: Parametros) => Object.fromEntries(CAMPOS.map((c) => [c.chave, numParaTexto(p[c.chave])])) as Record<keyof Parametros, string>;
+
 export default function Config({ usuario }: { usuario?: User }) {
-  const [texto, setTexto] = useState(() => {
-    const p = lerParametros();
-    return Object.fromEntries(CAMPOS.map((c) => [c.chave, numParaTexto(p[c.chave])])) as Record<keyof Parametros, string>;
-  });
+  const parametros = useParametros();
+  const [texto, setTexto] = useState(() => textoDe(parametros));
   const [mensagem, setMensagem] = useState('');
   const [exportando, setExportando] = useState(false);
   const arquivo = useRef<HTMLInputElement>(null);
-  const { podeEditarTalhoes } = usePermissoes();
+  const { podeEditarTalhoes, admin } = usePermissoes();
+
+  // Parâmetros mudados em outro aparelho (ou chegando da nuvem) atualizam o formulário.
+  useEffect(() => setTexto(textoDe(parametros)), [parametros]);
 
   function carregarColetasIniciais() {
     const r = importarColetasIniciais();
@@ -63,7 +67,7 @@ export default function Config({ usuario }: { usuario?: User }) {
     }
   }
 
-  function salvar() {
+  async function salvar() {
     const p = { ...PARAMETROS_PADRAO };
     for (const c of CAMPOS) {
       const v = parseNum(texto[c.chave]);
@@ -72,13 +76,17 @@ export default function Config({ usuario }: { usuario?: User }) {
     }
     if (p.perdasPct >= 100) return setMensagem('Perdas devem ser menores que 100%.');
     if (p.msMin > p.msMax) return setMensagem('MS mínima deve ser menor que a máxima.');
-    salvarParametros(p);
-    setMensagem('Parâmetros salvos.');
+    try {
+      await salvarParametrosNuvem(p, usuario?.email ?? '');
+      setMensagem(FIREBASE_ATIVO ? 'Parâmetros salvos para todos os aparelhos.' : 'Parâmetros salvos.');
+    } catch (e) {
+      setMensagem(`Falha ao salvar na nuvem: ${(e as Error).message}`);
+    }
   }
 
   function exportarJSON() {
     const { talhoes, coletas, amostras } = dadosAtuais();
-    const backup: Backup = { app: 'silagem-ms', versao: 2, exportadoEm: new Date().toISOString(), parametros: lerParametros(), talhoes, coletas, amostras };
+    const backup: Backup = { app: 'silagem-ms', versao: 2, exportadoEm: new Date().toISOString(), parametros, talhoes, coletas, amostras };
     baixarArquivo(`silagem-ms-backup-${hoje()}.json`, JSON.stringify(backup, null, 2), 'application/json');
   }
 
@@ -114,7 +122,7 @@ export default function Config({ usuario }: { usuario?: User }) {
       const onde = FIREBASE_ATIVO ? 'EM TODOS OS APARELHOS' : 'NESTE APARELHO';
       if (!confirm(`Restaurar ${b.talhoes.length} talhão(ões), ${b.coletas.length} coleta(s) e ${b.amostras.length} amostra(s)?\n\nOS DADOS ATUAIS SERÃO SUBSTITUÍDOS ${onde}.`)) return;
       restaurarBackup(b);
-      if (b.parametros) salvarParametros({ ...PARAMETROS_PADRAO, ...(b.parametros as Partial<Parametros>) });
+      if (b.parametros && admin) await salvarParametrosNuvem({ ...PARAMETROS_PADRAO, ...(b.parametros as Partial<Parametros>) }, usuario?.email ?? '');
       setMensagem('Backup restaurado com sucesso.');
     } catch (e) {
       setMensagem(`Falha ao importar: ${(e as Error).message}`);
@@ -132,16 +140,25 @@ export default function Config({ usuario }: { usuario?: User }) {
 
       <div className="cartao grade-form">
         <h2>Parâmetros da estimativa</h2>
+        <p className="dica largo">
+          {FIREBASE_ATIVO
+            ? admin
+              ? 'Valem para todos os aparelhos e pessoas: ao salvar, o Painel, o mapa e os relatórios de todo mundo passam a usar os novos valores.'
+              : 'Definidos pelos administradores e iguais para todo mundo. Só administradores alteram.'
+            : 'Valem só neste aparelho.'}
+        </p>
         {CAMPOS.map((c) => (
           <label key={c.chave}>
             {c.rotulo}
-            <input inputMode="decimal" value={texto[c.chave]} onChange={(e) => setTexto({ ...texto, [c.chave]: e.target.value })} />
+            <input inputMode="decimal" value={texto[c.chave]} onChange={(e) => setTexto({ ...texto, [c.chave]: e.target.value })} disabled={FIREBASE_ATIVO && !admin} />
             <small className="mudo">{c.ajuda}</small>
           </label>
         ))}
-        <div className="acoes largo">
-          <button className="primario" onClick={salvar}>Salvar parâmetros</button>
-        </div>
+        {(admin || !FIREBASE_ATIVO) && (
+          <div className="acoes largo">
+            <button className="primario" onClick={salvar}>Salvar parâmetros</button>
+          </div>
+        )}
       </div>
 
       <div className="cartao">

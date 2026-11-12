@@ -4,7 +4,8 @@ import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import { estimativaTalhao, resumoColeta, statusMS, type ResumoColeta } from '../calc';
 import { compararNomes, type Coleta, type Talhao } from '../tipos';
 import { Bolinha, Indicador, SeloMS } from '../components';
-import { fmt, fmtData, lerParametros } from '../util';
+import { fmt, fmtData } from '../util';
+import { useParametros } from '../parametros';
 import { nomeCurto } from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 import { seriesMS } from '../evolucaoMS';
@@ -48,7 +49,7 @@ export function comparadorColuna(col: Coluna, asc: boolean) {
 }
 
 export default function Painel() {
-  const [parametros] = useState(lerParametros);
+  const parametros = useParametros();
   const dados = useDados();
   const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', busca: '', data: '' };
   const [filtro, setFiltro] = useState(FILTRO_VAZIO);

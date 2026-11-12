@@ -13,7 +13,8 @@ com cache offline no aparelho. Só entra quem fizer login com um e-mail autoriza
 | Administradores fixos | `src/firebaseConfig.ts` (`ADMINS`) **e** `firestore.rules` (`admins()`) — manter iguais |
 | Configuração do app web | `src/firebaseConfig.ts` (valores públicos; a proteção são as regras) |
 | Regras de segurança | `firestore.rules` |
-| Parâmetros da estimativa, último responsável/quadro | localStorage do navegador (por aparelho) |
+| Parâmetros da estimativa | Firestore → `fazendas/vertente/config/parametros` (só admin grava; valem para todos; espelhados no localStorage para uso offline) |
+| Último responsável/quadro | localStorage do navegador (por aparelho) |
 
 Papéis (campo `papel` do membro):
 

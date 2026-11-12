@@ -132,6 +132,18 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(getDocs(collection(anon, 'fazendas', FID, 'historico')));
   });
 
+  it('parâmetros da estimativa: todo membro lê; só admin grava', async () => {
+    const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
+    await assertSucceeds(setDoc(membro(admin, 'tec@fazenda.com.br'), { nome: 'Téc', papel: 'membro' }));
+    const cfg = (db: Firestore) => doc(collection(db, 'fazendas', FID, 'config'), 'parametros');
+    await assertSucceeds(setDoc(cfg(admin), { perdasPct: 12, densidadeKgM3: 650, msMin: 30, msMax: 35 }));
+    const tec = env.authenticatedContext('t', senha('tec@fazenda.com.br', false)).firestore();
+    await assertSucceeds(getDoc(cfg(tec)));
+    await assertFails(setDoc(cfg(tec), { perdasPct: 5, densidadeKgM3: 650, msMin: 30, msMax: 35 }));
+    const anon = env.unauthenticatedContext().firestore();
+    await assertFails(getDoc(cfg(anon)));
+  });
+
   it('admin não remove a si mesmo da lista nem muda o próprio papel; muda o dos outros', async () => {
     const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
     await assertSucceeds(setDoc(membro(admin, ADMIN), { nome: 'Eu', papel: 'admin' }));
