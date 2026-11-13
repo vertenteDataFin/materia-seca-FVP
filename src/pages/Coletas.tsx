@@ -59,7 +59,7 @@ export default function Coletas() {
           <p className="vazio">Nenhuma coleta registrada.</p>
         ) : (
           <div className="rolagem">
-            <table className="tabela-cartoes">
+            <table className="tabela-cartoes lista-compacta">
               <thead>
                 <tr>
                   <th>Talhão</th>

@@ -470,6 +470,24 @@ th.ordenavel.ativa .seta { opacity: 1; }
   .filtros-cel { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
   .filtros-cel > :last-child { grid-column: 1 / -1; }
   .tabela-cartoes.painel-lista thead.com-filtros { display: none; }
+
+  /* Lista compacta no celular (coletas): continua tabela, com cabeçalho e linhas finas em vez de cartões */
+  .tabela-cartoes.lista-compacta { display: table; width: 100%; border-collapse: collapse; }
+  .tabela-cartoes.lista-compacta thead { display: table-header-group; }
+  .tabela-cartoes.lista-compacta tbody { display: table-row-group; }
+  .tabela-cartoes.lista-compacta tr { display: table-row; padding: 0; margin: 0; background: none; border: none; border-radius: 0; }
+  .tabela-cartoes.lista-compacta th, .tabela-cartoes.lista-compacta td { display: table-cell; padding: 0.5rem 0.3rem; border-bottom: 1px solid var(--borda); vertical-align: middle; }
+  .tabela-cartoes.lista-compacta th { font-size: 0.66rem; font-weight: 600; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); text-align: left; white-space: nowrap; }
+  .tabela-cartoes.lista-compacta th.n, .tabela-cartoes.lista-compacta td.n { text-align: right; font-variant-numeric: tabular-nums; }
+  .tabela-cartoes.lista-compacta td.n { font-size: 1rem; font-weight: 600; }
+  .tabela-cartoes.lista-compacta td[data-rotulo]::before { display: none; }
+  .tabela-cartoes.lista-compacta th.oculta-cel, .tabela-cartoes.lista-compacta td.oculta-cel { display: none; }
+  .tabela-cartoes.lista-compacta td:first-child, .tabela-cartoes.lista-compacta th:first-child { padding-left: 0; }
+  .tabela-cartoes.lista-compacta td:last-child, .tabela-cartoes.lista-compacta th:last-child { padding-right: 0; }
+  .tabela-cartoes.lista-compacta .nome-talhao strong { font-size: 0.95rem; }
+  .tabela-cartoes.lista-compacta .nome-talhao .so-cel { font-size: 0.74rem; line-height: 1.3; margin-top: 0.1rem; }
+  .tabela-cartoes.lista-compacta .nome-talhao .selo { font-size: 0.66rem; padding: 0.05rem 0.4rem; }
+  .tabela-cartoes.lista-compacta tr.clicavel:active td { background: var(--verde-claro); }
 }
 
 /* ---- Pontos da coleta: alvo do próximo toque ---- */
