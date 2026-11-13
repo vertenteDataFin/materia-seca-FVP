@@ -167,7 +167,9 @@ tr.linha-sel td { background: var(--verde-claro); }
 .mi svg { display: block; width: 100%; height: 100%; fill: currentColor; }
 button .mi, .botao .mi { font-size: 1.2em; vertical-align: -0.25em; }
 /* Botões só com ícone (editar, excluir, fechar) */
-button.icone-acao { width: 2.25rem; height: 2.25rem; min-height: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+button.icone-acao { width: 2.25rem; height: 2.25rem; min-height: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; border: none; background: none; box-shadow: none; border-radius: 50%; }
+button.icone-acao:hover, button.icone-acao:focus-visible { background: var(--verde-claro); }
+button.icone-acao.perigo:hover { background: #fbe9e7; }
 button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
 .tabela-cartoes td.acoes-icones { white-space: nowrap; }
 /* Detalhe do talhão: campo da área em uso com os botões "Usar …" ao lado */
