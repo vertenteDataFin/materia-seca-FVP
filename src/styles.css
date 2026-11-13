@@ -460,10 +460,16 @@ th.ordenavel.n button { text-align: right; }
 th.ordenavel button:hover, th.ordenavel.ativa button { color: var(--verde); }
 th.ordenavel .seta { margin-left: 0.15rem; font-size: 1.1em; opacity: 0.55; }
 th.ordenavel.ativa .seta { opacity: 1; }
-.ordenar-cel { display: none; }
+/* Controles do Painel no celular: busca → ordenação → filtros (o cabeçalho da tabela some) */
+.controles-cel { display: none; }
 @media (max-width: 700px) {
-  .ordenar-cel { display: flex; gap: 0.4rem; align-items: center; margin: 0 0 0.5rem; }
+  .controles-cel { display: grid; gap: 0.4rem; margin-bottom: 0.6rem; }
+  .controles-cel input, .controles-cel select { width: 100%; min-width: 0; box-sizing: border-box; }
+  .ordenar-cel { display: flex; gap: 0.4rem; align-items: center; }
   .ordenar-cel select { flex: 1; }
+  .filtros-cel { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem; }
+  .filtros-cel > :last-child { grid-column: 1 / -1; }
+  .tabela-cartoes.painel-lista thead.com-filtros { display: none; }
 }
 
 /* ---- Pontos da coleta: alvo do próximo toque ---- */

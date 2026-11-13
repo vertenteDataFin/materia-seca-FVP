@@ -112,6 +112,30 @@ export default function Painel() {
     );
   };
 
+  // Campos de busca/filtro: os mesmos elementos entram no cabeçalho da tabela (computador) e no bloco do celular
+  const campoBusca = (
+    <input type="search" value={filtro.busca} onChange={(e) => setFiltro({ ...filtro, busca: e.target.value })} placeholder="Buscar talhão…" aria-label="Buscar talhão" />
+  );
+  const campoCapim = (
+    <select value={filtro.capim} onChange={(e) => setFiltro({ ...filtro, capim: e.target.value })} aria-label="Filtrar por capim">
+      <option value="">Capim: todos</option>
+      {capins.map((c) => (
+        <option key={c} value={c}>{c}</option>
+      ))}
+    </select>
+  );
+  const campoData = (
+    <input type="date" value={filtro.data} onChange={(e) => setFiltro({ ...filtro, data: e.target.value })} aria-label="Data da última coleta" title="Data da última coleta" />
+  );
+  const campoMS = (
+    <select value={filtro.semaforo} onChange={(e) => setFiltro({ ...filtro, semaforo: e.target.value as Semaforo | '' })} aria-label="Filtrar por situação da MS">
+      <option value="">MS: todas</option>
+      <option value="verde">Pronto para ensilar</option>
+      <option value="vermelho">Fora do ponto</option>
+      <option value="amarelo">Sem coleta / sem MS</option>
+    </select>
+  );
+
   if (!dados.talhoes.length) {
     return (
       <>
@@ -129,6 +153,7 @@ export default function Painel() {
     <>
       <h1>Painel de produção</h1>
       <div className="cartao">
+        <h2>Resumo de produtividade</h2>
         <div className="indicadores">
           <Indicador rotulo="Área total" valor={fmt(areaTotal, 2)} unidade="ha" />
           <Indicador rotulo="Massa verde estimada" valor={fmt(mvTotal)} unidade="t" />
@@ -146,7 +171,7 @@ export default function Painel() {
 
       <div className="cartao">
         <div className="cabecalho-cartao">
-          <h2>Por talhão</h2>
+          <h2>Resumo por talhão</h2>
           <span className="semaforo-resumo">
             <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>{contagem.verde} pronto(s)</span>{' '}
             <span className="selo" style={{ background: COR_SEMAFORO.amarelo, color: '#3a2e00' }}>{contagem.amarelo} sem MS</span>{' '}
@@ -162,22 +187,31 @@ export default function Painel() {
             </>
           )}
         </p>
-        <div className="ordenar-cel">
-          <select
-            value={ordem?.col ?? ''}
-            onChange={(e) => setOrdem(e.target.value ? { col: e.target.value as Coluna, asc: ordem?.asc ?? true } : null)}
-            aria-label="Ordenar por"
-          >
-            <option value="">Ordenar: ordem natural</option>
-            {(Object.keys(ROTULO_COLUNA) as Coluna[]).map((c) => (
-              <option key={c} value={c}>Ordenar por {ROTULO_COLUNA[c]}</option>
-            ))}
-          </select>
-          {ordem && (
-            <button type="button" className="mini" onClick={() => setOrdem({ ...ordem, asc: !ordem.asc })} aria-label={ordem.asc ? 'Crescente' : 'Decrescente'}>
-              <Icone nome={ordem.asc ? 'subir' : 'descer'} />
-            </button>
-          )}
+        {/* Celular: busca, depois ordenação, depois filtros (no computador ficam no cabeçalho da tabela) */}
+        <div className="controles-cel so-cel">
+          {campoBusca}
+          <div className="ordenar-cel">
+            <select
+              value={ordem?.col ?? ''}
+              onChange={(e) => setOrdem(e.target.value ? { col: e.target.value as Coluna, asc: ordem?.asc ?? true } : null)}
+              aria-label="Ordenar por"
+            >
+              <option value="">Ordenar: ordem natural</option>
+              {(Object.keys(ROTULO_COLUNA) as Coluna[]).map((c) => (
+                <option key={c} value={c}>Ordenar por {ROTULO_COLUNA[c]}</option>
+              ))}
+            </select>
+            {ordem && (
+              <button type="button" className="mini" onClick={() => setOrdem({ ...ordem, asc: !ordem.asc })} aria-label={ordem.asc ? 'Crescente' : 'Decrescente'}>
+                <Icone nome={ordem.asc ? 'subir' : 'descer'} />
+              </button>
+            )}
+          </div>
+          <div className="filtros-cel">
+            {campoCapim}
+            {campoData}
+            {campoMS}
+          </div>
         </div>
         <div className="rolagem">
           <table className="tabela-cartoes painel-lista">
@@ -194,32 +228,14 @@ export default function Painel() {
                 <Th col="tMSha" className="n">MS (t/ha)</Th>
               </tr>
               <tr className="filtros-linha">
-                <th>
-                  <input type="search" value={filtro.busca} onChange={(e) => setFiltro({ ...filtro, busca: e.target.value })} placeholder="Buscar talhão…" aria-label="Buscar talhão" />
-                </th>
-                <th>
-                  <select value={filtro.capim} onChange={(e) => setFiltro({ ...filtro, capim: e.target.value })} aria-label="Filtrar por capim">
-                    <option value="">Capim: todos</option>
-                    {capins.map((c) => (
-                      <option key={c} value={c}>{c}</option>
-                    ))}
-                  </select>
-                </th>
-                <th>
-                  <input type="date" value={filtro.data} onChange={(e) => setFiltro({ ...filtro, data: e.target.value })} aria-label="Data da última coleta" title="Data da última coleta" />
-                </th>
+                <th>{campoBusca}</th>
+                <th>{campoCapim}</th>
+                <th>{campoData}</th>
                 <th />
                 <th />
                 <th />
                 <th />
-                <th>
-                  <select value={filtro.semaforo} onChange={(e) => setFiltro({ ...filtro, semaforo: e.target.value as Semaforo | '' })} aria-label="Filtrar por situação da MS">
-                    <option value="">MS: todas</option>
-                    <option value="verde">Pronto para ensilar</option>
-                    <option value="vermelho">Fora do ponto</option>
-                    <option value="amarelo">Sem coleta / sem MS</option>
-                  </select>
-                </th>
+                <th>{campoMS}</th>
                 <th />
               </tr>
             </thead>
