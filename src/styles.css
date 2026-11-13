@@ -266,7 +266,8 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
   .tabela-cartoes tr.inativa td { opacity: 1; }
   /* Cartões com ações por ícone: coluna de botões empilhados no canto direito */
   .tabela-cartoes.com-icones tr { position: relative; padding-right: 4.2rem; }
-  .tabela-cartoes.com-icones td.acoes-icones { position: absolute; top: 0.55rem; right: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem; margin: 0; }
+  /* grid-area auto: senão o absoluto se alinha à área das colunas (sem o padding) e fica longe da borda do card */
+  .tabela-cartoes.com-icones td.acoes-icones { position: absolute; top: 0.55rem; right: 0.55rem; grid-area: auto; display: flex; flex-direction: column; gap: 0.45rem; margin: 0; }
   .tabela-cartoes.com-icones td.acoes-icones > button.icone-acao { flex: none; width: 2.6rem; height: 2.6rem; min-height: 0; padding: 0; }
   .tabela-cartoes.com-icones td.acoes-icones > button.icone-acao .mi { font-size: 1.4rem; }
 
