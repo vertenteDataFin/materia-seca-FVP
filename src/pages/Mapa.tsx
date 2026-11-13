@@ -47,7 +47,7 @@ export default function Mapa() {
   }
 
   return (
-    <>
+    <div className="pagina-mapa">
       <h1>Mapa — escolha o talhão</h1>
       <div className="cartao">
         <MapaTalhoes
@@ -55,6 +55,7 @@ export default function Mapa() {
           selecionadoId={selecionadoId}
           aoSelecionar={(t) => setSelecionadoId(t.id)}
           altura="min(70vh, 640px)"
+          className="mapa-principal"
           estilo={(t) => {
             const u = ultimaPorTalhao.get(t.id);
             const s = u ? statusMS(u.msPct, parametros) : null;
@@ -65,13 +66,22 @@ export default function Mapa() {
             };
           }}
         />
-        <p className="dica">Toque no talhão para ver os registros ou iniciar uma nova coleta.</p>
-        <p className="dica">
-          <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>verde: pronto para ensilar (MS {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)} %)</span>{' '}
-          <span className="selo" style={{ background: COR_SEMAFORO.amarelo, color: '#3a2e00' }}>amarelo: sem coleta ou MS não aferida</span>{' '}
-          <span className="selo" style={{ background: COR_SEMAFORO.vermelho, color: '#fff' }}>vermelho: MS fora do ponto (baixa ou alta)</span>
+        <p className="dica oculta-cel">Toque no talhão para ver os registros ou iniciar uma nova coleta.</p>
+        <p className="dica legenda-mapa">
+          <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>
+            <span className="rotulo-longo">verde: pronto para ensilar (MS {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)} %)</span>
+            <span className="rotulo-curto">pronto ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)} %)</span>
+          </span>{' '}
+          <span className="selo" style={{ background: COR_SEMAFORO.amarelo, color: '#3a2e00' }}>
+            <span className="rotulo-longo">amarelo: sem coleta ou MS não aferida</span>
+            <span className="rotulo-curto">sem MS</span>
+          </span>{' '}
+          <span className="selo" style={{ background: COR_SEMAFORO.vermelho, color: '#fff' }}>
+            <span className="rotulo-longo">vermelho: MS fora do ponto (baixa ou alta)</span>
+            <span className="rotulo-curto">fora do ponto</span>
+          </span>
         </p>
       </div>
-    </>
+    </div>
   );
 }

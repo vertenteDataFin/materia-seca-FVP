@@ -172,6 +172,8 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
 .tabela-cartoes td.acoes-icones { white-space: nowrap; }
 /* Detalhe do talhão: campo da área em uso com os botões "Usar …" ao lado */
 .area-em-uso { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+/* Legenda do mapa: texto completo no computador, curto no celular */
+.rotulo-curto { display: none; }
 /* Linhas/cartões clicáveis (lista de coletas) */
 .tabela-cartoes tr.clicavel { cursor: pointer; }
 .tabela-cartoes tr.clicavel:hover td { background: var(--verde-claro); }
@@ -230,6 +232,21 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
   .topo { position: static; padding: 0; background: none; }
   .topo .marca { display: none; }
   main { padding-top: calc(0.6rem + env(safe-area-inset-top)); }
+
+  /* Página do mapa: ocupa a tela inteira sem rolagem — o mapa estica e a legenda fica numa linha */
+  .pagina-mapa {
+    display: flex; flex-direction: column;
+    height: calc(100vh - 0.6rem - 4.6rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+    height: calc(100dvh - 0.6rem - 4.6rem - env(safe-area-inset-top) - env(safe-area-inset-bottom));
+  }
+  .pagina-mapa h1 { font-size: 1.1rem; margin: 0 0 0.4rem; flex: none; }
+  .pagina-mapa .cartao { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0.5rem; margin-bottom: 0; }
+  .pagina-mapa .cartao > .mapa { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .pagina-mapa .mapa-principal { flex: 1; min-height: 0; height: auto !important; border-radius: 8px; }
+  .pagina-mapa .legenda-mapa { flex: none; margin: 0.4rem 0 0; display: flex; gap: 0.3rem; flex-wrap: nowrap; overflow: hidden; }
+  .pagina-mapa .legenda-mapa .selo { font-size: 0.72rem; padding: 0.15rem 0.45rem; white-space: nowrap; }
+  .rotulo-longo { display: none; }
+  .rotulo-curto { display: inline; }
   .topo nav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 1100;
     display: grid; grid-template-columns: repeat(6, 1fr); gap: 0;

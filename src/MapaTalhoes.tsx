@@ -35,6 +35,8 @@ interface Props {
   /** Toque num marcador (índice em `marcadores`). */
   aoClicarMarcador?: (indice: number) => void;
   altura?: number | string;
+  /** Classe extra no contêiner do mapa (ex.: altura flexível via CSS). */
+  className?: string;
   /** Zoom máximo ao enquadrar (padrão 16; use 17–18 para um talhão só). */
   zoomMax?: number;
 }
@@ -69,7 +71,7 @@ function estiloPath(sel: boolean, e: EstiloTalhao): L.PathOptions {
 }
 
 /** Mapa com imagem de satélite e os contornos dos talhões, legendados como na foto da fazenda. */
-export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, estilo, marcadores, aoClicarMapa, aoClicarMarcador, altura = 480, zoomMax = 16 }: Props) {
+export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, estilo, marcadores, aoClicarMapa, aoClicarMarcador, altura = 480, zoomMax = 16, className }: Props) {
   const divRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const camadaRef = useRef<L.LayerGroup | null>(null);
@@ -85,7 +87,11 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
     camadaRef.current = L.layerGroup().addTo(map);
     map.on('click', (e: L.LeafletMouseEvent) => clicarRef.current?.(e.latlng.lat, e.latlng.lng));
     mapRef.current = map;
+    // O contêiner pode mudar de tamanho depois (ex.: altura flexível no celular, rotação): o Leaflet precisa recalcular
+    const ro = new ResizeObserver(() => map.invalidateSize());
+    ro.observe(divRef.current);
     return () => {
+      ro.disconnect();
       map.remove();
       mapRef.current = null;
     };
@@ -154,7 +160,7 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
 
   return (
     <div className={`mapa ${aoClicarMapa ? 'clicavel' : ''}`}>
-      <div ref={divRef} style={{ height: altura, width: '100%' }} aria-label="Mapa dos talhões" />
+      <div ref={divRef} className={className} style={{ height: altura, width: '100%' }} aria-label="Mapa dos talhões" />
       {talhoes.length > comGeo.length && <p className="dica">{talhoes.length - comGeo.length} talhão(ões) sem contorno não aparecem no mapa.</p>}
     </div>
   );
