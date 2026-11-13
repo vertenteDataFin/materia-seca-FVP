@@ -36,3 +36,13 @@ export function statusColeta(amostras: Amostra[]): StatusColeta {
 export function pendenteLab(a: Amostra): boolean {
   return teorMS(a) == null;
 }
+
+/** Para onde o toque na coleta leva: etapa pendente em campo, laboratório (sem MS) ou o resultado. */
+export function destinoColeta(id: string, status: StatusColeta): string {
+  switch (status) {
+    case 'semPontos': return `/coletas/${id}/pontos`;
+    case 'campo': return `/coletas/${id}/pesos`;
+    case 'laboratorio': return `/laboratorio?coleta=${id}`;
+    default: return `/coletas/${id}`;
+  }
+}

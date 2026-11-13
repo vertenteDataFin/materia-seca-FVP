@@ -3,20 +3,10 @@ import { Link, useNavigate } from 'react-router-dom';
 import { amostrasPorColeta, useDados } from '../dados';
 import { compararColetasDesc } from '../tipos';
 import { resumoColeta } from '../calc';
-import { ROTULO_STATUS_COLETA, statusColeta, type StatusColeta } from '../fluxo';
+import { destinoColeta, ROTULO_STATUS_COLETA, statusColeta, type StatusColeta } from '../fluxo';
 import { fmt, fmtData } from '../util';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
-
-/** Para onde o toque na coleta leva: etapa pendente em campo, laboratório (sem MS) ou o resultado. */
-export function destinoColeta(id: string, status: StatusColeta): string {
-  switch (status) {
-    case 'semPontos': return `/coletas/${id}/pontos`;
-    case 'campo': return `/coletas/${id}/pesos`;
-    case 'laboratorio': return `/laboratorio?coleta=${id}`;
-    default: return `/coletas/${id}`;
-  }
-}
 
 /** Módulo de coletas: histórico e início de uma nova (talhão escolhido no Mapa). */
 export default function Coletas() {

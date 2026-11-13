@@ -226,8 +226,10 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
   th, td { padding: 0.4rem 0.35rem; }
   table { font-size: 0.88rem; }
 
-  /* Cabeçalho enxuto + barra de abas fixa embaixo */
-  .topo { padding: 0.5rem 0.75rem; }
+  /* Sem cabeçalho no celular (a barra de abas fixa embaixo já identifica o app); só a nav sobra */
+  .topo { position: static; padding: 0; background: none; }
+  .topo .marca { display: none; }
+  main { padding-top: calc(0.6rem + env(safe-area-inset-top)); }
   .topo nav {
     position: fixed; left: 0; right: 0; bottom: 0; z-index: 1100;
     display: grid; grid-template-columns: repeat(6, 1fr); gap: 0;

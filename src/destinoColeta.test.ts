@@ -1,5 +1,6 @@
+// @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { destinoColeta } from './pages/Coletas';
+import { destinoColeta } from './fluxo';
 
 describe('destinoColeta', () => {
   it('leva para a etapa pendente, o laboratório ou o resultado conforme a situação', () => {
