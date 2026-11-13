@@ -161,25 +161,20 @@ export default function Painel() {
       <h1>Painel de produção</h1>
       <div className="cartao">
         <h2>Resumo de produtividade</h2>
-        <div className="indicadores kpis-ha">
-          <Indicador rotulo="Massa verde" valor={fmt(mvKgHa, 0)} unidade="kg/ha" />
-          <Indicador rotulo="Matéria seca" valor={fmt(msKgHa, 0)} unidade="kg MS/ha" />
-          <Indicador rotulo="Silagem" valor={fmt(silagemKgHa, 0)} unidade="kg/ha" />
-        </div>
-        <p className="dica">
-          Produtividade média por hectare, ponderada pela área dos talhões com coleta ({fmt(areaComMV, 2)} ha de {fmt(areaTotal, 2)} ha).
-          Silagem = massa verde menos {fmt(parametros.perdasPct, 0)}% de perdas.
-        </p>
-        <h3 className="subtitulo-indicadores">Totais estimados</h3>
-        <div className="indicadores">
+        {/* Grade 3×3: 1ª linha produtividade por hectare (destaque); 2ª e 3ª, totais estimados */}
+        <div className="indicadores grade-kpi">
+          <div className="kpi-ha"><Indicador rotulo="Massa verde" valor={fmt(mvKgHa, 0)} unidade="kg/ha" /></div>
+          <div className="kpi-ha"><Indicador rotulo="Matéria seca" valor={fmt(msKgHa, 0)} unidade="kg MS/ha" /></div>
+          <div className="kpi-ha"><Indicador rotulo="Silagem" valor={fmt(silagemKgHa, 0)} unidade="kg/ha" /></div>
+          <Indicador rotulo="Massa verde total" valor={fmt(mvTotal)} unidade="t" />
+          <Indicador rotulo="Matéria seca total" valor={fmt(msTotal)} unidade="t" />
+          <Indicador rotulo="Silagem total" valor={fmt(silagemTotal)} unidade="t" />
           <Indicador rotulo="Área total" valor={fmt(areaTotal, 2)} unidade="ha" />
-          <Indicador rotulo="Massa verde estimada" valor={fmt(mvTotal)} unidade="t" />
-          <Indicador rotulo="Matéria seca estimada" valor={fmt(msTotal)} unidade="t" />
-          <Indicador rotulo="MS média ponderada" valor={fmt(msPonderada)} unidade="%" />
-          <Indicador rotulo="Silagem estimada" valor={fmt(silagemTotal)} unidade="t" />
+          <Indicador rotulo="MS média" valor={fmt(msPonderada)} unidade="%" />
           <Indicador rotulo="Volume de silo" valor={fmt(volumeTotal, 0)} unidade="m³" />
         </div>
         <p className="dica">
+          Por hectare: média ponderada pela área dos talhões com coleta ({fmt(areaComMV, 2)} de {fmt(areaTotal, 2)} ha). Silagem = massa verde menos as perdas.
           Estimativas com base na coleta mais recente de cada talhão. Perdas: {fmt(parametros.perdasPct, 0)}% · Densidade:{' '}
           {fmt(parametros.densidadeKgM3, 0)} kg/m³ · Faixa ideal de MS: {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}% (
           <Link to="/config">alterar</Link>)

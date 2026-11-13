@@ -99,16 +99,18 @@ input.num { width: 6.5rem; text-align: right; font-variant-numeric: tabular-nums
 .indicador-rotulo { font-size: 0.78rem; color: var(--mudo); }
 .indicador-valor { font-size: 1.35rem; font-weight: 700; font-variant-numeric: tabular-nums; }
 .indicador-valor small { font-size: 0.8rem; font-weight: 500; color: var(--mudo); }
-/* KPIs de produtividade por hectare: destaque verde, três lado a lado */
-.indicadores.kpis-ha { grid-template-columns: repeat(3, minmax(0, 1fr)); }
-.kpis-ha .indicador { background: var(--verde-claro); border-left: 4px solid var(--verde); }
-.kpis-ha .indicador-valor { color: var(--verde); font-size: 1.6rem; }
+/* KPIs do Painel em grade 3×3; a 1ª linha (produtividade por hectare) em destaque verde */
+.indicadores.grade-kpi { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+.grade-kpi .kpi-ha { display: contents; }
+.grade-kpi .kpi-ha .indicador { background: var(--verde-claro); border-left: 4px solid var(--verde); }
+.grade-kpi .kpi-ha .indicador-valor { color: var(--verde); font-size: 1.6rem; }
 @media (max-width: 700px) {
-  .kpis-ha .indicador { padding: 0.5rem 0.5rem 0.5rem 0.6rem; }
-  .kpis-ha .indicador-valor { font-size: 1.2rem; }
-  .kpis-ha .indicador-valor small { display: block; font-size: 0.7rem; }
+  .indicadores.grade-kpi { gap: 0.4rem; }
+  .grade-kpi .indicador { padding: 0.45rem 0.5rem; min-width: 0; }
+  .grade-kpi .indicador-rotulo { font-size: 0.7rem; line-height: 1.2; }
+  .grade-kpi .indicador-valor, .grade-kpi .kpi-ha .indicador-valor { font-size: 1.1rem; }
+  .grade-kpi .indicador-valor small { display: block; font-size: 0.68rem; }
 }
-.subtitulo-indicadores { margin: 1rem 0 0.5rem; font-size: 0.85rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); }
 
 .selo { display: inline-block; padding: 0.15rem 0.55rem; border-radius: 999px; font-size: 0.8rem; font-weight: 600; background: #eee; color: var(--mudo); white-space: nowrap; }
 .selo-ideal { background: #d8f0d0; color: #1d5a24; }
