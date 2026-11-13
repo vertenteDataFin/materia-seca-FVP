@@ -1,27 +1,24 @@
 import { dadosAtuais, repositorio } from './dados';
 import type { Amostra, Coleta, Novo } from './tipos';
-import { hoje, parseNum } from './util';
+import { hoje } from './util';
+import { QUADRO_M2 } from './calc';
 
 export const CHAVE_RESP = 'silagem-ms:ultimo-responsavel';
-export const CHAVE_QUADRO = 'silagem-ms:ultimo-quadro';
-
-/** Cria uma coleta para o talhão com data de hoje e os últimos responsável/quadro usados. Devolve o id. */
+/** Cria uma coleta para o talhão com data de hoje, o último responsável e o quadro padrão de 1 m². Devolve o id. */
 export function criarColeta(talhaoId: string, extra: Partial<Novo<Coleta>> = {}): string {
-  const quadro = parseNum(localStorage.getItem(CHAVE_QUADRO) ?? '') ?? 1;
   return repositorio().adicionar('coletas', {
     talhaoId,
     data: hoje(),
     responsavel: localStorage.getItem(CHAVE_RESP) ?? '',
-    areaAmostralM2: quadro > 0 ? quadro : 1,
     observacoes: '',
     criadoEm: new Date().toISOString(),
     ...extra,
+    areaAmostralM2: QUADRO_M2,
   });
 }
 
-export function lembrarUltimos(responsavel: string, quadro: number) {
+export function lembrarResponsavel(responsavel: string) {
   localStorage.setItem(CHAVE_RESP, responsavel.trim());
-  localStorage.setItem(CHAVE_QUADRO, String(quadro));
 }
 
 /** Adiciona um ponto (amostra) à coleta com o próximo número; posição opcional. Devolve o id. */

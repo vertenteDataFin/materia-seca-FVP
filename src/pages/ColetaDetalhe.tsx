@@ -3,7 +3,7 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { adicionarAmostra, atualizarAmostra, atualizarColeta, excluirAmostra, excluirColeta, useDados } from '../dados';
 import type { Amostra, Coleta, Talhao } from '../tipos';
 import { estimativaTalhao, lancarSeco, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade, UMIDO_PADRAO_G } from '../calc';
-import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
+import { AvisoQuadro, CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM } from '../geo';
 import { Icone } from '../Icone';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
@@ -119,7 +119,7 @@ export default function ColetaDetalhe() {
           </button>
         </div>
         <p className="dica">
-          Situação: <strong>{ROTULO_STATUS_COLETA[statusColeta(amostras)]}</strong>. Peso verde = massa cortada no quadro de {fmt(coleta.areaAmostralM2, 2)} m² (campo);
+          Situação: <strong>{ROTULO_STATUS_COLETA[statusColeta(amostras)]}</strong>. Peso verde = massa cortada no quadro de 1 m² (campo);
           o seco da subamostra de {UMIDO_PADRAO_G} g (já sem a tara) dá a MS e normalmente é lançado em <Link to={`/laboratorio?coleta=${coletaId}`}>Laboratório</Link>, mas
           úmido e seco também podem ser editados aqui (o úmido fica em {UMIDO_PADRAO_G} g se não for informado). <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
@@ -281,10 +281,7 @@ function CabecalhoColeta({ coleta, talhoes }: { coleta: Coleta; talhoes: Talhao[
         Responsável
         <input value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} onBlur={() => salvar({ responsavel: form.responsavel.trim() })} />
       </label>
-      <label>
-        Área do quadro (m²)
-        <CampoNumero valor={coleta.areaAmostralM2} aoSalvar={(v) => v != null && v > 0 && salvar({ areaAmostralM2: v })} />
-      </label>
+      <AvisoQuadro coleta={coleta} />
       <label className="largo">
         Observações
         <input value={form.observacoes ?? ''} onChange={(e) => setForm({ ...form, observacoes: e.target.value })} onBlur={() => salvar({ observacoes: form.observacoes })} />

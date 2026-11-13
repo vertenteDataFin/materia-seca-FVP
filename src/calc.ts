@@ -20,6 +20,9 @@ export const PARAMETROS_PADRAO: Parametros = {
 /** Peso úmido padrão da subamostra de umidade (g): o laboratório sempre pesa 100 g, então o seco (g) já é a MS (%). */
 export const UMIDO_PADRAO_G = 100;
 
+/** Área do quadro de amostragem (m²): a fazenda usa sempre 1 m², então o peso verde em kg já é a MV em kg/m². */
+export const QUADRO_M2 = 1;
+
 /** Campos a gravar ao lançar o peso seco: preenche o úmido com o padrão de 100 g se ainda estiver em branco. */
 export function lancarSeco(a: Pick<Amostra, 'pesoUmidoG'>, secoG: number | null): Pick<Amostra, 'pesoSecoG'> & Partial<Pick<Amostra, 'pesoUmidoG'>> {
   return secoG != null && a.pesoUmidoG == null ? { pesoSecoG: secoG, pesoUmidoG: UMIDO_PADRAO_G } : { pesoSecoG: secoG };

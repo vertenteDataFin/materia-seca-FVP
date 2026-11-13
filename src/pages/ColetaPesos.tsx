@@ -1,9 +1,9 @@
 import { Link, useParams } from 'react-router-dom';
-import { atualizarAmostra, atualizarColeta, useDados } from '../dados';
+import { atualizarAmostra, useDados } from '../dados';
 import type { Amostra } from '../tipos';
-import { adicionarPonto, lembrarUltimos } from '../coletas';
+import { adicionarPonto } from '../coletas';
 import { producaoPonto, resumoColeta } from '../calc';
-import { CampoNumero, Indicador, PassosColeta } from '../components';
+import { AvisoQuadro, CampoNumero, Indicador, PassosColeta } from '../components';
 import { dentroDoTalhao, fmtCoord } from '../geo';
 import { codigoAmostra } from '../fluxo';
 import { fmt, fmtData } from '../util';
@@ -29,12 +29,6 @@ export default function ColetaPesos() {
   const r = resumoColeta(coleta, amostras);
   const fora = (a: Amostra) => (a.lat != null && a.lng != null ? dentroDoTalhao(a.lng, a.lat, talhao?.geometria) === false : false);
   const salvarPeso = (a: Amostra, v: number | null) => atualizarAmostra(a.id, { pesoVerdeKg: v });
-  const salvarQuadro = (v: number | null) => {
-    if (v != null && v > 0) {
-      atualizarColeta(coletaId, { areaAmostralM2: v });
-      lembrarUltimos(coleta.responsavel, v);
-    }
-  };
 
   return (
     <>
@@ -47,16 +41,12 @@ export default function ColetaPesos() {
       <div className="cartao">
         <div className="cabecalho-cartao">
           <h2>Peso verde por ponto</h2>
-          <label className="linha-check" style={{ margin: 0 }}>
-            Quadro (m²)
-            <CampoNumero valor={quadro} ariaLabel="Área do quadro (m²)" aoSalvar={salvarQuadro} />
-          </label>
         </div>
         <p className="dica">
-          Pese o capim cortado dentro do quadro em cada ponto.{' '}
-          {quadro === 1 ? 'Com quadro de 1 m², o peso em kg já é a massa verde em kg/m².' : `O app divide pelo quadro de ${fmt(quadro, 2)} m² para obter kg/m².`}{' '}
+          Pese o capim cortado dentro do quadro de 1 m² em cada ponto: o peso em kg já é a massa verde em kg/m².{' '}
           Separe a subamostra para MS e etiquete o saco com o <strong>código</strong> do ponto.
         </p>
+        <AvisoQuadro coleta={coleta} />
 
         {!amostras.length ? (
           <p className="vazio">

@@ -33,11 +33,11 @@ describe('operações de domínio', () => {
     localStorage.clear();
   });
 
-  it('cria coleta com quadro lembrado, numera e renumera pontos', () => {
-    localStorage.setItem('silagem-ms:ultimo-quadro', '0,25');
+  it('cria coleta sempre com quadro de 1 m², numera e renumera pontos', () => {
+    localStorage.setItem('silagem-ms:ultimo-quadro', '0,25'); // valor antigo do aparelho é ignorado
     const t = repo.adicionar('talhoes', { nome: 'T', capim: '', areaHa: 1 });
-    const c = criarColeta(t);
-    expect(repo.obter()!.coletas[0]).toMatchObject({ talhaoId: t, areaAmostralM2: 0.25 });
+    const c = criarColeta(t, { areaAmostralM2: 0.5 });
+    expect(repo.obter()!.coletas[0]).toMatchObject({ talhaoId: t, areaAmostralM2: 1 });
     const p1 = adicionarPonto(c);
     const p2 = adicionarPonto(c, { lat: -19, lng: -52 });
     adicionarPonto(c);

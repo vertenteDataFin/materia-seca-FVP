@@ -1,8 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDados } from '../dados';
-import { CHAVE_QUADRO, CHAVE_RESP, criarColeta, lembrarUltimos } from '../coletas';
-import { fmt, hoje, parseNum } from '../util';
+import { CHAVE_RESP, criarColeta, lembrarResponsavel } from '../coletas';
+import { fmt, hoje } from '../util';
 
 /** Registro de uma nova coleta pela lista (sem mapa). Depois segue para a etapa de pontos. */
 export default function NovaColeta() {
@@ -13,18 +13,15 @@ export default function NovaColeta() {
     talhaoId: params.get('talhao') ?? '',
     data: hoje(),
     responsavel: localStorage.getItem(CHAVE_RESP) ?? '',
-    area: localStorage.getItem(CHAVE_QUADRO) ?? '1',
   });
   const [erro, setErro] = useState('');
 
   function criar(e: FormEvent) {
     e.preventDefault();
-    const areaAmostralM2 = parseNum(form.area);
     if (!form.talhaoId) return setErro('Selecione o talhão.');
     if (!form.data) return setErro('Informe a data.');
-    if (areaAmostralM2 == null || areaAmostralM2 <= 0) return setErro('Informe a área do quadro amostral (m²).');
-    lembrarUltimos(form.responsavel, areaAmostralM2);
-    const id = criarColeta(form.talhaoId, { data: form.data, responsavel: form.responsavel.trim(), areaAmostralM2 });
+    lembrarResponsavel(form.responsavel);
+    const id = criarColeta(form.talhaoId, { data: form.data, responsavel: form.responsavel.trim() });
     navigate(`/coletas/${id}/pontos`, { replace: true });
   }
 
@@ -74,10 +71,6 @@ export default function NovaColeta() {
         <label>
           Responsável
           <input value={form.responsavel} onChange={(e) => setForm({ ...form, responsavel: e.target.value })} />
-        </label>
-        <label>
-          Área do quadro amostral (m²)
-          <input inputMode="decimal" value={form.area} onChange={(e) => setForm({ ...form, area: e.target.value })} />
         </label>
         {erro && <p className="erro largo">{erro}</p>}
         <div className="acoes largo">

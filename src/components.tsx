@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { ROTULO_STATUS, type StatusMS } from './calc';
+import { QUADRO_M2, ROTULO_STATUS, type StatusMS } from './calc';
+import { atualizarColeta } from './dados';
+import type { Coleta } from './tipos';
+import { fmt } from './util';
 import { ROTULO_SEMAFORO, semaforoDe, type Semaforo } from './semaforo';
 import { criarColeta } from './coletas';
 import { numParaTexto, parseNum } from './util';
@@ -116,6 +119,17 @@ export function MenuTalhao({
 }
 
 /** Selo de situação da MS nas cores do semáforo (verde pronto, vermelho fora do ponto, amarelo sem MS). */
+/** Coleta antiga gravada com quadro diferente de 1 m²: avisa e oferece corrigir (o quadro agora é sempre 1 m²). */
+export function AvisoQuadro({ coleta }: { coleta: Pick<Coleta, 'id' | 'areaAmostralM2'> }) {
+  if (coleta.areaAmostralM2 === QUADRO_M2) return null;
+  return (
+    <p className="aviso largo">
+      Esta coleta foi registrada com quadro de {fmt(coleta.areaAmostralM2, 2)} m², mas o quadro usado é sempre de {QUADRO_M2} m².{' '}
+      <button type="button" onClick={() => atualizarColeta(coleta.id, { areaAmostralM2: QUADRO_M2 })}>Corrigir para {QUADRO_M2} m²</button>
+    </p>
+  );
+}
+
 export function SeloMS({ status, semColeta = false }: { status: StatusMS | null; semColeta?: boolean }) {
   const cor = semaforoDe(status);
   const texto = status ? ROTULO_STATUS[status] : semColeta ? 'sem coleta' : 'MS não aferida';
