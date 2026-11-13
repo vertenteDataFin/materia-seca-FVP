@@ -68,7 +68,6 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
   const foto = capimFoto(t.nome);
   const kmlVsFoto = t.capimKml && foto ? mesmoCapim(t.capimKml, foto) : null;
   const difArea = t.areaKmlHa && areaPoligono ? (areaPoligono / t.areaKmlHa - 1) * 100 : null;
-  const temAlerta = kmlVsFoto === false || (difArea != null && Math.abs(difArea) > 5);
 
   const usarCapim = (c: string) => atualizarTalhao(t.id, { capim: c });
   const usarArea = (a: number) => atualizarTalhao(t.id, { areaHa: Math.round(a * 100) / 100 });
@@ -84,11 +83,6 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
           <p className="resumo-talhao">
             <span><span className="mudo">Capim</span> <strong>{t.capim || '—'}</strong></span>
             <span><span className="mudo">Área</span> <strong>{t.areaHa > 0 ? `${fmt(t.areaHa, 2)} ha` : '—'}</strong></span>
-            {temAlerta && (
-              <button type="button" className="selo selo-alto botao-selo" onClick={() => setMostrarFontes(true)} title="KML e foto/contorno não batem; confira as fontes">
-                conferir
-              </button>
-            )}
           </p>
         </div>
         <div className="menu-acoes" ref={menuRef}>
