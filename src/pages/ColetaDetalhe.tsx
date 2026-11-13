@@ -5,6 +5,7 @@ import type { Amostra, Coleta, Talhao } from '../tipos';
 import { estimativaTalhao, lancarSeco, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade, UMIDO_PADRAO_G } from '../calc';
 import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM } from '../geo';
+import { Icone } from '../Icone';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmt } from '../util';
 import { useParametros } from '../parametros';
@@ -76,7 +77,7 @@ export default function ColetaDetalhe() {
   const statusGps = (a: Amostra) =>
     a.lat != null && a.lng != null ? (
       <span className={fora(a) ? 'gps-fora' : 'gps-ok'} title={`${fmtCoord(a.lat, a.lng)}${a.capturadoEm ? ` · ${new Date(a.capturadoEm).toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })}` : ''}`}>
-        {fora(a) ? '⚠ fora' : '✓'} {origemPosicao(a) === 'gps' ? 'GPS' : 'mapa'}{a.precisaoM != null && ` ±${a.precisaoM} m`}
+        {fora(a) ? <><Icone nome="alerta" /> fora</> : <Icone nome="ok" />} {origemPosicao(a) === 'gps' ? 'GPS' : 'mapa'}{a.precisaoM != null && ` ±${a.precisaoM} m`}
       </span>
     ) : (
       <span className="mudo">sem posição</span>
@@ -91,13 +92,13 @@ export default function ColetaDetalhe() {
         disabled={capturando != null}
         onClick={() => capturarGps(a.id)}
       >
-        {capturando === a.id ? '…' : temGps ? '↻' : '📍'}
+        {capturando === a.id ? '…' : <Icone nome={temGps ? 'atualizar' : 'gps'} />}
       </button>
     );
   };
   const botaoRemover = (a: Amostra) =>
     podeExcluir ? (
-      <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && excluirAmostra(a.id)}>✕</button>
+      <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} title="Remover ponto" onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && excluirAmostra(a.id)}><Icone nome="excluir" /></button>
     ) : null;
 
   return (
@@ -114,7 +115,7 @@ export default function ColetaDetalhe() {
         <div className="cabecalho-cartao">
           <h2>Pontos amostrados</h2>
           <button className="primario" onClick={adicionarPonto} disabled={capturando != null}>
-            {capturando === 'novo' ? 'Lendo GPS…' : '📍 Novo ponto aqui'}
+            {capturando === 'novo' ? 'Lendo GPS…' : <><Icone nome="gps" /> Novo ponto aqui</>}
           </button>
         </div>
         <p className="dica">
@@ -122,7 +123,7 @@ export default function ColetaDetalhe() {
           o seco da subamostra de {UMIDO_PADRAO_G} g (já sem a tara) dá a MS e normalmente é lançado em <Link to={`/laboratorio?coleta=${coletaId}`}>Laboratório</Link>, mas
           úmido e seco também podem ser editados aqui (o úmido fica em {UMIDO_PADRAO_G} g se não for informado). <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
-        {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use ↻ para tentar de novo.</p>}
+        {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use o botão <Icone nome="atualizar" titulo="atualizar posição" /> do ponto para tentar de novo.</p>}
         {nFora > 0 && <p className="aviso">{nFora} ponto(s) com GPS fora do contorno do talhão (marcados em vermelho). Confira o talhão da coleta.</p>}
 
         {celular ? (

@@ -8,6 +8,7 @@ import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmtData } from '../util';
 import { usePermissoes } from '../permissoes';
+import { Icone } from '../Icone';
 
 /**
  * Etapa 2: marcar no mapa do talhão onde cada ponto foi coletado (cada ponto = uma amostra).
@@ -122,7 +123,7 @@ export default function ColetaPontos() {
           <p className="aviso">Este talhão não tem contorno no mapa; marque os pontos pelo GPS.</p>
         )}
         <div className="acoes" style={{ marginTop: '0.75rem' }}>
-          <button className="primario" onClick={porGps} disabled={capturando}>{capturando ? 'Lendo GPS…' : '📍 Ponto no meu GPS'}</button>
+          <button className="primario" onClick={porGps} disabled={capturando}>{capturando ? 'Lendo GPS…' : <><Icone nome="gps" /> Ponto no meu GPS</>}</button>
         </div>
         {erro && <p className="aviso">{erro}</p>}
         {comPosicao.length > 0 && (
@@ -162,7 +163,7 @@ export default function ColetaPontos() {
                 ) : (
                   <button type="button" className="mini" onClick={() => setAlvoId(a.id)}>{temPosicao(a) ? 'Mover' : 'Marcar no mapa'}</button>
                 )}
-                {podeExcluir && <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} onClick={() => remover(a)}>✕</button>}
+                {podeExcluir && <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} title="Remover ponto" onClick={() => remover(a)}><Icone nome="excluir" /></button>}
               </li>
             ))}
           </ul>

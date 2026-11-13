@@ -13,6 +13,7 @@
     "dev:emulador": "vite --mode emulador"
   },
   "dependencies": {
+    "@material-design-icons/svg": "^0.14.13",
     "dexie": "^4.4.7",
     "dexie-react-hooks": "^4.4.0",
     "exceljs": "^4.4.0",

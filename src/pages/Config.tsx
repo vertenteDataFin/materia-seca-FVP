@@ -12,6 +12,7 @@ import { sair } from '../sessao';
 import { adicionarMembro, alterarPapel, papelDe, removerMembro, ROTULO_PAPEL, useMembros, type Papel } from '../membros';
 import { gerarRelatorioPdf } from '../relatorioPdf';
 import { usePermissoes } from '../permissoes';
+import { Icone } from '../Icone';
 import { liberarSolicitacao, recusarSolicitacao, useSolicitacoes } from '../solicitacoes';
 import Historico from '../HistoricoCard';
 
@@ -251,7 +252,7 @@ function PedidosDeAcesso({ porQuem, aoMensagem }: { porQuem: string; aoMensagem:
             >
               Liberar
             </button>
-            <button className="perigo mini" aria-label={`Recusar ${s.email}`} onClick={() => confirm(`Recusar o pedido de ${s.email}?`) && recusarSolicitacao(s.email).catch((e) => aoMensagem(e.message))}>✕</button>
+            <button className="perigo mini" aria-label={`Recusar ${s.email}`} title="Recusar" onClick={() => confirm(`Recusar o pedido de ${s.email}?`) && recusarSolicitacao(s.email).catch((e) => aoMensagem(e.message))}><Icone nome="fechar" /></button>
           </li>
         ))}
       </ul>
@@ -331,7 +332,7 @@ function Conta({ usuario }: { usuario: User }) {
                       </select>
                     )}
                     {!euMesmo && (
-                      <button className="perigo mini" aria-label={`Remover ${m.email}`} onClick={() => confirm(`Remover o acesso de ${m.email}?`) && removerMembro(m.email).catch((e) => setMsg(e.message))}>✕</button>
+                      <button className="perigo mini" aria-label={`Remover ${m.email}`} title="Remover acesso" onClick={() => confirm(`Remover o acesso de ${m.email}?`) && removerMembro(m.email).catch((e) => setMsg(e.message))}><Icone nome="excluir" /></button>
                     )}
                   </li>
                 );

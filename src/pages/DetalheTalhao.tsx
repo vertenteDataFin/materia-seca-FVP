@@ -9,6 +9,7 @@ import { CampoNumero, SeloMS } from '../components';
 import { fmt, fmtData } from '../util';
 import { useParametros } from '../parametros';
 import { usePermissoes } from '../permissoes';
+import { Icone } from '../Icone';
 
 function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; confere?: boolean | null }) {
   return (
@@ -56,7 +57,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
         <div className="acoes">
           <Link className="botao" to={`/coletas/nova?talhao=${t.id}`}>+ Nova coleta</Link>
           {podeEditarTalhoes && <button onClick={() => aoEditar(t)}>Editar</button>}
-          <button onClick={aoFechar} aria-label="Fechar">✕</button>
+          <button className="icone-acao" onClick={aoFechar} aria-label="Fechar" title="Fechar"><Icone nome="fechar" /></button>
         </div>
       </div>
 

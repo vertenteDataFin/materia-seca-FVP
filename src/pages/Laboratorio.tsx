@@ -1,4 +1,5 @@
 import { useEffect, useMemo, useState } from 'react';
+import { Icone } from '../Icone';
 import { Link, useSearchParams } from 'react-router-dom';
 import { amostrasPorColeta, atualizarAmostra, useDados } from '../dados';
 import { compararColetasDesc, type Amostra, type Coleta, type Talhao } from '../tipos';
@@ -95,7 +96,7 @@ function GrupoLab({ g, aberto, alternar }: { g: Grupo; aberto: boolean; alternar
   return (
     <div className="lab-grupo" id={`lab-${c.id}`}>
       <button className="lab-cabecalho" onClick={alternar} aria-expanded={aberto}>
-        <span className="lab-seta" aria-hidden>{aberto ? '▾' : '▸'}</span>
+        <span className="lab-seta" aria-hidden><Icone nome={aberto ? 'expandir' : 'recolher'} /></span>
         <strong>{nome}</strong>
         <span className="mudo">{fmtData(c.data)}{c.responsavel ? ` · ${c.responsavel}` : ''}</span>
         <span className="espaco" />

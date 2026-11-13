@@ -160,7 +160,16 @@ tr.linha-sel td { background: var(--verde-claro); }
 .nome-talhao a:hover { text-decoration: underline; }
 .so-cel { display: none; }
 
-.topo nav a .icone { margin-right: 0.3rem; }
+.topo nav a .icone { margin-right: 0.3rem; font-size: 1.2em; vertical-align: -0.25em; }
+
+/* ---- Ícones (Material Icons em SVG, ver src/Icone.tsx) ---- */
+.mi { display: inline-block; width: 1em; height: 1em; line-height: 1; vertical-align: -0.15em; flex-shrink: 0; }
+.mi svg { display: block; width: 100%; height: 100%; fill: currentColor; }
+button .mi, .botao .mi { font-size: 1.2em; vertical-align: -0.25em; }
+/* Botões só com ícone (editar, excluir, fechar) */
+button.icone-acao { width: 2.25rem; height: 2.25rem; min-height: 0; padding: 0; display: inline-flex; align-items: center; justify-content: center; }
+button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
+.tabela-cartoes td.acoes-icones { white-space: nowrap; }
 
 /* Etapas da coleta */
 .passos { display: flex; gap: 0.3rem; margin: 0 0 0.75rem; }
@@ -255,6 +264,11 @@ tr.linha-sel td { background: var(--verde-claro); }
   .tabela-cartoes tfoot td { border: none; }
   .tabela-cartoes .nome-talhao strong { font-size: 1.1rem; }
   .tabela-cartoes tr.inativa td { opacity: 1; }
+  /* Cartões com ações por ícone: coluna de botões empilhados no canto direito */
+  .tabela-cartoes.com-icones tr { position: relative; padding-right: 4.2rem; }
+  .tabela-cartoes.com-icones td.acoes-icones { position: absolute; top: 0.55rem; right: 0.55rem; display: flex; flex-direction: column; gap: 0.45rem; margin: 0; }
+  .tabela-cartoes.com-icones td.acoes-icones > button.icone-acao { flex: none; width: 2.6rem; height: 2.6rem; min-height: 0; padding: 0; }
+  .tabela-cartoes.com-icones td.acoes-icones > button.icone-acao .mi { font-size: 1.4rem; }
 
   /* Painel no celular: lista compacta — nome à esquerda, produtividade e teor de MS à direita */
   .tabela-cartoes.painel-lista tr {
@@ -416,7 +430,7 @@ th.ordenavel { padding: 0; }
 th.ordenavel button { all: unset; cursor: pointer; display: block; width: 100%; box-sizing: border-box; padding: 0.45rem 0.5rem; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; white-space: nowrap; min-height: 0; }
 th.ordenavel.n button { text-align: right; }
 th.ordenavel button:hover, th.ordenavel.ativa button { color: var(--verde); }
-th.ordenavel .seta { margin-left: 0.25rem; font-size: 0.7em; opacity: 0.55; }
+th.ordenavel .seta { margin-left: 0.15rem; font-size: 1.1em; opacity: 0.55; }
 th.ordenavel.ativa .seta { opacity: 1; }
 .ordenar-cel { display: none; }
 @media (max-width: 700px) {

@@ -4,6 +4,7 @@ import { adicionarTalhao, atualizarTalhao, excluirTalhao, useDados } from '../da
 import type { Talhao } from '../tipos';
 import { CAPINS_COMUNS, fmt, numParaTexto, parseNum } from '../util';
 import { usePermissoes } from '../permissoes';
+import { Icone } from '../Icone';
 import DetalheTalhao from './DetalheTalhao';
 import { capimFoto, mesmoCapim } from '../capinsFoto';
 
@@ -128,7 +129,7 @@ export default function Talhoes() {
           <p className="vazio">Nenhum talhão cadastrado.</p>
         ) : (
           <div className="rolagem">
-            <table className="tabela-cartoes cartoes-2">
+            <table className="tabela-cartoes cartoes-2 com-icones">
               <thead>
                 <tr>
                   <th>Talhão</th>
@@ -152,9 +153,13 @@ export default function Talhoes() {
                     <td data-rotulo="Capim">{t.capim || '—'}{diverge(t) && <span className="selo selo-alto" style={{ marginLeft: '0.4rem' }}>KML≠foto</span>}</td>
                     <td className="oculta-cel">{t.geometria?.length ? <span className="selo selo-ideal">KML</span> : <span className="mudo">—</span>}</td>
                     <td className="obs largo-cel">{t.observacoes}</td>
-                    <td className="acoes-linha">
-                      {podeEditarTalhoes && <button onClick={() => editar(t)}>Editar</button>}
-                      {podeExcluir && podeEditarTalhoes && <button className="perigo" onClick={() => excluir(t)}>Excluir</button>}
+                    <td className="acoes-linha acoes-icones">
+                      {podeEditarTalhoes && (
+                        <button className="icone-acao" onClick={() => editar(t)} aria-label={`Editar ${t.nome}`} title="Editar"><Icone nome="editar" /></button>
+                      )}
+                      {podeExcluir && podeEditarTalhoes && (
+                        <button className="icone-acao perigo" onClick={() => excluir(t)} aria-label={`Excluir ${t.nome}`} title="Excluir"><Icone nome="excluir" /></button>
+                      )}
                     </td>
                   </tr>
                 ))}

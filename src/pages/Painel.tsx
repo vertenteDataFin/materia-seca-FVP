@@ -1,4 +1,5 @@
 import { useMemo, useState, type ReactNode } from 'react';
+import { Icone } from '../Icone';
 import { Link } from 'react-router-dom';
 import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import { estimativaTalhao, resumoColeta, statusMS, type ResumoColeta } from '../calc';
@@ -105,7 +106,7 @@ export default function Painel() {
       <th className={`${className} ordenavel${ativa ? ' ativa' : ''}`} aria-sort={ativa ? (ordem!.asc ? 'ascending' : 'descending') : 'none'}>
         <button type="button" onClick={() => alternarOrdem(col)} title="Ordenar por esta coluna">
           {children}
-          <span className="seta" aria-hidden="true">{ativa ? (ordem!.asc ? '▲' : '▼') : '⇅'}</span>
+          <span className="seta" aria-hidden="true"><Icone nome={ativa ? (ordem!.asc ? 'subir' : 'descer') : 'ordenar'} /></span>
         </button>
       </th>
     );
@@ -174,7 +175,7 @@ export default function Painel() {
           </select>
           {ordem && (
             <button type="button" className="mini" onClick={() => setOrdem({ ...ordem, asc: !ordem.asc })} aria-label={ordem.asc ? 'Crescente' : 'Decrescente'}>
-              {ordem.asc ? '▲' : '▼'}
+              <Icone nome={ordem.asc ? 'subir' : 'descer'} />
             </button>
           )}
         </div>

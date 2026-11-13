@@ -4,6 +4,7 @@ import { ROTULO_STATUS, type StatusMS } from './calc';
 import { ROTULO_SEMAFORO, semaforoDe, type Semaforo } from './semaforo';
 import { criarColeta } from './coletas';
 import { numParaTexto, parseNum } from './util';
+import { Icone } from './Icone';
 
 /** Barra de etapas da coleta: Talhão → Pontos → Pesos → Resultado. */
 export function PassosColeta({ coletaId, atual }: { coletaId: string; atual: 1 | 2 | 3 | 4 }) {
@@ -108,7 +109,7 @@ export function MenuTalhao({
       <div className="acoes">
         <button onClick={aoRegistros}>Registros</button>
         <button className="primario" onClick={novaColeta} disabled={criando}>{criando ? 'Criando…' : 'Nova coleta'}</button>
-        {aoFechar && <button onClick={aoFechar} aria-label="Fechar">✕</button>}
+        {aoFechar && <button className="icone-acao" onClick={aoFechar} aria-label="Fechar" title="Fechar"><Icone nome="fechar" /></button>}
       </div>
     </div>
   );
