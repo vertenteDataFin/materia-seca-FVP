@@ -35,7 +35,7 @@ describe('importarTalhoesFazenda', () => {
     const comColeta = repo.adicionar('talhoes', { nome: 'Talhão 13 - PD', capim: 'Miyagi', capimKml: 'Miyagi', areaHa: 63, areaKmlHa: 63 });
     repo.adicionar('coletas', { talhaoId: comColeta, data: '2026-11-06', responsavel: '', areaAmostralM2: 1 });
     const r = await importarTalhoesFazenda();
-    expect(r).toEqual({ criados: 11, atualizados: 5, removidos: 1 });
+    expect(r).toEqual({ criados: 13, atualizados: 5, removidos: 1 });
     const d = repo.obter()!;
     const nome = (id: string) => d.talhoes.find((t) => t.id === id)!.nome;
     expect(nome(antigo)).toBe('Talhão 18 - PD');
@@ -47,8 +47,7 @@ describe('importarTalhoesFazenda', () => {
     expect(t17a.nome).toBe('Talhão 17A Mombaça - PD');
     expect(t17a.capim).toBe('Mombaça');
     expect(t17a.areaHa).toBeCloseTo(28.4, 0); // área em uso era a do KML: acompanha a nova parte
-    expect(t17a.geometria).toHaveLength(1);
-    // TL 18 juntou o polígono "TL 18 MIYAGI": 5 anéis, área declarada mantida
+    expect(t17a.geometria).toHaveLength(1);    // TL 18 juntou o polígono "TL 18 MIYAGI": 5 anéis, área declarada mantida
     expect(d.talhoes.find((t) => t.id === antigo)!.geometria).toHaveLength(5);
     expect(d.talhoes.find((t) => t.id === antigo)!.areaKmlHa).toBe(118);
     // capim derivado do KML acompanha o KML; capim escolhido pelo usuário fica
@@ -71,9 +70,18 @@ describe('importarTalhoesFazenda', () => {
     expect(nomes).not.toContain('Talhão 19 - PD');
     expect(nomes.indexOf('Talhão 13A - PD')).toBeLessThan(nomes.indexOf('Talhão 17A Miyagi - PD'));
     expect(nomes.indexOf('Talhão 17E - PD')).toBeLessThan(nomes.indexOf('Talhão 18 - PD'));
-    expect(d.talhoes).toHaveLength(18); // 16 do KML + personalizado + TL 13 com coleta
+    // sem atividade no KML, mas incluídos a pedido: entram sem capim, com contorno, fazenda e área
+    const cau1 = d.talhoes.find((t) => t.nome === 'Talhão 1 - CAU')!;
+    expect(cau1).toMatchObject({ capim: '', capimKml: '', fazenda: 'Caua' });
+    expect(cau1.geometria).toHaveLength(2);
+    expect(cau1.areaHa).toBeGreaterThan(0);
+    const cau2a = d.talhoes.find((t) => t.nome === 'Talhão 2A - CAU')!;
+    expect(cau2a).toMatchObject({ capim: '', fazenda: 'Caua' });
+    expect(cau2a.geometria).toHaveLength(1);
+    expect(nomes).not.toContain('Talhão 2 - CAU'); // os demais "sem atividade" continuam de fora
+    expect(d.talhoes).toHaveLength(20); // 18 do KML + personalizado + TL 13 com coleta
     // rodar de novo não cria nem remove nada
-    expect(await importarTalhoesFazenda()).toEqual({ criados: 0, atualizados: 16, removidos: 0 });
+    expect(await importarTalhoesFazenda()).toEqual({ criados: 0, atualizados: 18, removidos: 0 });
     expect(repo.obter()!.talhoes).toHaveLength(d.talhoes.length);
   });
 });

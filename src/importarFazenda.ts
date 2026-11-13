@@ -5,6 +5,17 @@ import type { Novo, Talhao } from './tipos';
 export const KML_FAZENDA_URL = `${import.meta.env.BASE_URL}talhoes-fazenda.kml`;
 
 /**
+ * Polígonos "sem atividade" no KML que entram mesmo assim (pedido da fazenda), pelo nome do Placemark.
+ * Chegam sem capim: o capim em uso é informado no app.
+ */
+const INCLUIR_SEM_ATIVIDADE = ['CAU - TALHAO 1', 'CAU - TALHAO 2 A'];
+
+/** O polígono entra na sincronização: tem capim no KML ou está na lista acima. */
+export function entraNaImportacao(p: Pick<PoligonoKml, 'capim' | 'nomeLimpo'>): boolean {
+  return !!p.capim || INCLUIR_SEM_ATIVIDADE.some((n) => normalizar(n) === normalizar(p.nomeLimpo));
+}
+
+/**
  * Funde talhões duplicados (mesmo nome normalizado): mantém o primeiro, move as coletas dos
  * outros para ele e preenche campos vazios. Retorna quantos foram removidos.
  */
@@ -77,7 +88,7 @@ export function importarTalhoesFazenda(): Promise<ResultadoSincronizacao> {
 async function executar(): Promise<ResultadoSincronizacao> {
   const resp = await fetch(KML_FAZENDA_URL);
   if (!resp.ok) throw new Error('KML da fazenda não encontrado no app.');
-  const polys = lerKml(await resp.text()).filter((p) => p.capim);
+  const polys = lerKml(await resp.text()).filter(entraNaImportacao);
   fundirDuplicados();
   const d = dadosAtuais();
   const existentes = d.talhoes;
