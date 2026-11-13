@@ -172,6 +172,24 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
 .tabela-cartoes td.acoes-icones { white-space: nowrap; }
 /* Detalhe do talhão: campo da área em uso com os botões "Usar …" ao lado */
 .area-em-uso { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+/* Detalhe do talhão: título + resumo à esquerda, menu "⋯" e fechar à direita */
+.detalhe-topo { align-items: flex-start; flex-wrap: nowrap; gap: 0.5rem; }
+.detalhe-titulo { flex: 1; min-width: 0; }
+.detalhe-titulo h2 { margin: 0 0 0.25rem; }
+.resumo-talhao { margin: 0; display: flex; gap: 0.4rem 1rem; flex-wrap: wrap; align-items: center; font-size: 0.95rem; }
+button.botao-selo.selo { border: none; cursor: pointer; font: inherit; font-size: 0.78rem; font-weight: 600; line-height: 1.4; min-height: 0; padding: 0.1rem 0.55rem; }
+.menu-acoes { position: relative; }
+.menu-lista {
+  position: absolute; right: 0; top: calc(100% + 0.3rem); z-index: 50; min-width: 15rem;
+  background: white; border: 1px solid var(--borda); border-radius: 10px; box-shadow: 0 6px 20px rgba(0, 0, 0, 0.15);
+  padding: 0.3rem; display: grid;
+}
+.menu-lista button {
+  display: flex; align-items: center; gap: 0.5rem; width: 100%; text-align: left;
+  background: none; border: none; border-radius: 6px; padding: 0.6rem 0.7rem; font: inherit; font-weight: 600; color: var(--texto); cursor: pointer;
+}
+.menu-lista button:hover, .menu-lista button:focus-visible { background: var(--verde-claro); }
+.fontes-talhao { margin-bottom: 0.75rem; }
 /* Legenda do mapa: texto completo no computador, curto no celular */
 .rotulo-curto { display: none; }
 /* Linhas/cartões clicáveis (lista de coletas) */
@@ -268,6 +286,8 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
   .acoes > * { flex: 1 1 auto; text-align: center; }
   .cabecalho-cartao { flex-wrap: wrap; }
   .cabecalho-cartao > button, .cabecalho-cartao > .botao { flex: 1 1 100%; }
+  .cabecalho-cartao.detalhe-topo { flex-wrap: nowrap; }
+  .cabecalho-cartao.detalhe-topo > button.icone-acao { flex: none; }
 
   /* Tabelas viram cartões: 1 linha = 1 cartão; cada célula mostra seu rótulo (data-rotulo) */
   .tabela-cartoes thead { display: none; }

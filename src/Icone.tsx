@@ -17,8 +17,10 @@ import campo from '@material-design-icons/svg/filled/assignment.svg?raw';
 import lab from '@material-design-icons/svg/filled/science.svg?raw';
 import talhoes from '@material-design-icons/svg/filled/grass.svg?raw';
 import config from '@material-design-icons/svg/filled/settings.svg?raw';
+import mais from '@material-design-icons/svg/filled/more_horiz.svg?raw';
+import adicionar from '@material-design-icons/svg/filled/add.svg?raw';
 
-const ICONES = { editar, excluir, fechar, atualizar, gps, alerta, ok, expandir, recolher, subir, descer, ordenar, painel, mapa, campo, lab, talhoes, config } as const;
+const ICONES = { editar, excluir, fechar, atualizar, gps, alerta, ok, expandir, recolher, subir, descer, ordenar, painel, mapa, campo, lab, talhoes, config, mais, adicionar } as const;
 
 export type NomeIcone = keyof typeof ICONES;
 
