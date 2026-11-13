@@ -2,9 +2,11 @@ import { useMemo, useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
 import { amostrasPorColeta, useDados } from '../dados';
 import { compararColetasDesc } from '../tipos';
-import { resumoColeta } from '../calc';
+import { resumoColeta, statusMS } from '../calc';
 import { destinoColeta, ROTULO_STATUS_COLETA, statusColeta, type StatusColeta } from '../fluxo';
 import { fmt, fmtData } from '../util';
+import { SeloMS } from '../components';
+import { useParametros } from '../parametros';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
 
@@ -12,6 +14,7 @@ const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'sel
 export default function Coletas() {
   const dados = useDados();
   const navigate = useNavigate();
+  const parametros = useParametros();
   const [filtro, setFiltro] = useState('');
 
   const linhas = useMemo(() => {
@@ -66,16 +69,16 @@ export default function Coletas() {
                   <th className="oculta-cel">Data</th>
                   <th className="oculta-cel">Responsável</th>
                   <th className="oculta-cel">Situação</th>
-                  <th className="n">Pontos</th>
-                  <th className="n">t MV/ha</th>
-                  <th className="n">MS %</th>
+                  <th className="n col-pts">Pts.</th>
+                  <th className="n col-mv">MV t/ha</th>
+                  <th className="n col-ms">% MS</th>
                 </tr>
               </thead>
               <tbody>
                 {linhas.map(({ c, talhao, r, status, nPontos }) => (
                   <tr
                     key={c.id}
-                    className="clicavel"
+                    className={`clicavel${r.msPct != null ? ' com-selo-ms' : ''}`}
                     tabIndex={0}
                     role="link"
                     aria-label={`Abrir coleta ${talhao} de ${fmtData(c.data)}`}
@@ -92,9 +95,12 @@ export default function Coletas() {
                     <td className="oculta-cel">{fmtData(c.data)}</td>
                     <td className="oculta-cel">{c.responsavel || '—'}</td>
                     <td className="oculta-cel"><span className={`selo status-coleta ${CLASSE_STATUS[status]}`}>{ROTULO_STATUS_COLETA[status]}</span></td>
-                    <td className="n" data-rotulo="Pontos">{nPontos}</td>
-                    <td className="n" data-rotulo="t MV/ha">{fmt(r.tMVha)}</td>
-                    <td className="n" data-rotulo="MS %">{fmt(r.msPct)}</td>
+                    <td className="n col-pts" data-rotulo="Pts.">{nPontos}</td>
+                    <td className="n col-mv" data-rotulo="MV t/ha">{fmt(r.tMVha)}</td>
+                    <td className="n col-ms" data-rotulo="% MS">
+                      {fmt(r.msPct)}
+                      {r.msPct != null && <span className="so-cel selo-ms"><SeloMS status={statusMS(r.msPct, parametros)} curto /></span>}
+                    </td>
                   </tr>
                 ))}
               </tbody>

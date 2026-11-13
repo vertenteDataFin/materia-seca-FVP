@@ -130,10 +130,13 @@ export function AvisoQuadro({ coleta }: { coleta: Pick<Coleta, 'id' | 'areaAmost
   );
 }
 
-export function SeloMS({ status, semColeta = false }: { status: StatusMS | null; semColeta?: boolean }) {
+const ROTULO_CURTO: Record<StatusMS, string> = { baixo: 'MS baixa', ideal: 'Ponto ideal', alto: 'MS alta' };
+
+/** Selo do teor de MS. `curto` usa rótulos de uma ou duas palavras (listas estreitas), com o texto completo na dica. */
+export function SeloMS({ status, semColeta = false, curto = false }: { status: StatusMS | null; semColeta?: boolean; curto?: boolean }) {
   const cor = semaforoDe(status);
   const texto = status ? ROTULO_STATUS[status] : semColeta ? 'sem coleta' : 'MS não aferida';
-  return <span className={`selo selo-${cor}`}>{texto}</span>;
+  return <span className={`selo selo-${cor}`} title={curto ? texto : undefined}>{curto && status ? ROTULO_CURTO[status] : texto}</span>;
 }
 
 /** Bolinha do semáforo (para listas e mapa). */

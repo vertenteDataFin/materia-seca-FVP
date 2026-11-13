@@ -172,10 +172,10 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
               <tr>
                 <th>Data</th>
                 <th className="oculta-cel">Responsável</th>
-                <th className="n">Pontos</th>
-                <th className="n">t MV/ha</th>
-                <th className="n">MS %</th>
-                <th className="n oculta-cel">t MS/ha</th>
+                <th className="n col-pts">Pts.</th>
+                <th className="n col-mv">MV t/ha</th>
+                <th className="n col-ms">% MS</th>
+                <th className="n oculta-cel">MS t/ha</th>
                 <th className="oculta-cel">Situação</th>
               </tr>
             </thead>
@@ -183,7 +183,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
               {coletas.map(({ c, r }) => (
                 <tr
                   key={c.id}
-                  className="clicavel"
+                  className={`clicavel${r.msPct != null ? ' com-selo-ms' : ''}`}
                   tabIndex={0}
                   role="link"
                   aria-label={`Abrir coleta de ${fmtData(c.data)}`}
@@ -192,12 +192,15 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
                 >
                   <td className="nome-talhao largo-cel">
                     <strong>{fmtData(c.data)}</strong>
-                    <span className="so-cel mudo"><small>{c.responsavel || 'sem responsável'} <SeloMS status={statusMS(r.msPct, parametros)} /></small></span>
+                    <span className="so-cel mudo"><small>{c.responsavel || 'sem responsável'}</small></span>
                   </td>
                   <td className="oculta-cel">{c.responsavel || '—'}</td>
-                  <td className="n" data-rotulo="Pontos">{r.nPontos}</td>
-                  <td className="n" data-rotulo="t MV/ha">{fmt(r.tMVha)}</td>
-                  <td className="n" data-rotulo="MS %">{fmt(r.msPct)}</td>
+                  <td className="n col-pts" data-rotulo="Pts.">{r.nPontos}</td>
+                  <td className="n col-mv" data-rotulo="MV t/ha">{fmt(r.tMVha)}</td>
+                  <td className="n col-ms" data-rotulo="% MS">
+                    {fmt(r.msPct)}
+                    {r.msPct != null && <span className="so-cel selo-ms"><SeloMS status={statusMS(r.msPct, parametros)} curto /></span>}
+                  </td>
                   <td className="n oculta-cel">{fmt(r.tMSha)}</td>
                   <td className="oculta-cel"><SeloMS status={statusMS(r.msPct, parametros)} /></td>
                 </tr>
