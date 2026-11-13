@@ -558,6 +558,6 @@ th.ordenavel.ativa .seta { opacity: 1; }
 .historico { list-style: none; margin: 0; padding: 0; }
 .historico li { display: flex; flex-wrap: wrap; align-items: center; gap: 0.3rem 0.6rem; padding: 0.45rem 0; border-bottom: 1px solid var(--borda); font-size: 0.92rem; }
 .historico-quando { flex: 0 0 auto; min-width: 9.5rem; font-size: 0.8rem; }
-.historico-texto { flex: 1 1 14rem; }
+.historico-texto { flex: 1 1 14rem; min-width: 0; overflow-wrap: anywhere; }
 .historico-excluiu .historico-texto strong { color: #a33; }
 .historico-restaurou .historico-texto strong { color: var(--verde); }

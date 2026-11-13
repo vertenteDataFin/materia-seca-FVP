@@ -2,7 +2,7 @@ import { useState } from 'react';
 import { dadosAtuais, repositorio } from './dados';
 import { ehAuditor, FAZENDA_ID } from './firebaseConfig';
 import { FIREBASE_ATIVO, obterFirebase } from './firebase';
-import { marcarRestaurado, opsDeRestauracao, ROTULO_ACAO, useHistorico, type EntradaHistorico } from './historico';
+import { marcarRestaurado, opsDeRestauracao, ROTULO_ACAO, textoDescricao, useHistorico, type EntradaHistorico } from './historico';
 import { usePermissoes } from './permissoes';
 
 function quando(iso: string): string {
@@ -63,7 +63,7 @@ export default function Historico({ meuEmail }: { meuEmail: string }) {
             <li key={e.id} className={`historico-${e.acao}`}>
               <span className="mudo historico-quando">{quando(e.em)} · {pessoa(e.quem)}</span>
               <span className="historico-texto">
-                <strong>{ROTULO_ACAO[e.acao]}</strong> {e.descricao}
+                <strong>{ROTULO_ACAO[e.acao]}</strong> {textoDescricao(e.descricao)}
               </span>
               <span className="espaco" />
               {e.restauradoEm ? (

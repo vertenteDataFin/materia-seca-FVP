@@ -1,6 +1,18 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
-import { descreverLote, opsDeRestauracao, type EntradaHistorico } from './historico';
+import { descreverLote, opsDeRestauracao, textoDescricao, type EntradaHistorico } from './historico';
+
+describe('descrição do histórico com contorno', () => {
+  const dados = { talhoes: [{ id: 't1', nome: 'Talhão 2A - CAU', capim: '', areaHa: 30.26, areaKmlHa: 30.26, geometria: [[[-52.5, -19.4], [-52.6, -19.4], [-52.6, -19.5]]] }], coletas: [], amostras: [] };
+  it('não lista coordenadas e usa nomes legíveis', () => {
+    const e = descreverLote([{ tipo: 'atualizar', colecao: 'talhoes', id: 't1', dados: { areaKmlHa: 102.8, geometria: [[[-52.7, -19.4], [-52.6, -19.4], [-52.6, -19.5]]], areaHa: 102.8 } }], dados as never)!;
+    expect(e.descricao).toBe('talhão Talhão 2A - CAU — área do KML (ha): 30,26 → 102,8 · contorno alterado · área (ha): 30,26 → 102,8');
+  });
+  it('limpa entradas antigas que gravaram as coordenadas', () => {
+    const antiga = 'talhão Talhão 2A - CAU — areaKmlHa: 30,26 → 102,8 · geometria: -52.56593717999999,-19.4201952,-52.5671933 → -52.1,-19.2 · área (ha): 30,26 → 102,8';
+    expect(textoDescricao(antiga)).toBe('talhão Talhão 2A - CAU — área do KML (ha): 30,26 → 102,8 · contorno alterado · área (ha): 30,26 → 102,8');
+  });
+});
 import type { Dados } from './tipos';
 
 const dados: Dados = {
@@ -47,7 +59,7 @@ describe('histórico de alterações', () => {
 
   it('posição marcada no mapa vira uma só mudança; criação descreve o registro novo', () => {
     const pos = descreverLote([{ tipo: 'atualizar', colecao: 'amostras', id: 'a1', dados: { lat: -19.4, lng: -52.6, precisaoM: null, capturadoEm: 'x' } }], dados)!;
-    expect(pos.descricao).toBe('ponto 1 da coleta Talhão 18 - PD · 07/11/2026 — posição');
+    expect(pos.descricao).toBe('ponto 1 da coleta Talhão 18 - PD · 07/11/2026 — posição alterada');
     const nova = descreverLote([{ tipo: 'adicionar', colecao: 'coletas', id: 'c2', dados: { talhaoId: 't18', data: '2026-11-12', responsavel: '', areaAmostralM2: 1 } }], dados)!;
     expect(nova.acao).toBe('criou');
     expect(nova.descricao).toBe('coleta Talhão 18 - PD · 12/11/2026');

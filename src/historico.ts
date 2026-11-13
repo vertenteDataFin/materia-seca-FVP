@@ -46,14 +46,32 @@ const ROTULO_CAMPO: Record<string, string> = {
   data: 'data', responsavel: 'responsável', areaAmostralM2: 'quadro (m²)',
   ponto: 'nº do ponto', pesoVerdeKg: 'peso verde (kg)', pesoUmidoG: 'úmido (g)', pesoSecoG: 'seco (g)',
   lat: 'posição', lng: 'posição', precisaoM: 'precisão GPS', capturadoEm: 'posição', origemPos: 'origem da posição',
+  areaKmlHa: 'área do KML (ha)', capimKml: 'capim do KML', geometria: 'contorno',
 };
+
+/** Campos descritos só pelo nome, sem os valores (posição, contorno: valores longos e ilegíveis). */
+const SO_ROTULO: Record<string, string> = { 'posição': 'posição alterada', contorno: 'contorno alterado' };
 
 function valor(v: unknown): string {
   if (v == null || v === '') return '—';
+  if (typeof v === 'object') return '…';
   if (typeof v === 'number') return String(Math.round(v * 1000) / 1000).replace('.', ',');
   if (typeof v === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(v)) return fmtData(v);
   if (typeof v === 'string') return v.length > 30 ? `${v.slice(0, 30)}…` : v;
   return String(v);
+}
+
+/**
+ * Texto para exibir uma descrição: entradas antigas gravaram o contorno inteiro (coordenadas) e nomes internos
+ * de campos do KML; aqui viram "contorno alterado", "área do KML (ha)" e "capim do KML".
+ */
+export function textoDescricao(descricao: string): string {
+  return descricao
+    .replace(/geometria: [^·]*/g, 'contorno alterado ')
+    .replace(/\bareaKmlHa\b/g, 'área do KML (ha)')
+    .replace(/\bcapimKml\b/g, 'capim do KML')
+    .replace(/\s+·/g, ' ·')
+    .trim();
 }
 
 const LIMITE_ITENS_JSON = 800_000; // bem abaixo de 1 MiB por documento do Firestore
@@ -109,7 +127,8 @@ export function descreverLote(ops: Operacao[], anterior: Dados, rotulo?: RotuloL
         const r = ROTULO_CAMPO[k] ?? k;
         if (vistos.has(r)) continue;
         vistos.add(r);
-        mudancas.push(r === 'posição' ? 'posição' : `${r}: ${valor(d[k])} → ${valor(op.dados[k])}`);
+        const objeto = typeof d[k] === 'object' && d[k] !== null || typeof op.dados[k] === 'object' && op.dados[k] !== null;
+        mudancas.push(SO_ROTULO[r] ?? (objeto ? `${r} alterado` : `${r}: ${valor(d[k])} → ${valor(op.dados[k])}`));
       }
     }
   }
