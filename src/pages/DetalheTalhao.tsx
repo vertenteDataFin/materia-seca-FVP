@@ -101,13 +101,11 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
                 <th>Em uso</th>
                 <td>
                   {podeEditarTalhoes ? (
-                    <>
+                    <div className="area-em-uso">
                       <CampoNumero valor={t.areaHa} ariaLabel="Área em uso" aoSalvar={(v) => v != null && v > 0 && usarArea(v)} />
-                      <div className="acoes" style={{ marginTop: '0.4rem' }}>
-                        {t.areaKmlHa && Math.abs(t.areaHa - t.areaKmlHa) > 0.01 && <button onClick={() => usarArea(t.areaKmlHa!)}>Usar declarada</button>}
-                        {areaPoligono != null && Math.abs(t.areaHa - areaPoligono) > 0.01 && <button onClick={() => usarArea(areaPoligono)}>Usar polígono</button>}
-                      </div>
-                    </>
+                      {t.areaKmlHa && Math.abs(t.areaHa - t.areaKmlHa) > 0.01 && <button onClick={() => usarArea(t.areaKmlHa!)}>Usar declarada</button>}
+                      {areaPoligono != null && Math.abs(t.areaHa - areaPoligono) > 0.01 && <button onClick={() => usarArea(areaPoligono)}>Usar polígono</button>}
+                    </div>
                   ) : (
                     <strong>{fmt(t.areaHa, 2)}</strong>
                   )}
