@@ -172,6 +172,10 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
 .tabela-cartoes td.acoes-icones { white-space: nowrap; }
 /* Detalhe do talhão: campo da área em uso com os botões "Usar …" ao lado */
 .area-em-uso { display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+/* Linhas/cartões clicáveis (lista de coletas) */
+.tabela-cartoes tr.clicavel { cursor: pointer; }
+.tabela-cartoes tr.clicavel:hover td { background: var(--verde-claro); }
+.tabela-cartoes tr.clicavel:focus-visible { outline: 2px solid var(--verde); outline-offset: -2px; }
 
 /* Etapas da coleta */
 .passos { display: flex; gap: 0.3rem; margin: 0 0 0.75rem; }
@@ -256,6 +260,8 @@ button.icone-acao .mi { font-size: 1.25rem; vertical-align: 0; }
   }
   .tabela-cartoes.cartoes-2 tr { grid-template-columns: repeat(2, 1fr); }
   .tabela-cartoes tr.linha-sel { border-color: var(--verde); background: var(--verde-claro); }
+  .tabela-cartoes tr.clicavel:hover td { background: none; }
+  .tabela-cartoes tr.clicavel:active { background: var(--verde-claro); border-color: var(--verde); }
   .tabela-cartoes td { display: block; padding: 0; border: none; text-align: left; white-space: normal; max-width: none; min-width: 0; overflow-wrap: break-word; font-size: 1rem; }
   .tabela-cartoes td[data-rotulo]::before { content: attr(data-rotulo); display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); margin-bottom: 0.1rem; }
   .tabela-cartoes td.largo-cel, .tabela-cartoes td.acoes-linha { grid-column: 1 / -1; }

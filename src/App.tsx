@@ -186,7 +186,7 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
           <nav>
             <NavLink to="/" end><Icone nome="painel" className="icone" /><span>Painel</span></NavLink>
             <NavLink to="/mapa"><Icone nome="mapa" className="icone" /><span>Mapa</span></NavLink>
-            <NavLink to="/coletas"><Icone nome="campo" className="icone" /><span>Campo</span></NavLink>
+            <NavLink to="/coletas"><Icone nome="campo" className="icone" /><span>Coletas</span></NavLink>
             <NavLink to="/laboratorio"><Icone nome="lab" className="icone" /><span>Lab</span></NavLink>
             <NavLink to="/talhoes"><Icone nome="talhoes" className="icone" /><span>Talhões</span></NavLink>
             <NavLink to="/config"><Icone nome="config" className="icone" /><span>Config.</span></NavLink>

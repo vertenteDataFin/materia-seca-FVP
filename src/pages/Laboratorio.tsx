@@ -57,7 +57,7 @@ export default function Laboratorio() {
     <>
       <div className="titulo-linha">
         <h1>Laboratório</h1>
-        <Link to="/coletas">Campo →</Link>
+        <Link to="/coletas">Coletas →</Link>
       </div>
       <p className="dica">
         Para cada amostra que veio do campo, pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra úmida e lance o peso <strong>seco</strong> (g, já sem a tara):
@@ -70,7 +70,7 @@ export default function Laboratorio() {
           <span className={`selo ${totalPendentes ? 'selo-alto' : 'selo-ideal'}`}>{totalPendentes} amostra(s)</span>
         </div>
         {!grupos.pendentes.length ? (
-          <p className="vazio">Nenhuma amostra pendente. Coletas ainda em campo (sem todos os pesos verdes) aparecem em <Link to="/coletas">Campo</Link>.</p>
+          <p className="vazio">Nenhuma amostra pendente. Coletas ainda em campo (sem todos os pesos verdes) aparecem em <Link to="/coletas">Coletas</Link>.</p>
         ) : (
           grupos.pendentes.map((g) => <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || grupos.pendentes.length === 1} alternar={() => alternar(g.c.id)} />)
         )}

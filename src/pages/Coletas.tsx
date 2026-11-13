@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { Link } from 'react-router-dom';
+import { Link, useNavigate } from 'react-router-dom';
 import { amostrasPorColeta, useDados } from '../dados';
 import { compararColetasDesc } from '../tipos';
 import { resumoColeta } from '../calc';
@@ -8,9 +8,20 @@ import { fmt, fmtData } from '../util';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
 
-/** Módulo de campo: histórico de coletas e início de uma nova (talhão escolhido no Mapa). */
+/** Para onde o toque na coleta leva: etapa pendente em campo, laboratório (sem MS) ou o resultado. */
+export function destinoColeta(id: string, status: StatusColeta): string {
+  switch (status) {
+    case 'semPontos': return `/coletas/${id}/pontos`;
+    case 'campo': return `/coletas/${id}/pesos`;
+    case 'laboratorio': return `/laboratorio?coleta=${id}`;
+    default: return `/coletas/${id}`;
+  }
+}
+
+/** Módulo de coletas: histórico e início de uma nova (talhão escolhido no Mapa). */
 export default function Coletas() {
   const dados = useDados();
+  const navigate = useNavigate();
   const [filtro, setFiltro] = useState('');
 
   const linhas = useMemo(() => {
@@ -32,7 +43,7 @@ export default function Coletas() {
   return (
     <>
       <div className="titulo-linha">
-        <h1>Campo</h1>
+        <h1>Coletas</h1>
         <div className="acoes">
           <Link className="botao primario" to="/mapa">+ Nova coleta (pelo mapa)</Link>
           <Link className="botao" to="/coletas/nova">+ Nova coleta (pela lista)</Link>
@@ -41,6 +52,7 @@ export default function Coletas() {
       <p className="dica">
         Em campo: escolha o talhão, marque cada ponto pelo GPS e pese a massa verde do quadro. Etiquete o saco com o código do ponto; a MS é lançada depois em{' '}
         <Link to="/laboratorio">Laboratório</Link>{aguardandoLab ? ` (${aguardandoLab} coleta(s) aguardando)` : ''}.
+        Toque numa coleta para abrir: as que aguardam MS vão para o laboratório; as em andamento, para a etapa pendente.
       </p>
 
       <div className="cartao">
@@ -67,12 +79,19 @@ export default function Coletas() {
                   <th className="n">Pontos</th>
                   <th className="n">t MV/ha</th>
                   <th className="n">MS %</th>
-                  <th />
                 </tr>
               </thead>
               <tbody>
                 {linhas.map(({ c, talhao, r, status, nPontos }) => (
-                  <tr key={c.id}>
+                  <tr
+                    key={c.id}
+                    className="clicavel"
+                    tabIndex={0}
+                    role="link"
+                    aria-label={`Abrir coleta ${talhao} de ${fmtData(c.data)}`}
+                    onClick={() => navigate(destinoColeta(c.id, status))}
+                    onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); navigate(destinoColeta(c.id, status)); } }}
+                  >
                     <td className="nome-talhao largo-cel">
                       <strong>{talhao}</strong>
                       <span className="mudo so-cel">
@@ -86,14 +105,6 @@ export default function Coletas() {
                     <td className="n" data-rotulo="Pontos">{nPontos}</td>
                     <td className="n" data-rotulo="t MV/ha">{fmt(r.tMVha)}</td>
                     <td className="n" data-rotulo="MS %">{fmt(r.msPct)}</td>
-                    <td className="acoes-linha">
-                      {status === 'campo' || status === 'semPontos' ? (
-                        <Link className="botao primario" to={`/coletas/${c.id}/${status === 'semPontos' ? 'pontos' : 'pesos'}`}>Continuar</Link>
-                      ) : status === 'laboratorio' ? (
-                        <Link className="botao" to={`/laboratorio?coleta=${c.id}`}>Lançar MS</Link>
-                      ) : null}
-                      <Link className="botao" to={`/coletas/${c.id}`}>Abrir</Link>
-                    </td>
                   </tr>
                 ))}
               </tbody>
