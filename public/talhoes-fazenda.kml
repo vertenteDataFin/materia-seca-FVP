@@ -1,9 +1,297 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <kml xmlns="http://www.opengis.net/kml/2.2" xmlns:gx="http://www.google.com/kml/ext/2.2" xmlns:kml="http://www.opengis.net/kml/2.2" xmlns:atom="http://www.w3.org/2005/Atom" xmlns:ex="http://earth.google.com/kml/ext">
-<Document id="document">
-	<ex:extension>base64;CooBCoEBCn8KAggBEnkKdwokCiAKAwjQDxoHCNLtZRD_ASEAAAAAAADwPykAAAAAAAAAABgAEg8KCAitgO8HEP8BEKAfGAAaGgoHCP___wcQQBIICK2A7wcQ_wEYoB8gACgAIgkIARIFCP___wcqFwgBEggI____BxD_ARkAAAAAAADwPyAAEgQIARAA</ex:extension>
+<Document id="1H1Bt093cH4N3K_IVXPgj4yqAiXc_C0su">
+	<ex:extension>base64;Co4BCoEBCn8KAggBEnkKdwokCiAKAwjQDxoHCNLtZRD_ASEAAAAAAADwPykAAAAAAAAAABgAEg8KCAitgO8HEP8BEKAfGAAaGgoHCP___wcQQBIICK2A7wcQ_wEYoB8gACgAIgkIARIFCP___wcqFwgBEggI____BxD_ARkAAAAAAADwPyAAEgQIARAAGgIIAA</ex:extension>
 	<name>Regional Pedra - atividade por talhao</name>
-	<gx:CascadingStyle kml:id="__managed_style_1E155D12EE42FBBA8BB7_highlight">
+	<gx:CascadingStyle kml:id="__managed_style_02E24CF9C7430AD9A127_normal">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ffb0b0b0</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4db0b0b0</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_2EAB59CD0F430AD9A128_highlight">
+		<ex:extension>base64;EgIYAQ</ex:extension>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff9aa626</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d9aa626</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_2EAB59CD0F430AD9A128_normal">
+		<ex:extension>base64;EgIYAQ</ex:extension>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff9aa626</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d9aa626</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<StyleMap id="__managed_style_2EAB59CD0F430AD9A128">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_2EAB59CD0F430AD9A128_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_2EAB59CD0F430AD9A128_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<gx:CascadingStyle kml:id="__managed_style_02E24CF9C7430AD9A127_highlight">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ffb0b0b0</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4db0b0b0</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_399EC64FA9430AD9A128_highlight">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff4caf4c</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d4caf4c</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<StyleMap id="__managed_style_0D60AB4E50430AD9A128">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_0D60AB4E50430AD9A128_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_0D60AB4E50430AD9A128_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<gx:CascadingStyle kml:id="__managed_style_00A1D62CC4430AD9A12C_normal">
+		<ex:extension>base64;EgIYAQ</ex:extension>
+		<Style>
+			<IconStyle>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2dc0fb</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40ffffff</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_18945573AE430AD9A128_normal">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2e8b2e</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d2e8b2e</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_058B08612F430AD9A129_highlight">
+		<ex:extension>base64;EgIYAQ</ex:extension>
+		<Style>
+			<IconStyle>
+				<scale>1.2</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2dc0fb</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40ffffff</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<StyleMap id="__managed_style_00A1D62CC4430AD9A12C">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_00A1D62CC4430AD9A12C_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_00A1D62CC4430AD9A12C_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="__managed_style_02E24CF9C7430AD9A127">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_02E24CF9C7430AD9A127_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_02E24CF9C7430AD9A127_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="__managed_style_0D2755C760430AD9A124">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<gx:CascadingStyle kml:id="__managed_style_00A1D62CC4430AD9A12C_highlight">
+		<ex:extension>base64;EgIYAQ</ex:extension>
+		<Style>
+			<IconStyle>
+				<scale>1.2</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2dc0fb</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40ffffff</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_058B08612F430AD9A129_normal">
+		<ex:extension>base64;EgIYAQ</ex:extension>
+		<Style>
+			<IconStyle>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2dc0fb</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>40ffffff</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_18945573AE430AD9A128_highlight">
 		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
 		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
 		<Style>
@@ -28,17 +316,172 @@
 			</BalloonStyle>
 		</Style>
 	</gx:CascadingStyle>
-	<StyleMap id="__managed_style_0D05844F0E42FBBA8BB8">
+	<StyleMap id="__managed_style_058B08612F430AD9A129">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#__managed_style_0D05844F0E42FBBA8BB8_normal</styleUrl>
+			<styleUrl>#__managed_style_058B08612F430AD9A129_normal</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#__managed_style_0D05844F0E42FBBA8BB8_highlight</styleUrl>
+			<styleUrl>#__managed_style_058B08612F430AD9A129_highlight</styleUrl>
 		</Pair>
 	</StyleMap>
-	<gx:CascadingStyle kml:id="__managed_style_0FC3E2902142FBBA8BB7_highlight">
+	<gx:CascadingStyle kml:id="__managed_style_0961785B43430AD9A12B_highlight">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff7ccf7c</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d7ccf7c</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_399EC64FA9430AD9A128_normal">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff4caf4c</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d4caf4c</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<StyleMap id="__managed_style_0961785B43430AD9A12B">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_0961785B43430AD9A12B_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_0961785B43430AD9A12B_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<StyleMap id="__managed_style_18945573AE430AD9A128">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_18945573AE430AD9A128_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_18945573AE430AD9A128_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<gx:CascadingStyle kml:id="__managed_style_0D60AB4E50430AD9A128_highlight">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff9aa626</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d9aa626</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_0961785B43430AD9A12B_normal">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff7ccf7c</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d7ccf7c</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<StyleMap id="__managed_style_1C5B428A5E430AD9A127">
+		<Pair>
+			<key>normal</key>
+			<styleUrl>#__managed_style_1C5B428A5E430AD9A127_normal</styleUrl>
+		</Pair>
+		<Pair>
+			<key>highlight</key>
+			<styleUrl>#__managed_style_1C5B428A5E430AD9A127_highlight</styleUrl>
+		</Pair>
+	</StyleMap>
+	<gx:CascadingStyle kml:id="__managed_style_0D2755C760430AD9A124_normal">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff2b56b4</color>
+				<width>3</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d2b56b4</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_0CE9460002430AD9A126_highlight">
 		<ex:extension>base64;EgIYAQ</ex:extension>
 		<Style>
 			<IconStyle>
@@ -58,180 +501,10 @@
 				<color>40ffffff</color>
 			</PolyStyle>
 			<BalloonStyle>
-				<displayMode>hide</displayMode>
 			</BalloonStyle>
 		</Style>
 	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_0CB84343F042FBC639F9_normal">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff9aa626</color>
-				<width>2</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d9aa626</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_0B30AE084342FBC52B4C_highlight">
-		<ex:extension>base64;EgIYAQ</ex:extension>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff9aa626</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d9aa626</color>
-			</PolyStyle>
-			<BalloonStyle>
-				<displayMode>hide</displayMode>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_1E155D12EE42FBBA8BB7_normal">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff2e8b2e</color>
-				<width>2</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d2e8b2e</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_17D70EB76D42FBBA8BB6_normal">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff4caf4c</color>
-				<width>2</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d4caf4c</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<StyleMap id="__managed_style_17D70EB76D42FBBA8BB6">
-		<Pair>
-			<key>normal</key>
-			<styleUrl>#__managed_style_17D70EB76D42FBBA8BB6_normal</styleUrl>
-		</Pair>
-		<Pair>
-			<key>highlight</key>
-			<styleUrl>#__managed_style_17D70EB76D42FBBA8BB6_highlight</styleUrl>
-		</Pair>
-	</StyleMap>
-	<StyleMap id="__managed_style_039AB5696C42FBBDC3F3">
-		<Pair>
-			<key>normal</key>
-			<styleUrl>#__managed_style_039AB5696C42FBBDC3F3_normal</styleUrl>
-		</Pair>
-		<Pair>
-			<key>highlight</key>
-			<styleUrl>#__managed_style_039AB5696C42FBBDC3F3_highlight</styleUrl>
-		</Pair>
-	</StyleMap>
-	<gx:CascadingStyle kml:id="__managed_style_0AF52FB17642FBBA8BB6_normal">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff7ccf7c</color>
-				<width>2</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d7ccf7c</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_039AB5696C42FBBDC3F3_highlight">
-		<ex:extension>base64;EgIYAQ</ex:extension>
-		<Style>
-			<IconStyle>
-				<scale>1.2</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff2dc0fb</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>40ffffff</color>
-			</PolyStyle>
-			<BalloonStyle>
-				<displayMode>hide</displayMode>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_0AF52FB17642FBBA8BB6_highlight">
+	<gx:CascadingStyle kml:id="__managed_style_1C5B428A5E430AD9A127_highlight">
 		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
 		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
 		<Style>
@@ -256,7 +529,32 @@
 			</BalloonStyle>
 		</Style>
 	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_0CB84343F042FBC639F9_highlight">
+	<gx:CascadingStyle kml:id="__managed_style_1C5B428A5E430AD9A127_normal">
+		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
+		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
+		<Style>
+			<IconStyle>
+				<scale>0</scale>
+				<Icon>
+					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
+				</Icon>
+				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
+			</IconStyle>
+			<LabelStyle>
+				<scale>0.85</scale>
+			</LabelStyle>
+			<LineStyle>
+				<color>ff7ccf7c</color>
+				<width>2</width>
+			</LineStyle>
+			<PolyStyle>
+				<color>4d7ccf7c</color>
+			</PolyStyle>
+			<BalloonStyle>
+			</BalloonStyle>
+		</Style>
+	</gx:CascadingStyle>
+	<gx:CascadingStyle kml:id="__managed_style_0D60AB4E50430AD9A128_normal">
 		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
 		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
 		<Style>
@@ -272,7 +570,7 @@
 			</LabelStyle>
 			<LineStyle>
 				<color>ff9aa626</color>
-				<width>3</width>
+				<width>2</width>
 			</LineStyle>
 			<PolyStyle>
 				<color>4d9aa626</color>
@@ -281,52 +579,17 @@
 			</BalloonStyle>
 		</Style>
 	</gx:CascadingStyle>
-	<StyleMap id="__managed_style_1E155D12EE42FBBA8BB7">
+	<StyleMap id="__managed_style_399EC64FA9430AD9A128">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#__managed_style_1E155D12EE42FBBA8BB7_normal</styleUrl>
+			<styleUrl>#__managed_style_399EC64FA9430AD9A128_normal</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#__managed_style_1E155D12EE42FBBA8BB7_highlight</styleUrl>
+			<styleUrl>#__managed_style_399EC64FA9430AD9A128_highlight</styleUrl>
 		</Pair>
 	</StyleMap>
-	<StyleMap id="__managed_style_0CB84343F042FBC639F9">
-		<Pair>
-			<key>normal</key>
-			<styleUrl>#__managed_style_0CB84343F042FBC639F9_normal</styleUrl>
-		</Pair>
-		<Pair>
-			<key>highlight</key>
-			<styleUrl>#__managed_style_0CB84343F042FBC639F9_highlight</styleUrl>
-		</Pair>
-	</StyleMap>
-	<gx:CascadingStyle kml:id="__managed_style_17D70EB76D42FBBA8BB6_highlight">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff4caf4c</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d4caf4c</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_039AB5696C42FBBDC3F3_normal">
+	<gx:CascadingStyle kml:id="__managed_style_0CE9460002430AD9A126_normal">
 		<ex:extension>base64;EgIYAQ</ex:extension>
 		<Style>
 			<IconStyle>
@@ -339,27 +602,16 @@
 			</LabelStyle>
 			<LineStyle>
 				<color>ff2dc0fb</color>
-				<width>2</width>
+				<width>4</width>
 			</LineStyle>
 			<PolyStyle>
 				<color>40ffffff</color>
 			</PolyStyle>
 			<BalloonStyle>
-				<displayMode>hide</displayMode>
 			</BalloonStyle>
 		</Style>
 	</gx:CascadingStyle>
-	<StyleMap id="__managed_style_0AF52FB17642FBBA8BB6">
-		<Pair>
-			<key>normal</key>
-			<styleUrl>#__managed_style_0AF52FB17642FBBA8BB6_normal</styleUrl>
-		</Pair>
-		<Pair>
-			<key>highlight</key>
-			<styleUrl>#__managed_style_0AF52FB17642FBBA8BB6_highlight</styleUrl>
-		</Pair>
-	</StyleMap>
-	<gx:CascadingStyle kml:id="__managed_style_01A8A3E25742FBBA8BB4_highlight">
+	<gx:CascadingStyle kml:id="__managed_style_0D2755C760430AD9A124_highlight">
 		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
 		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
 		<Style>
@@ -384,167 +636,24 @@
 			</BalloonStyle>
 		</Style>
 	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_0D05844F0E42FBBA8BB8_normal">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ffb0b0b0</color>
-				<width>2</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4db0b0b0</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_0B30AE084342FBC52B4C_normal">
-		<ex:extension>base64;EgIYAQ</ex:extension>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff9aa626</color>
-				<width>2</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d9aa626</color>
-			</PolyStyle>
-			<BalloonStyle>
-				<displayMode>hide</displayMode>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<gx:CascadingStyle kml:id="__managed_style_0D05844F0E42FBBA8BB8_highlight">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ffb0b0b0</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4db0b0b0</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<StyleMap id="__managed_style_0B30AE084342FBC52B4C">
+	<StyleMap id="__managed_style_0CE9460002430AD9A126">
 		<Pair>
 			<key>normal</key>
-			<styleUrl>#__managed_style_0B30AE084342FBC52B4C_normal</styleUrl>
+			<styleUrl>#__managed_style_0CE9460002430AD9A126_normal</styleUrl>
 		</Pair>
 		<Pair>
 			<key>highlight</key>
-			<styleUrl>#__managed_style_0B30AE084342FBC52B4C_highlight</styleUrl>
-		</Pair>
-	</StyleMap>
-	<gx:CascadingStyle kml:id="__managed_style_01A8A3E25742FBBA8BB4_normal">
-		<ex:extension>base64;Eq4BGAEiqQEKpgEKT2h0dHBzOi8vZWFydGguZ29vZ2xlLmNvbS9iYWxsb29uX2NvbXBvbmVudHMvYmFzZS8xLjEuMC4wL2NhcmRfdGVtcGxhdGUua21sI21haW4SUwpPaHR0cHM6Ly9lYXJ0aC5nb29nbGUuY29tL2JhbGxvb25fY29tcG9uZW50cy9iYXNlL2N1cnJlbnQvY2FyZF90ZW1wbGF0ZS5rbWwjbWFpbhgA</ex:extension>
-		<styleUrl>https://earth.google.com/balloon_components/base/1.1.0.0/card_template.kml#main</styleUrl>
-		<Style>
-			<IconStyle>
-				<scale>0</scale>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-				<scale>0.85</scale>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff2b56b4</color>
-				<width>3</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>4d2b56b4</color>
-			</PolyStyle>
-			<BalloonStyle>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<StyleMap id="__managed_style_01A8A3E25742FBBA8BB4">
-		<Pair>
-			<key>normal</key>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4_normal</styleUrl>
-		</Pair>
-		<Pair>
-			<key>highlight</key>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4_highlight</styleUrl>
-		</Pair>
-	</StyleMap>
-	<gx:CascadingStyle kml:id="__managed_style_0FC3E2902142FBBA8BB7_normal">
-		<ex:extension>base64;EgIYAQ</ex:extension>
-		<Style>
-			<IconStyle>
-				<Icon>
-					<href>https://earth.google.com/earth/document/icon?color=1976d2&amp;id=2000&amp;scale=4</href>
-				</Icon>
-				<hotSpot x="64" y="128" xunits="pixels" yunits="insetPixels"/>
-			</IconStyle>
-			<LabelStyle>
-			</LabelStyle>
-			<LineStyle>
-				<color>ff2dc0fb</color>
-				<width>4</width>
-			</LineStyle>
-			<PolyStyle>
-				<color>40ffffff</color>
-			</PolyStyle>
-			<BalloonStyle>
-				<displayMode>hide</displayMode>
-			</BalloonStyle>
-		</Style>
-	</gx:CascadingStyle>
-	<StyleMap id="__managed_style_0FC3E2902142FBBA8BB7">
-		<Pair>
-			<key>normal</key>
-			<styleUrl>#__managed_style_0FC3E2902142FBBA8BB7_normal</styleUrl>
-		</Pair>
-		<Pair>
-			<key>highlight</key>
-			<styleUrl>#__managed_style_0FC3E2902142FBBA8BB7_highlight</styleUrl>
+			<styleUrl>#__managed_style_0CE9460002430AD9A126_highlight</styleUrl>
 		</Pair>
 	</StyleMap>
 	<Folder id="5FD969E0C8000001">
 		<ex:extension>base64;GgA</ex:extension>
 		<name>SEM ATIVIDADE — PREENCHER (36 talhões, 2.502 ha)</name>
-		<styleUrl>#__managed_style_0FC3E2902142FBBA8BB7</styleUrl>
+		<styleUrl>#__managed_style_0CE9460002430AD9A126</styleUrl>
 		<Placemark id="5FD969E0C8000002">
 			<name>BR - TALHAO 01</name>
 			<description><![CDATA[<b>BR - TALHAO 01</b><br/>Fazenda: Faz. Brumado<br/>Área: 88.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -558,7 +667,7 @@
 		<Placemark id="5FD969E0C8000003">
 			<name>CA - TALHAO PISTA</name>
 			<description><![CDATA[<b>CA - TALHAO PISTA</b><br/>Fazenda: Faz. Cascata<br/>Área: 51.80 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -572,7 +681,7 @@
 		<Placemark id="5FD969E0C8000004">
 			<name>CA - TALHAO RIO</name>
 			<description><![CDATA[<b>CA - TALHAO RIO</b><br/>Fazenda: Faz. Cascata<br/>Área: 94.40 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -586,7 +695,7 @@
 		<Placemark id="5FD969E0C8000005">
 			<name>CAU - TALHAO 1</name>
 			<description><![CDATA[<b>CAU - TALHAO 1</b><br/>Fazenda: Faz. Caua<br/>Área: 96.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -611,7 +720,7 @@
 		<Placemark id="5FD969E0C8000006">
 			<name>CAU - TALHAO 2</name>
 			<description><![CDATA[<b>CAU - TALHAO 2</b><br/>Fazenda: Faz. Caua<br/>Área: 30.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -625,12 +734,12 @@
 		<Placemark id="5FD969E0C8000007">
 			<name>CAU - TALHAO 2 A</name>
 			<description><![CDATA[<b>CAU - TALHAO 2 A</b><br/>Fazenda: Faz. Caua<br/>Área: 70.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: AMENDOIM]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
 						<coordinates>
-							-52.56593717999999,-19.4201952,0 -52.5671933,-19.42357862,0 -52.56733054,-19.42368056,0 -52.56764484,-19.4236811,0 -52.56808152,-19.4237091,0 -52.56842603,-19.42375965,0 -52.56879531,-19.42375948,0 -52.56924493000001,-19.42372466,0 -52.56943553,-19.42379416,0 -52.56940181,-19.42396605,0 -52.56923341,-19.42412983,0 -52.56894136,-19.42423465,0 -52.5688724,-19.42437616,0 -52.56894384,-19.42465824,0 -52.56888901999999,-19.42514715,0 -52.56887025,-19.42550121,0 -52.56886739000001,-19.42579004,0 -52.56875472000001,-19.42588932,0 -52.56849764,-19.42590832,0 -52.56839882999999,-19.42606607,0 -52.56816864,-19.42614279,0 -52.56085157999999,-19.42591543,0 -52.5657839,-19.41979311,0 -52.56593717999999,-19.4201952,0 
+							-52.56593717999999,-19.4201952,0 -52.5671933,-19.42357862,0 -52.56733054,-19.42368056,0 -52.56764484,-19.4236811,0 -52.56808152,-19.4237091,0 -52.56842603,-19.42375965,0 -52.56879531,-19.42375948,0 -52.56924493000001,-19.42372466,0 -52.56943553,-19.42379416,0 -52.56940181,-19.42396605,0 -52.56923341,-19.42412983,0 -52.56894136,-19.42423465,0 -52.5688724,-19.42437616,0 -52.56894384,-19.42465824,0 -52.56888901999999,-19.42514715,0 -52.56887025,-19.42550121,0 -52.56886739000001,-19.42579004,0 -52.56875472000001,-19.42588932,0 -52.56849764,-19.42590832,0 -52.56839882999999,-19.42606607,0 -52.56816864,-19.42614279,0 -52.55561800271636,-19.42563518003331,0 -52.55915889476852,-19.41919730604427,0 -52.56196639547051,-19.41423866626399,0 -52.56221559455239,-19.41377616348215,0 -52.5623610754817,-19.41352903298563,0 -52.56252445875194,-19.41332586633138,0 -52.56273350550972,-19.41318090877594,0 -52.56296744366556,-19.413067593218,0 -52.56315592831919,-19.41303607032412,0 -52.56325662954779,-19.41307511779383,0 -52.56593717999999,-19.4201952,0 
 						</coordinates>
 					</LinearRing>
 				</outerBoundaryIs>
@@ -639,7 +748,7 @@
 		<Placemark id="5FD969E0C8000008">
 			<name>TALHAO 09/10/11/12 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHAO 09/10/11/12 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 142.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: HUMIDICULA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -653,7 +762,7 @@
 		<Placemark id="5FD969E0C8000009">
 			<name>TALHÃO 01 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 01 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 32.50 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MASSAI]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -667,7 +776,7 @@
 		<Placemark id="5FD969E0C800000A">
 			<name>TALHÃO 02 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 02 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 34.50 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MASSAI]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -681,7 +790,7 @@
 		<Placemark id="5FD969E0C800000B">
 			<name>TALHÃO 03 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 03 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 33.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: HUMIDICULA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -695,7 +804,7 @@
 		<Placemark id="5FD969E0C800000C">
 			<name>TALHÃO 04 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 04 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 49.50 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -709,7 +818,7 @@
 		<Placemark id="5FD969E0C800000D">
 			<name>TALHÃO 05 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 05 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 36.40 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: HUMIDICULA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -723,7 +832,7 @@
 		<Placemark id="5FD969E0C800000E">
 			<name>TALHÃO 06 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 06 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 36.40 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: HUMIDICULA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -737,7 +846,7 @@
 		<Placemark id="5FD969E0C800000F">
 			<name>TALHÃO 07 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 07 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 37.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: HUMIDICULA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -751,7 +860,7 @@
 		<Placemark id="5FD969E0C8000010">
 			<name>TALHÃO 08- JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 08- JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 37.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: HUMIDICULA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -765,7 +874,7 @@
 		<Placemark id="5FD969E0C8000011">
 			<name>TALHÃO 13 - JIBOIA/ORIDIO</name>
 			<description><![CDATA[<b>TALHÃO 13 - JIBOIA/ORIDIO</b><br/>Fazenda: Faz. Jiboia/Vovo Oridio<br/>Área: 34.20 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -779,7 +888,7 @@
 		<Placemark id="5FD969E0C8000012">
 			<name>MA - TALHAO 1</name>
 			<description><![CDATA[<b>MA - TALHAO 1</b><br/>Fazenda: Faz. Maraju<br/>Área: 62.10 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -793,7 +902,7 @@
 		<Placemark id="5FD969E0C8000013">
 			<name>MA - TALHAO 2</name>
 			<description><![CDATA[<b>MA - TALHAO 2</b><br/>Fazenda: Faz. Maraju<br/>Área: 36.80 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: —]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -807,7 +916,7 @@
 		<Placemark id="5FD969E0C8000014">
 			<name>PD - TALHAO Z-05</name>
 			<description><![CDATA[<b>PD - TALHAO Z-05</b><br/>Fazenda: Faz. Pedra<br/>Área: 61.76 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: CAPIM ZURI]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -821,7 +930,7 @@
 		<Placemark id="5FD969E0C8000015">
 			<name>PD - TALHAO Z-06</name>
 			<description><![CDATA[<b>PD - TALHAO Z-06</b><br/>Fazenda: Faz. Pedra<br/>Área: 98.26 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: CAPIM ZURI]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -835,7 +944,7 @@
 		<Placemark id="5FD969E0C8000016">
 			<name>PD - TALHAO Z-07</name>
 			<description><![CDATA[<b>PD - TALHAO Z-07</b><br/>Fazenda: Faz. Pedra<br/>Área: 70.26 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: CAPIM ZURI]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -849,7 +958,7 @@
 		<Placemark id="5FD969E0C8000017">
 			<name>PD - TALHAO Z-08</name>
 			<description><![CDATA[<b>PD - TALHAO Z-08</b><br/>Fazenda: Faz. Pedra<br/>Área: 50.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: CAPIM ZURI]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -883,7 +992,7 @@
 		<Placemark id="5FD969E0C8000018">
 			<name>SMB - TALHAO 01</name>
 			<description><![CDATA[<b>SMB - TALHAO 01</b><br/>Fazenda: Faz. Santa Maria Do Brilhante<br/>Área: 76.75 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: AMENDOIM]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -917,7 +1026,7 @@
 		<Placemark id="5FD969E0C8000019">
 			<name>SMB - TALHAO 02</name>
 			<description><![CDATA[<b>SMB - TALHAO 02</b><br/>Fazenda: Faz. Santa Maria Do Brilhante<br/>Área: 87.20 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: AMENDOIM]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -931,7 +1040,7 @@
 		<Placemark id="5FD969E0C800001A">
 			<name>SMB - TALHAO 03</name>
 			<description><![CDATA[<b>SMB - TALHAO 03</b><br/>Fazenda: Faz. Santa Maria Do Brilhante<br/>Área: 114.27 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: AMENDOIM / HUMIDICULA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -992,7 +1101,7 @@
 		<Placemark id="5FD969E0C800001B">
 			<name>SA - TALHAO 01</name>
 			<description><![CDATA[<b>SA - TALHAO 01</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 93.70 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA / MILHETO]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1006,7 +1115,7 @@
 		<Placemark id="5FD969E0C800001C">
 			<name>SA - TALHAO 02</name>
 			<description><![CDATA[<b>SA - TALHAO 02</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 79.80 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA / MILHETO]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1020,7 +1129,7 @@
 		<Placemark id="5FD969E0C900001D">
 			<name>SA - TALHAO 03</name>
 			<description><![CDATA[<b>SA - TALHAO 03</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 83.90 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA / MILHETO]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1034,7 +1143,7 @@
 		<Placemark id="5FD969E0C900001E">
 			<name>SA - TALHAO 04</name>
 			<description><![CDATA[<b>SA - TALHAO 04</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 83.20 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA / MILHETO]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1068,7 +1177,7 @@
 		<Placemark id="5FD969E0C900001F">
 			<name>SA - TALHAO 05</name>
 			<description><![CDATA[<b>SA - TALHAO 05</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 55.20 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA / MILHETO]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1082,7 +1191,7 @@
 		<Placemark id="5FD969E0C9000020">
 			<name>SA - TALHAO 05A</name>
 			<description><![CDATA[<b>SA - TALHAO 05A</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 30.52 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1125,7 +1234,7 @@
 		<Placemark id="5FD969E0C9000021">
 			<name>SA - TALHAO 06</name>
 			<description><![CDATA[<b>SA - TALHAO 06</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 73.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA / MILHETO]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1139,7 +1248,7 @@
 		<Placemark id="5FD969E0C9000022">
 			<name>SA - TALHAO 07 - 08</name>
 			<description><![CDATA[<b>SA - TALHAO 07 - 08</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 138.70 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: SOJA / MILHETO]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1191,7 +1300,7 @@
 		<Placemark id="5FD969E0C9000023">
 			<name>SA - TALHAO 09</name>
 			<description><![CDATA[<b>SA - TALHAO 09</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 74.40 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: AMENDOIM]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1205,7 +1314,7 @@
 		<Placemark id="5FD969E0C9000024">
 			<name>SA - TALHAO 10</name>
 			<description><![CDATA[<b>SA - TALHAO 10</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 114.30 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: AMENDOIM]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1219,7 +1328,7 @@
 		<Placemark id="5FD969E0C9000025">
 			<name>SA - TALHAO 11</name>
 			<description><![CDATA[<b>SA - TALHAO 11</b><br/>Fazenda: Faz. Santo Antonio<br/>Área: 115.00 ha<br/><br/><b>Atividade hoje: SEM ATIVIDADE CADASTRADA</b><br/>Safra passada: AMENDOIM]]></description>
-			<styleUrl>#__managed_style_01A8A3E25742FBBA8BB4</styleUrl>
+			<styleUrl>#__managed_style_0D2755C760430AD9A124</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1263,12 +1372,11 @@
 	<Folder id="5FD969E0C9000026">
 		<ex:extension>base64;GgA</ex:extension>
 		<name>CAPIM MIYAGI (5 talhões, 506 ha)</name>
-		<open>1</open>
-		<styleUrl>#__managed_style_0FC3E2902142FBBA8BB7</styleUrl>
+		<styleUrl>#__managed_style_0CE9460002430AD9A126</styleUrl>
 		<Placemark id="5FD969E0C9000027">
 			<name>PIVO 01 — CAPIM MIYAGI</name>
 			<description><![CDATA[<b>PIVO 01</b><br/>Fazenda: Confinamento<br/>Área: 110.00 ha<br/><br/><b>Atividade hoje: CAPIM MIYAGI</b><br/>Safra passada: CAPIM MIYAGI]]></description>
-			<styleUrl>#__managed_style_0AF52FB17642FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_1C5B428A5E430AD9A127</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1282,7 +1390,7 @@
 		<Placemark id="5FD969E0C9000028">
 			<name>PIVO 02 — CAPIM MIYAGI</name>
 			<description><![CDATA[<b>PIVO 02</b><br/>Fazenda: Confinamento<br/>Área: 119.60 ha<br/><br/><b>Atividade hoje: CAPIM MIYAGI</b><br/>Safra passada: CAPIM MIYAGI]]></description>
-			<styleUrl>#__managed_style_0AF52FB17642FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_1C5B428A5E430AD9A127</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1296,7 +1404,7 @@
 		<Placemark id="5FD969E0C9000029">
 			<name>PD - TALHAO 13A — CAPIM MIYAGI</name>
 			<description><![CDATA[<b>PD - TALHAO 13</b><br/>Fazenda: Faz. Pedra<br/>Área: 63.00 ha<br/><br/><b>Atividade hoje: CAPIM MIYAGI</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA]]></description>
-			<styleUrl>#__managed_style_0CB84343F042FBC639F9</styleUrl>
+			<styleUrl>#__managed_style_0D60AB4E50430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1310,7 +1418,7 @@
 		<Placemark id="5FD969E0C900002E">
 			<name>PD - TALHAO 17 A — CAPIM MIYAGI</name>
 			<description><![CDATA[<b>PD - TALHAO 17 A</b><br/>Fazenda: Faz. Pedra<br/>Área: 73.30 ha<br/><br/><b>Atividade hoje: CAPIM MOMBACA</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA]]></description>
-			<styleUrl>#__managed_style_0CB84343F042FBC639F9</styleUrl>
+			<styleUrl>#__managed_style_0D60AB4E50430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1324,7 +1432,7 @@
 		<Placemark id="5FD969E0C900002F">
 			<name>PD - TALHAO 17 B — CAPIM MIYAGI</name>
 			<description><![CDATA[<div><b>PD - TALHAO 17 B</b><br></div><div>Fazenda: Faz. Pedra<br></div><div>Área: 93.80 ha<br></div><div><br></div><div><b>Atividade hoje: CAPIM MOMBACA</b><br></div><div>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA<br></div>]]></description>
-			<styleUrl>#__managed_style_0CB84343F042FBC639F9</styleUrl>
+			<styleUrl>#__managed_style_0D60AB4E50430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1338,7 +1446,7 @@
 		<Placemark id="5FD969E0C900002A">
 			<name>PD - TALHAO 18 — CAPIM MIYAGI</name>
 			<description><![CDATA[<b>PD - TALHAO 18</b><br/>Fazenda: Faz. Pedra<br/>Área: 118.00 ha<br/><br/><b>Atividade hoje: CAPIM MIYAGI</b><br/>Safra passada: CAPIM MIYAGI]]></description>
-			<styleUrl>#__managed_style_0AF52FB17642FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_1C5B428A5E430AD9A127</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1391,7 +1499,7 @@
 				<range>352.4429796085315</range>
 				<altitudeMode>absolute</altitudeMode>
 			</LookAt>
-			<styleUrl>#__managed_style_0AF52FB17642FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_0961785B43430AD9A12B</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1414,7 +1522,7 @@
 				<range>3004.83706223953</range>
 				<altitudeMode>absolute</altitudeMode>
 			</LookAt>
-			<styleUrl>#__managed_style_039AB5696C42FBBDC3F3</styleUrl>
+			<styleUrl>#__managed_style_058B08612F430AD9A129</styleUrl>
 			<LineString>
 				<coordinates>
 					-52.60224620487865,-19.43062681075138,0 -52.60253264182359,-19.43267388867186,0 -52.60382267288475,-19.4353505268894,0 -52.60579049163219,-19.43678046969074,0 -52.60729229383985,-19.43853829697577,0 
@@ -1433,7 +1541,7 @@
 				<range>1521.220848693192</range>
 				<altitudeMode>absolute</altitudeMode>
 			</LookAt>
-			<styleUrl>#__managed_style_039AB5696C42FBBDC3F3</styleUrl>
+			<styleUrl>#__managed_style_00A1D62CC4430AD9A12C</styleUrl>
 			<LineString>
 				<coordinates>
 					-52.61017775725198,-19.4357120956678,0 -52.61139919592996,-19.43677209200779,0 -52.61038985069254,-19.43788031945458,0 -52.61613957145247,-19.44295774217977,0 
@@ -1444,12 +1552,11 @@
 	<Folder id="5FD969E0C900002C">
 		<ex:extension>base64;GgA</ex:extension>
 		<name>CAPIM MOMBACA (6 talhões, 440 ha)</name>
-		<open>1</open>
-		<styleUrl>#__managed_style_0FC3E2902142FBBA8BB7</styleUrl>
+		<styleUrl>#__managed_style_0CE9460002430AD9A126</styleUrl>
 		<Placemark id="5FD969E0C900002D">
 			<name>CONF - TALHAO 21 — CAPIM MOMBACA</name>
 			<description><![CDATA[<b>CONF - TALHAO 21</b><br/>Fazenda: Confinamento<br/>Área: 73.00 ha<br/><br/><b>Atividade hoje: CAPIM MOMBACA</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA]]></description>
-			<styleUrl>#__managed_style_17D70EB76D42FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_399EC64FA9430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1472,7 +1579,7 @@
 				<range>4775.531855849549</range>
 				<altitudeMode>absolute</altitudeMode>
 			</LookAt>
-			<styleUrl>#__managed_style_0B30AE084342FBC52B4C</styleUrl>
+			<styleUrl>#__managed_style_2EAB59CD0F430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1495,7 +1602,7 @@
 				<range>3136.899314975599</range>
 				<altitudeMode>absolute</altitudeMode>
 			</LookAt>
-			<styleUrl>#__managed_style_0B30AE084342FBC52B4C</styleUrl>
+			<styleUrl>#__managed_style_2EAB59CD0F430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1518,7 +1625,7 @@
 				<range>3677.195856646286</range>
 				<altitudeMode>absolute</altitudeMode>
 			</LookAt>
-			<styleUrl>#__managed_style_0B30AE084342FBC52B4C</styleUrl>
+			<styleUrl>#__managed_style_2EAB59CD0F430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1532,7 +1639,7 @@
 		<Placemark id="5FD969E0C9000030">
 			<name>PD - TALHAO 17 C — CAPIM MOMBACA</name>
 			<description><![CDATA[<b>PD - TALHAO 17 C</b><br/>Fazenda: Faz. Pedra<br/>Área: 43.00 ha<br/><br/><b>Atividade hoje: CAPIM MOMBACA</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA]]></description>
-			<styleUrl>#__managed_style_17D70EB76D42FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_399EC64FA9430AD9A128</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1557,7 +1664,7 @@
 		<Placemark id="5FD969E0C9000031">
 			<name>PD - TALHAO 17 E — CAPIM MOMBACA</name>
 			<description><![CDATA[<b>PD - TALHAO 17 E</b><br/>Fazenda: Faz. Pedra<br/>Área: 105.00 ha<br/><br/><b>Atividade hoje: CAPIM MOMBACA</b><br/>Safra passada: CAPIM MOMBACA]]></description>
-			<styleUrl>#__managed_style_17D70EB76D42FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_399EC64FA9430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1571,7 +1678,7 @@
 		<Placemark id="5FD969E0C9000032">
 			<name>PD- TALHÃO 17 D — CAPIM MOMBACA</name>
 			<description><![CDATA[<b>PD- TALHÃO 17 D</b><br/>Fazenda: Faz. Pedra<br/>Área: 52.00 ha<br/><br/><b>Atividade hoje: CAPIM MOMBACA</b><br/>Safra passada: CAPIM MIYAGI]]></description>
-			<styleUrl>#__managed_style_17D70EB76D42FBBA8BB6</styleUrl>
+			<styleUrl>#__managed_style_399EC64FA9430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1586,12 +1693,11 @@
 	<Folder id="5FD969E0C9000033">
 		<ex:extension>base64;GgA</ex:extension>
 		<name>CAPIM MOMBACA / COMPOSTAGEM (1 talhões, 50 ha)</name>
-		<open>1</open>
-		<styleUrl>#__managed_style_0FC3E2902142FBBA8BB7</styleUrl>
+		<styleUrl>#__managed_style_0CE9460002430AD9A126</styleUrl>
 		<Placemark id="5FD969E0C9000034">
 			<name>CONF - TALHAO 23 — CAPIM MOMBACA / COMPOSTAGEM</name>
 			<description><![CDATA[<b>CONF - TALHAO 23</b><br/>Fazenda: Confinamento<br/>Área: 49.90 ha<br/><br/><b>Atividade hoje: CAPIM MOMBACA / COMPOSTAGEM</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA]]></description>
-			<styleUrl>#__managed_style_0D05844F0E42FBBA8BB8</styleUrl>
+			<styleUrl>#__managed_style_02E24CF9C7430AD9A127</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1606,11 +1712,11 @@
 	<Folder id="5FD969E0C9000035">
 		<ex:extension>base64;GgA</ex:extension>
 		<name>CAPIM PIATÃ (2 talhões, 62 ha)</name>
-		<styleUrl>#__managed_style_0FC3E2902142FBBA8BB7</styleUrl>
+		<styleUrl>#__managed_style_0CE9460002430AD9A126</styleUrl>
 		<Placemark id="5FD969E0C9000036">
 			<name>CONF - TALHAO 20 — CAPIM PIATÃ</name>
 			<description><![CDATA[<b>CONF - TALHAO 20</b><br/>Fazenda: Confinamento<br/>Área: 35.00 ha<br/><br/><b>Atividade hoje: CAPIM PIATÃ</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA]]></description>
-			<styleUrl>#__managed_style_1E155D12EE42FBBA8BB7</styleUrl>
+			<styleUrl>#__managed_style_18945573AE430AD9A128</styleUrl>
 			<Polygon>
 				<outerBoundaryIs>
 					<LinearRing>
@@ -1624,7 +1730,7 @@
 		<Placemark id="5FD969E0C9000037">
 			<name>CONF - TALHAO C3 — CAPIM PIATÃ</name>
 			<description><![CDATA[<b>CONF - TALHAO C3</b><br/>Fazenda: Confinamento<br/>Área: 27.50 ha<br/><br/><b>Atividade hoje: CAPIM PIATÃ</b><br/>Safra passada: CAPIM MIYAGI / CAPIM MOMBACA / CAPIM PIATÃ]]></description>
-			<styleUrl>#__managed_style_1E155D12EE42FBBA8BB7</styleUrl>
+			<styleUrl>#__managed_style_18945573AE430AD9A128</styleUrl>
 			<MultiGeometry>
 				<Polygon>
 					<outerBoundaryIs>
@@ -1659,7 +1765,7 @@
 			<range>5074.591864126269</range>
 			<altitudeMode>absolute</altitudeMode>
 		</LookAt>
-		<styleUrl>#__managed_style_039AB5696C42FBBDC3F3</styleUrl>
+		<styleUrl>#__managed_style_00A1D62CC4430AD9A12C</styleUrl>
 		<LineString>
 			<coordinates>
 				-52.59943694856005,-19.44670663888401,0 -52.59862483197809,-19.4385744953135,0 

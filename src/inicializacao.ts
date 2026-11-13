@@ -5,7 +5,7 @@ import { migrarLegadoUmaVez } from './migracaoLegado';
 import type { Permissoes } from './permissoes';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
-export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v8';
+export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v9';
 // Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
 export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v6';
 

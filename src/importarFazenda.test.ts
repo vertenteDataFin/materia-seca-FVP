@@ -78,6 +78,8 @@ describe('importarTalhoesFazenda', () => {
     const cau2a = d.talhoes.find((t) => t.nome === 'Talhão 2A - CAU')!;
     expect(cau2a).toMatchObject({ capim: '', fazenda: 'Caua' });
     expect(cau2a.geometria).toHaveLength(1);
+    // contorno redesenhado (102,8 ha) difere muito dos 70 ha da descrição: vale o contorno
+    expect(cau2a.areaHa).toBeCloseTo(102.8, 1);
     expect(nomes).not.toContain('Talhão 2 - CAU'); // os demais "sem atividade" continuam de fora
     expect(d.talhoes).toHaveLength(20); // 18 do KML + personalizado + TL 13 com coleta
     // rodar de novo não cria nem remove nada

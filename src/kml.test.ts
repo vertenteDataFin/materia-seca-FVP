@@ -125,8 +125,8 @@ const ARQUIVO = 'info/Pedra_Atividades.kml';
 describe.skipIf(!existsSync(ARQUIVO))('arquivo real da fazenda', () => {
   const polys = lerKml(readFileSync(ARQUIVO, 'utf8'));
 
-  it('lê os 50 talhões e a área calculada bate com a declarada', () => {
-    expect(polys).toHaveLength(50);
+  it('lê os 52 talhões e a área calculada bate com a declarada', () => {
+    expect(polys).toHaveLength(52);
     const diffs = polys
       .filter((p) => p.areaDeclaradaHa)
       .map((p) => ({ nome: p.nomeLimpo, dif: (p.areaCalculadaHa / p.areaDeclaradaHa! - 1) * 100 }));
@@ -137,13 +137,13 @@ describe.skipIf(!existsSync(ARQUIVO))('arquivo real da fazenda', () => {
   });
 
   it('associa os nomes do pré-cadastro aos polígonos do KML', () => {
-    const nomes = ['Pivô 1', 'Pivô 2', 'C3', 'TL 13', 'TL 17A', 'TL 17B', 'TL 17C', 'TL 17D', 'TL 17E', 'TL 18', 'TL 20', 'TL 21', 'TL 23', 'Cauã 1'];
+    const nomes = ['Pivô 1', 'Pivô 2', 'C3', 'TL 13A', 'TL 17C', 'TL 17D', 'TL 17E', 'TL 18', 'TL 20', 'TL 21', 'TL 23', 'Cauã 1'];
     const m = sugerirCorrespondencias(polys, nomes.map((nome, i) => ({ id: String(i + 1), nome, capim: '', areaHa: 0 })));
     const porTalhao = new Map([...m].map(([pi, tid]) => [nomes[Number(tid) - 1], polys[pi].nomeLimpo]));
     console.log(Object.fromEntries(porTalhao));
-    expect(porTalhao.get('TL 13')).toBe('PD - TALHAO 13');
+    expect(porTalhao.get('TL 13A')).toBe('PD - TALHAO 13A');
     expect(porTalhao.get('Pivô 1')).toBe('PIVO 01');
     expect(porTalhao.get('TL 17D')).toBe('PD- TALHÃO 17 D');
-    expect(porTalhao.size).toBe(13); // Cauã 1 não tem correspondência automática
+    expect(porTalhao.size).toBe(11); // Cauã 1 não tem correspondência automática
   });
 });
