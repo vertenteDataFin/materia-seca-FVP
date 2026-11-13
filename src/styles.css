@@ -322,7 +322,7 @@ tr.linha-sel td { background: var(--verde-claro); }
 .lab-seta { color: var(--mudo); width: 1rem; }
 .lab-linhas { display: grid; gap: 0.35rem; margin-top: 0.5rem; }
 .lab-linha {
-  display: grid; grid-template-columns: minmax(0, 1.6fr) 5rem 6rem 6rem 5rem; gap: 0.5rem; align-items: center;
+  display: grid; grid-template-columns: minmax(0, 1.6fr) 7rem 8rem 6rem; gap: 0.5rem; align-items: center;
   padding: 0.35rem 0.5rem; border-radius: 8px; background: var(--fundo);
 }
 .lab-linha.pendente { background: #fff8e6; }
@@ -333,7 +333,9 @@ tr.linha-sel td { background: var(--verde-claro); }
 @media (max-width: 700px) {
   .lab-linha { grid-template-columns: 1fr 1fr; }
   .lab-linha > :first-child { grid-column: 1 / -1; }
-  .lab-linha > .n:nth-child(2) { display: none; }
+  /* No celular, a MV total ganha rótulo e fica ao lado do campo de seco */
+  .lab-linha > .mv, .lab-linha > .ms { text-align: left; font-size: 1.05rem; font-weight: 600; }
+  .lab-linha > .mv::before, .lab-linha > .ms::before { content: attr(data-rotulo); display: block; font-size: 0.66rem; font-weight: normal; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); }
   .lab-linha.lab-titulo { display: none; }
   .lab-linha > .n:last-child { grid-column: 1 / -1; text-align: left; }
   .lab-cabecalho { flex-wrap: wrap; }

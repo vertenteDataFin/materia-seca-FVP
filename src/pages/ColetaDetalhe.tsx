@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
 import { adicionarAmostra, atualizarAmostra, atualizarColeta, excluirAmostra, excluirColeta, useDados } from '../dados';
 import type { Amostra, Coleta, Talhao } from '../tipos';
-import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade } from '../calc';
+import { estimativaTalhao, lancarSeco, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade, UMIDO_PADRAO_G } from '../calc';
 import { CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
@@ -119,8 +119,8 @@ export default function ColetaDetalhe() {
         </div>
         <p className="dica">
           Situação: <strong>{ROTULO_STATUS_COLETA[statusColeta(amostras)]}</strong>. Peso verde = massa cortada no quadro de {fmt(coleta.areaAmostralM2, 2)} m² (campo);
-          úmido e seco da subamostra (já sem a tara) dão a MS e normalmente são lançados em <Link to={`/laboratorio?coleta=${coletaId}`}>Laboratório</Link>, mas
-          também podem ser editados aqui. <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
+          o seco da subamostra de {UMIDO_PADRAO_G} g (já sem a tara) dá a MS e normalmente é lançado em <Link to={`/laboratorio?coleta=${coletaId}`}>Laboratório</Link>, mas
+          úmido e seco também podem ser editados aqui (o úmido fica em {UMIDO_PADRAO_G} g se não for informado). <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
         {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use ↻ para tentar de novo.</p>}
         {nFora > 0 && <p className="aviso">{nFora} ponto(s) com GPS fora do contorno do talhão (marcados em vermelho). Confira o talhão da coleta.</p>}
@@ -151,7 +151,7 @@ export default function ColetaDetalhe() {
                     </label>
                     <label>
                       Seco (g)
-                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoSecoG: v })} />
+                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, lancarSeco(a, v))} />
                     </label>
                   </div>
                   <div className="ponto-resultado">
@@ -195,7 +195,7 @@ export default function ColetaDetalhe() {
                       <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
                     </td>
                     <td className="n">
-                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoSecoG: v })} />
+                      <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, lancarSeco(a, v))} />
                     </td>
                     <td className={`n ${invalido ? 'erro' : ''}`}>{invalido ? 'seco > úmido' : fmt(ms)}</td>
                     <td className="n">{fmt(teorUmidade(a))}</td>

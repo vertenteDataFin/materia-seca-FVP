@@ -2,7 +2,7 @@ import { useEffect, useMemo, useState } from 'react';
 import { Link, useSearchParams } from 'react-router-dom';
 import { amostrasPorColeta, atualizarAmostra, useDados } from '../dados';
 import { compararColetasDesc, type Amostra, type Coleta, type Talhao } from '../tipos';
-import { resumoColeta, teorMS } from '../calc';
+import { lancarSeco, resumoColeta, teorMS, UMIDO_PADRAO_G } from '../calc';
 import { CampoNumero } from '../components';
 import { codigoAmostra, pendenteLab, statusColeta } from '../fluxo';
 import { fmt, fmtData } from '../util';
@@ -59,8 +59,8 @@ export default function Laboratorio() {
         <Link to="/coletas">Campo →</Link>
       </div>
       <p className="dica">
-        Para cada amostra que veio do campo, lance a subamostra de umidade: peso <strong>úmido</strong> e peso <strong>seco</strong> (g, já sem a tara).
-        A MS aparece na hora e a coleta sai desta fila quando todos os pontos estiverem aferidos. Confira o código da etiqueta do saco.
+        Para cada amostra que veio do campo, pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra úmida e lance o peso <strong>seco</strong> (g, já sem a tara):
+        o seco em gramas já é a MS em %. A coleta sai desta fila quando todos os pontos estiverem aferidos. Confira o código da etiqueta do saco.
       </p>
 
       <div className="cartao">
@@ -106,23 +106,26 @@ function GrupoLab({ g, aberto, alternar }: { g: Grupo; aberto: boolean; alternar
           <div className="lab-linhas">
             <div className="lab-linha lab-titulo">
               <span>Amostra</span>
-              <span className="n">Verde (kg)</span>
-              <span>Úmido (g)</span>
-              <span>Seco (g)</span>
+              <span className="n">MV total (kg)</span>
+              <span>Seco (g) de {UMIDO_PADRAO_G} g</span>
               <span className="n">MS %</span>
             </div>
             {amostras.map((a) => {
               const ms = teorMS(a);
               const invalido = a.pesoUmidoG != null && a.pesoSecoG != null && ms == null;
+              // Amostra antiga pesada com outro úmido: avisa, porque aí o seco não é a MS direto.
+              const umidoDiferente = a.pesoUmidoG != null && a.pesoUmidoG !== UMIDO_PADRAO_G;
               return (
                 <div key={a.id} className={`lab-linha ${pendenteLab(a) ? 'pendente' : ''}`}>
                   <span>
                     <strong>P{a.ponto}</strong> <code className="codigo">{codigoAmostra(nome, c.data, a.ponto)}</code>
                   </span>
-                  <span className="n">{fmt(a.pesoVerdeKg, 2)}</span>
-                  <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} placeholder="úmido" aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
-                  <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} placeholder="seco" aoSalvar={(v) => atualizarAmostra(a.id, { pesoSecoG: v })} />
-                  <span className={`n ${invalido ? 'erro' : ''}`}>{invalido ? 'seco > úmido' : ms == null ? '—' : fmt(ms)}</span>
+                  <span className="n mv" data-rotulo="MV total (kg)">{fmt(a.pesoVerdeKg, 2)}</span>
+                  <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} placeholder="seco (g)" aoSalvar={(v) => atualizarAmostra(a.id, lancarSeco(a, v))} />
+                  <span className={`n ms ${invalido ? 'erro' : ''}`} data-rotulo="MS %">
+                    {invalido ? 'seco > úmido' : ms == null ? '—' : fmt(ms)}
+                    {umidoDiferente && <small className="mudo"> (úmido {fmt(a.pesoUmidoG, 0)} g)</small>}
+                  </span>
                 </div>
               );
             })}

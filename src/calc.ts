@@ -17,6 +17,14 @@ export const PARAMETROS_PADRAO: Parametros = {
   msMax: 35,
 };
 
+/** Peso úmido padrão da subamostra de umidade (g): o laboratório sempre pesa 100 g, então o seco (g) já é a MS (%). */
+export const UMIDO_PADRAO_G = 100;
+
+/** Campos a gravar ao lançar o peso seco: preenche o úmido com o padrão de 100 g se ainda estiver em branco. */
+export function lancarSeco(a: Pick<Amostra, 'pesoUmidoG'>, secoG: number | null): Pick<Amostra, 'pesoSecoG'> & Partial<Pick<Amostra, 'pesoUmidoG'>> {
+  return secoG != null && a.pesoUmidoG == null ? { pesoSecoG: secoG, pesoUmidoG: UMIDO_PADRAO_G } : { pesoSecoG: secoG };
+}
+
 /** Teor de matéria seca (%) de uma subamostra; null se os dados forem inválidos/incompletos. */
 export function teorMS(a: Pick<Amostra, 'pesoUmidoG' | 'pesoSecoG'>): number | null {
   const u = a.pesoUmidoG;
