@@ -63,6 +63,8 @@ export default function Talhoes() {
   if (!dados) return null;
   const talhoes = dados.talhoes;
   const semArea = talhoes.filter((t) => !(t.areaHa > 0)).length;
+  const nColetas = new Map<string, number>();
+  for (const c of dados.coletas) nColetas.set(c.talhaoId, (nColetas.get(c.talhaoId) ?? 0) + 1);
   const selecionado = talhoes.find((t) => t.id === selecionadoId) ?? null;
   const diverge = (t: Talhao) => {
     const f = capimFoto(t.nome);
@@ -129,13 +131,14 @@ export default function Talhoes() {
           <p className="vazio">Nenhum talhão cadastrado.</p>
         ) : (
           <div className="rolagem">
-            <table className="tabela-cartoes cartoes-2 com-icones">
+            <table className="tabela-cartoes com-icones">
               <thead>
                 <tr>
                   <th>Talhão</th>
                   <th>Fazenda</th>
                   <th className="n">Área (ha)</th>
                   <th>Capim</th>
+                  <th className="n">Coletas</th>
                   <th>Contorno</th>
                   <th>Obs.</th>
                   <th />
@@ -151,6 +154,7 @@ export default function Talhoes() {
                     <td className="oculta-cel">{t.fazenda || '—'}</td>
                     <td className="n" data-rotulo="Área (ha)">{t.areaHa > 0 ? fmt(t.areaHa, 2) : <span className="selo selo-alto">informar</span>}</td>
                     <td data-rotulo="Capim">{t.capim || '—'}{diverge(t) && <span className="selo selo-alto" style={{ marginLeft: '0.4rem' }}>KML≠foto</span>}</td>
+                    <td className="n" data-rotulo="Coletas">{nColetas.get(t.id) ?? 0}</td>
                     <td className="oculta-cel">{t.geometria?.length ? <span className="selo selo-ideal">KML</span> : <span className="mudo">—</span>}</td>
                     <td className="obs largo-cel">{t.observacoes}</td>
                     <td className="acoes-linha acoes-icones">
