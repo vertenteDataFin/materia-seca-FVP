@@ -219,6 +219,11 @@ button.botao-selo.selo { border: none; cursor: pointer; font: inherit; font-size
 }
 .menu-lista button:hover, .menu-lista button:focus-visible { background: var(--verde-claro); }
 .fontes-talhao { margin-bottom: 0.75rem; }
+/* Detalhe do talhão aberto logo abaixo da linha/card clicado */
+tr.linha-detalhe > td { padding: 0.25rem 0 0.75rem; white-space: normal; background: none; }
+tr.linha-detalhe > td > .cartao.detalhe { margin: 0; }
+/* o menu "⋯" do detalhe não pode ficar cortado pela rolagem horizontal da tabela */
+.rolagem:has(tr.linha-detalhe) { overflow: visible; }
 /* Legenda do mapa: texto completo no computador, curto no celular */
 .rotulo-curto { display: none; }
 /* Linhas/cartões clicáveis (lista de coletas) */
@@ -346,6 +351,15 @@ button.botao-selo.selo { border: none; cursor: pointer; font: inherit; font-size
   .tabela-cartoes.com-icones td.acoes-icones { position: absolute; top: 0.55rem; right: 0.55rem; grid-area: auto; display: flex; flex-direction: column; gap: 0.45rem; margin: 0; }
   .tabela-cartoes.com-icones td.acoes-icones > button.icone-acao { flex: none; width: 2.6rem; height: 2.6rem; min-height: 0; padding: 0; }
   .tabela-cartoes.com-icones td.acoes-icones > button.icone-acao .mi { font-size: 1.4rem; }
+  /* Detalhe aberto abaixo do card: não é um card da lista, ocupa a largura toda */
+  .tabela-cartoes tr.linha-detalhe { display: block; padding: 0; margin: -0.3rem 0 0.6rem; background: none; border: none; border-radius: 0; }
+  .tabela-cartoes tr.linha-detalhe > td { display: block; padding: 0; font-size: inherit; }
+  .tabela-cartoes tr.linha-sel:has(+ tr.linha-detalhe) { border-width: 2px; }
+  /* as tabelas de fontes (KML × foto) dentro do detalhe continuam tabelas normais */
+  .tabela-cartoes .tabela-fontes { display: table; }
+  .tabela-cartoes .tabela-fontes tbody { display: table-row-group; }
+  .tabela-cartoes .tabela-fontes tr { display: table-row; padding: 0; margin: 0; background: none; border: none; border-radius: 0; position: static; }
+  .tabela-cartoes .tabela-fontes th, .tabela-cartoes .tabela-fontes td { display: table-cell; padding: 0.45rem 0.5rem; border-bottom: 1px solid var(--borda); }
 
   /* Painel no celular: lista compacta — nome à esquerda, produtividade e teor de MS à direita */
   .tabela-cartoes.painel-lista tr {

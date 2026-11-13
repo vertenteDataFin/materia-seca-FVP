@@ -1,4 +1,4 @@
-import { useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { adicionarTalhao, atualizarTalhao, excluirTalhao, useDados } from '../dados';
 import type { Talhao } from '../tipos';
@@ -21,6 +21,12 @@ export default function Talhoes() {
   const [mostrarRegistros, setMostrarRegistros] = useState(inicial != null);
   const [mostrarForm, setMostrarForm] = useState(false);
   const [erro, setErro] = useState('');
+  const carregado = dados != null;
+
+  // Vindo do mapa (?talhao=id): rola até o card, que já abre com o detalhe embaixo
+  useEffect(() => {
+    if (inicial && carregado) document.getElementById(`talhao-${inicial}`)?.scrollIntoView({ block: 'start' });
+  }, [inicial, carregado]);
 
   function fecharForm() {
     setEditandoId(null);
@@ -54,6 +60,15 @@ export default function Talhoes() {
     window.scrollTo({ top: 0, behavior: 'smooth' });
   }
 
+  /** Abre o detalhe logo abaixo do card clicado (ou fecha, se já estava aberto). */
+  function abrirOuFechar(id: string) {
+    if (id === selecionadoId && mostrarRegistros) return setMostrarRegistros(false);
+    setSelecionadoId(id);
+    setMostrarRegistros(true);
+    // mantém o card clicado no lugar: o detalhe que fecha acima dele não pode empurrar a tela
+    requestAnimationFrame(() => document.getElementById(`talhao-${id}`)?.scrollIntoView({ block: 'nearest', behavior: 'smooth' }));
+  }
+
   function excluir(t: Talhao) {
     const n = dados?.coletas.filter((c) => c.talhaoId === t.id).length ?? 0;
     const aviso = n ? `\n\nIsso também excluirá ${n} coleta(s) e suas amostras.` : '';
@@ -83,10 +98,6 @@ export default function Talhoes() {
         <p className="aviso">
           {nDiverge} talhão(ões) com capim divergente entre KML e foto — clique no nome para conferir e escolher.
         </p>
-      )}
-
-      {selecionado && mostrarRegistros && (
-        <DetalheTalhao talhao={selecionado} aoFechar={() => setMostrarRegistros(false)} aoEditar={editar} />
       )}
 
       {mostrarForm && (
@@ -145,10 +156,13 @@ export default function Talhoes() {
                 </tr>
               </thead>
               <tbody>
-                {talhoes.map((t) => (
-                  <tr key={t.id} className={t.id === selecionadoId ? 'linha-sel' : ''}>
+                {talhoes.map((t) => {
+                  const aberto = t.id === selecionado?.id && mostrarRegistros;
+                  return (
+                  <Fragment key={t.id}>
+                  <tr id={`talhao-${t.id}`} className={t.id === selecionadoId ? 'linha-sel' : ''}>
                     <td className="largo-cel nome-talhao">
-                      <button className="link" onClick={() => { setSelecionadoId(t.id); setMostrarRegistros(true); window.scrollTo({ top: 0, behavior: 'smooth' }); }}><strong>{t.nome}</strong></button>
+                      <button className="link" aria-expanded={aberto} onClick={() => abrirOuFechar(t.id)}><strong>{t.nome}</strong></button>
                       <span className="so-cel mudo"><small>{t.fazenda ? `Faz. ${t.fazenda} · ` : ''}{t.geometria?.length ? 'contorno do KML' : 'sem contorno'}</small></span>
                     </td>
                     <td className="oculta-cel">{t.fazenda || '—'}</td>
@@ -166,7 +180,16 @@ export default function Talhoes() {
                       )}
                     </td>
                   </tr>
-                ))}
+                  {aberto && (
+                    <tr className="linha-detalhe">
+                      <td colSpan={8}>
+                        <DetalheTalhao talhao={t} aoFechar={() => setMostrarRegistros(false)} aoEditar={editar} />
+                      </td>
+                    </tr>
+                  )}
+                  </Fragment>
+                  );
+                })}
               </tbody>
             </table>
           </div>
