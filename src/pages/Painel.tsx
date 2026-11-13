@@ -80,6 +80,13 @@ export default function Painel() {
   // MS média ponderada apenas sobre talhões que têm MV e MS
   const mvComMS = soma((l) => (l.e?.tMStotal != null ? l.e.tMVtotal : 0));
   const msPonderada = mvComMS > 0 ? (msTotal / mvComMS) * 100 : null;
+  // Produtividade por hectare: média ponderada pela área, só sobre talhões que já têm a medida
+  const areaComMV = soma((l) => (l.e?.tMVtotal != null ? l.t.areaHa : 0));
+  const areaComMS = soma((l) => (l.e?.tMStotal != null ? l.t.areaHa : 0));
+  const porHa = (totalT: number, area: number) => (area > 0 ? (totalT * 1000) / area : null);
+  const mvKgHa = porHa(mvTotal, areaComMV);
+  const msKgHa = porHa(msTotal, areaComMS);
+  const silagemKgHa = porHa(silagemTotal, areaComMV);
   const contagem: Record<Semaforo, number> = { verde: 0, amarelo: 0, vermelho: 0 };
   for (const l of linhas) contagem[semaforoDe(statusMS(l.r?.msPct ?? null, parametros))]++;
   const capins = [...new Set(dados.talhoes.map((t) => t.capim).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
@@ -154,6 +161,16 @@ export default function Painel() {
       <h1>Painel de produção</h1>
       <div className="cartao">
         <h2>Resumo de produtividade</h2>
+        <div className="indicadores kpis-ha">
+          <Indicador rotulo="Massa verde" valor={fmt(mvKgHa, 0)} unidade="kg/ha" />
+          <Indicador rotulo="Matéria seca" valor={fmt(msKgHa, 0)} unidade="kg MS/ha" />
+          <Indicador rotulo="Silagem" valor={fmt(silagemKgHa, 0)} unidade="kg/ha" />
+        </div>
+        <p className="dica">
+          Produtividade média por hectare, ponderada pela área dos talhões com coleta ({fmt(areaComMV, 2)} ha de {fmt(areaTotal, 2)} ha).
+          Silagem = massa verde menos {fmt(parametros.perdasPct, 0)}% de perdas.
+        </p>
+        <h3 className="subtitulo-indicadores">Totais estimados</h3>
         <div className="indicadores">
           <Indicador rotulo="Área total" valor={fmt(areaTotal, 2)} unidade="ha" />
           <Indicador rotulo="Massa verde estimada" valor={fmt(mvTotal)} unidade="t" />

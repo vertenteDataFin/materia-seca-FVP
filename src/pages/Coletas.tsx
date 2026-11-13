@@ -6,6 +6,7 @@ import { resumoColeta, statusMS } from '../calc';
 import { destinoColeta, ROTULO_STATUS_COLETA, statusColeta, type StatusColeta } from '../fluxo';
 import { fmt, fmtData } from '../util';
 import { SeloMS } from '../components';
+import { Icone } from '../Icone';
 import { useParametros } from '../parametros';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
@@ -16,19 +17,24 @@ export default function Coletas() {
   const navigate = useNavigate();
   const parametros = useParametros();
   const [filtro, setFiltro] = useState('');
+  const [de, setDe] = useState('');
+  const [ate, setAte] = useState('');
+  const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const nFiltros = (filtro ? 1 : 0) + (de || ate ? 1 : 0);
+  const limparFiltros = () => { setFiltro(''); setDe(''); setAte(''); };
 
   const linhas = useMemo(() => {
     if (!dados) return [];
     const porColeta = amostrasPorColeta(dados.amostras);
     const nomes = new Map(dados.talhoes.map((t) => [t.id, t.nome]));
     return dados.coletas
-      .filter((c) => !filtro || c.talhaoId === filtro)
+      .filter((c) => (!filtro || c.talhaoId === filtro) && (!de || c.data >= de) && (!ate || c.data <= ate))
       .sort(compararColetasDesc)
       .map((c) => {
         const amostras = porColeta.get(c.id) ?? [];
         return { c, talhao: nomes.get(c.talhaoId) ?? '?', r: resumoColeta(c, amostras), status: statusColeta(amostras), nPontos: amostras.length };
       });
-  }, [dados, filtro]);
+  }, [dados, filtro, de, ate]);
 
   if (!dados) return null;
   const aguardandoLab = linhas.filter((l) => l.status === 'laboratorio').length;
@@ -49,17 +55,44 @@ export default function Coletas() {
       </p>
 
       <div className="cartao">
-        <div className="cabecalho-cartao">
+        <div className="cabecalho-cartao cabecalho-filtro">
           <h2>Coletas</h2>
-          <select value={filtro} onChange={(e) => setFiltro(e.target.value)} aria-label="Filtrar por talhão">
-            <option value="">Todos os talhões</option>
-            {dados.talhoes.map((t) => (
-              <option key={t.id} value={t.id}>{t.nome}</option>
-            ))}
-          </select>
+          <button
+            type="button"
+            className={`icone-acao botao-filtro${nFiltros ? ' ativo' : ''}`}
+            aria-expanded={mostrarFiltros}
+            aria-label={nFiltros ? `Filtros (${nFiltros} ativo${nFiltros > 1 ? 's' : ''})` : 'Filtrar por talhão ou data'}
+            title="Filtrar por talhão ou data"
+            onClick={() => setMostrarFiltros((v) => !v)}
+          >
+            <Icone nome="filtro" />
+            {nFiltros > 0 && <span className="contador-filtro">{nFiltros}</span>}
+          </button>
         </div>
+        {mostrarFiltros && (
+          <div className="painel-filtros">
+            <label>
+              Talhão
+              <select value={filtro} onChange={(e) => setFiltro(e.target.value)}>
+                <option value="">Todos os talhões</option>
+                {dados.talhoes.map((t) => (
+                  <option key={t.id} value={t.id}>{t.nome}</option>
+                ))}
+              </select>
+            </label>
+            <label>
+              De
+              <input type="date" value={de} max={ate || undefined} onChange={(e) => setDe(e.target.value)} />
+            </label>
+            <label>
+              Até
+              <input type="date" value={ate} min={de || undefined} onChange={(e) => setAte(e.target.value)} />
+            </label>
+            {nFiltros > 0 && <button type="button" className="link" onClick={limparFiltros}>Limpar filtros</button>}
+          </div>
+        )}
         {!linhas.length ? (
-          <p className="vazio">Nenhuma coleta registrada.</p>
+          <p className="vazio">{nFiltros ? 'Nenhuma coleta com esses filtros.' : 'Nenhuma coleta registrada.'}</p>
         ) : (
           <div className="rolagem">
             <table className="tabela-cartoes lista-compacta">
