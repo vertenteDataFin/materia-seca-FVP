@@ -30,3 +30,13 @@ export const AUDITORES: string[] = ['marialauragcardoso@gmail.com'];
 export function ehAuditor(email: string | null | undefined): boolean {
   return !!email && AUDITORES.includes(email.trim().toLowerCase());
 }
+
+/**
+ * Quem cadastra, edita e remove veículos da colheita (motorista e placa).
+ * Mantenha igual à lista gestoresVeiculos() em firestore.rules.
+ */
+export const GESTORES_VEICULOS: string[] = ['marialauragcardoso@gmail.com'];
+
+export function ehGestorVeiculos(email: string | null | undefined): boolean {
+  return !!email && GESTORES_VEICULOS.includes(email.trim().toLowerCase());
+}

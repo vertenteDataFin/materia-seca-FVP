@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, doc, limit, onSnapshot, orderBy, query, setDoc, updateDoc, type Firestore } from 'firebase/firestore';
 import type { Operacao } from './repositorio';
 import { gerarId } from './repositorio';
-import type { Amostra, Carga, Colecao, Coleta, Dados, Talhao } from './tipos';
+import type { Amostra, Carga, Colecao, Coleta, Dados, Talhao, Veiculo } from './tipos';
 import { fmtData } from './util';
 
 /**
@@ -49,10 +49,11 @@ const ROTULO_CAMPO: Record<string, string> = {
   areaKmlHa: 'área do KML (ha)', capimKml: 'capim do KML', geometria: 'contorno',
   saidaEm: 'saída', placa: 'placa', silo: 'silo', pesoBrutoKg: 'peso bruto (kg)', taraKg: 'tara (kg)', pesadoEm: 'pesagem',
   ticket: 'ticket', msPct: 'MS da carga (%)', colheitaFinalizadaEm: 'colheita finalizada',
+  motorista: 'motorista', numero: 'nº de cadastro',
 };
 
 /** Ordem das coleções nas descrições e na restauração (pais antes dos filhos). */
-const ORDEM: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas'];
+const ORDEM: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos'];
 
 /** Campos descritos só pelo nome, sem os valores (posição, contorno: valores longos e ilegíveis). */
 const SO_ROTULO: Record<string, string> = { 'posição': 'posição alterada', contorno: 'contorno alterado' };
@@ -90,6 +91,7 @@ function nomes(d: Dados) {
     coletas: (c: Coleta) => coleta(c),
     amostras: (a: Amostra) => `ponto ${a.ponto} da ${coleta(d.coletas.find((c) => c.id === a.coletaId))}`,
     cargas: (c: Carga) => `carga ${talhao(c.talhaoId)} · ${fmtDataHora(c.saidaEm)}${c.placa ? ` · ${c.placa}` : ''}`,
+    veiculos: (v: Veiculo) => `veículo ${v.placa} · ${v.motorista}`,
   };
 }
 
@@ -101,6 +103,7 @@ function fmtDataHora(iso: string | undefined): string {
 
 const PLURAL: Record<Colecao, [string, string]> = {
   talhoes: ['talhão', 'talhões'], coletas: ['coleta', 'coletas'], amostras: ['amostra', 'amostras'], cargas: ['carga', 'cargas'],
+  veiculos: ['veículo', 'veículos'],
 };
 
 function contagem(porColecao: Partial<Record<Colecao, unknown[]>>): string {
@@ -175,6 +178,7 @@ export function descreverLote(ops: Operacao[], anterior: Dados, rotulo?: RotuloL
       coletas: [...anterior.coletas, ...((criados.coletas ?? []) as unknown as Coleta[])],
       amostras: anterior.amostras,
       cargas: anterior.cargas ?? [],
+      veiculos: anterior.veiculos ?? [],
     };
     const nc = nomes(estadoComCriados);
     const total = Object.values(criados).reduce((s, l) => s + (l?.length ?? 0), 0);

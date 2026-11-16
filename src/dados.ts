@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { Repositorio } from './repositorio';
-import { compararNomes, completarDados, type Amostra, type Carga, type Coleta, type Dados, type Novo, type Talhao } from './tipos';
+import { compararNomes, completarDados, type Amostra, type Carga, type Coleta, type Dados, type Novo, type Talhao, type Veiculo } from './tipos';
 
 let atual: Repositorio | null = null;
 
@@ -43,6 +43,10 @@ export function useDados(): Dados | undefined {
       amostras: [...bruto.amostras].sort((a, b) => a.coletaId.localeCompare(b.coletaId) || a.ponto - b.ponto),
       // mais recente primeiro
       cargas: [...(bruto.cargas ?? [])].sort((a, b) => b.saidaEm.localeCompare(a.saidaEm) || b.id.localeCompare(a.id)),
+      // pelo nº de cadastro; sem número, no fim por motorista
+      veiculos: [...(bruto.veiculos ?? [])].sort(
+        (a, b) => (a.numero ?? Infinity) - (b.numero ?? Infinity) || a.motorista.localeCompare(b.motorista, 'pt-BR'),
+      ),
     };
   }, [bruto]);
 }
@@ -100,6 +104,20 @@ export function atualizarCarga(id: string, campos: Partial<Novo<Carga>>) {
 
 export function excluirCarga(id: string) {
   repositorio().remover('cargas', id);
+}
+
+// ---- Veículos (colheita) ----
+
+export function adicionarVeiculo(v: Novo<Veiculo>): string {
+  return repositorio().adicionar('veiculos', { ...v, criadoEm: v.criadoEm ?? new Date().toISOString() });
+}
+
+export function atualizarVeiculo(id: string, campos: Partial<Novo<Veiculo>>) {
+  repositorio().atualizar('veiculos', id, campos);
+}
+
+export function excluirVeiculo(id: string) {
+  repositorio().remover('veiculos', id);
 }
 
 // ---- Coletas ----

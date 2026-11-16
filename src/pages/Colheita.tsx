@@ -1,7 +1,8 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { adicionarCarga, amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDados } from '../dados';
 import { agoraLocal, andamentoTalhao, cargaPesada, fmtSaida, liquidoKg, normalizarPlaca, referenciaDoTalhao, sugestoes, tarasPorPlaca, type AndamentoTalhao } from '../colheita';
-import type { Carga, Talhao } from '../tipos';
+import type { Carga, Talhao, Veiculo } from '../tipos';
+import { veiculoDaPlaca } from '../veiculos';
 import { CampoNumero } from '../components';
 import { Icone } from '../Icone';
 import { usePermissoes } from '../permissoes';
@@ -68,7 +69,7 @@ export default function Colheita() {
         )}
       </div>
       <p className="dica">
-        No campo, registre cada caminhão que sai do talhão (talhão e placa, sem peso). Na balança, o balanceiro ou o administrador lança o
+        No campo, registre cada caminhão que sai do talhão (talhão e caminhão, sem peso). Na balança, o balanceiro ou o administrador lança o
         peso bruto, a tara vem da placa do caminhão, e a carga é encerrada. A área colhida de cada
         talhão é estimada pela matéria seca entregue e pela última amostragem do talhão.
       </p>
@@ -76,6 +77,7 @@ export default function Colheita() {
       {mostrarForm && (
         <NovaCarga
           talhoes={dados.talhoes}
+          veiculos={dados.veiculos}
           placas={calc.placas}
           silos={calc.silos}
           aoFechar={() => setMostrarForm(false)}
@@ -160,34 +162,45 @@ export default function Colheita() {
   );
 }
 
+const OUTRO = '__outro';
+
 function NovaCarga({
   talhoes,
+  veiculos,
   placas,
   silos,
   aoFechar,
 }: {
   talhoes: Talhao[];
+  veiculos: Veiculo[];
   placas: string[];
   silos: string[];
   aoFechar: () => void;
 }) {
   const [talhaoId, setTalhaoId] = useState(() => (talhoes.some((t) => t.id === lembrado()) ? lembrado() : ''));
   const [saidaEm, setSaidaEm] = useState(agoraLocal());
+  // Com veículos cadastrados, escolhe-se o caminhão da lista; "outro" (ou lista vazia) libera a placa digitada.
+  const [veiculoId, setVeiculoId] = useState('');
   const [placa, setPlaca] = useState('');
   const [silo, setSilo] = useState('');
   const [erro, setErro] = useState('');
   const [ok, setOk] = useState('');
+  const digitar = !veiculos.length || veiculoId === OUTRO;
 
   function salvar(e: FormEvent) {
     e.preventDefault();
     setOk('');
     if (!talhaoId) return setErro('Escolha o talhão de onde a carga saiu.');
-    if (!normalizarPlaca(placa)) return setErro('Informe a placa do caminhão (a tara na balança vem por ela).');
+    const v = digitar ? veiculoDaPlaca(veiculos, placa) : veiculos.find((x) => x.id === veiculoId);
+    if (!digitar && !v) return setErro('Escolha o caminhão.');
+    const p = v?.placa ?? normalizarPlaca(placa);
+    if (!p) return setErro('Informe a placa do caminhão (a tara na balança vem por ela).');
     // A carga sai do campo sempre sem peso: o peso é lançado na balança, pelo balanceiro ou administrador.
     adicionarCarga({
       talhaoId,
       saidaEm,
-      placa: placa.trim(),
+      placa: p,
+      ...(v ? { motorista: v.motorista } : {}),
       silo: silo.trim() || undefined,
       pesoBrutoKg: null,
       taraKg: null,
@@ -199,9 +212,10 @@ function NovaCarga({
       /* sem armazenamento: só não lembra o talhão */
     }
     setErro('');
-    setOk(`Carga ${placa.trim()} registrada, aguardando pesagem.`);
+    setOk(`Carga ${p}${v ? ` (${v.motorista})` : ''} registrada, aguardando pesagem.`);
     // pronto para a próxima carga do mesmo talhão
     setSaidaEm(agoraLocal());
+    setVeiculoId('');
     setPlaca('');
   }
 
@@ -222,11 +236,25 @@ function NovaCarga({
         Saída do campo
         <input type="datetime-local" value={saidaEm} onChange={(e) => setSaidaEm(e.target.value)} />
       </label>
-      <label>
-        Placa do caminhão
-        <input list="placas" value={placa} onChange={(e) => setPlaca(e.target.value.toUpperCase())} placeholder="Ex.: ABC1D23" required />
-        <datalist id="placas">{placas.map((p) => <option key={p} value={p} />)}</datalist>
-      </label>
+      {veiculos.length > 0 && (
+        <label>
+          Caminhão
+          <select value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} required>
+            <option value="">Escolha…</option>
+            {veiculos.map((v) => (
+              <option key={v.id} value={v.id}>{v.placa} · {v.motorista}</option>
+            ))}
+            <option value={OUTRO}>Outro (digitar a placa)</option>
+          </select>
+        </label>
+      )}
+      {digitar && (
+        <label>
+          Placa do caminhão
+          <input list="placas" value={placa} onChange={(e) => setPlaca(e.target.value.toUpperCase())} placeholder="Ex.: ABC1D23" required />
+          <datalist id="placas">{placas.map((p) => <option key={p} value={p} />)}</datalist>
+        </label>
+      )}
       <label>
         Silo (opcional)
         <input list="silos" value={silo} onChange={(e) => setSilo(e.target.value)} placeholder="Ex.: Silo 1" />
@@ -271,7 +299,7 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
       <div className="carga-topo">
         <div>
           <strong>{nomeTalhao}</strong>
-          <div className="mudo"><small>Saiu {fmtSaida(c.saidaEm)}{c.placa ? ` · ${c.placa}` : ''}{c.silo ? ` · ${c.silo}` : ''}</small></div>
+          <div className="mudo"><small>Saiu {fmtSaida(c.saidaEm)}{c.placa ? ` · ${c.placa}` : ''}{c.motorista ? ` · ${c.motorista}` : ''}{c.silo ? ` · ${c.silo}` : ''}</small></div>
         </div>
         {podeExcluir && (
           <button type="button" className="icone-acao perigo" aria-label="Excluir carga" title="Excluir carga" onClick={() => confirm(`Excluir a carga de ${nomeTalhao} (${fmtSaida(c.saidaEm)})?`) && excluirCarga(c.id)}>
@@ -382,7 +410,7 @@ function LinhaPesada({ c, nomeTalhao, aberta, alternar, podePesar, podeExcluir }
           {c.placa && <span className="so-cel mudo"><small>{c.placa}</small></span>}
         </td>
         <td>{nomeTalhao}</td>
-        <td className="oculta-cel">{c.placa || '—'}</td>
+        <td className="oculta-cel">{c.placa || '—'}{c.motorista && <div className="mudo"><small>{c.motorista}</small></div>}</td>
         <td className="oculta-cel">{c.silo || '—'}</td>
         <td className="n">{fmt((liquidoKg(c) ?? 0) / 1000, 2)}</td>
       </tr>

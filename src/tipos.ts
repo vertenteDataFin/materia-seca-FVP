@@ -63,6 +63,8 @@ export interface Carga {
   /** Saída do campo (ISO, data e hora local "AAAA-MM-DDTHH:mm"). */
   saidaEm: string;
   placa?: string;
+  /** Motorista do caminhão (copiado do cadastro de veículos ao registrar a carga). */
+  motorista?: string;
   silo?: string;
   /** Peso bruto na balança (kg). */
   pesoBrutoKg: number | null;
@@ -77,6 +79,17 @@ export interface Carga {
   criadoEm?: string;
 }
 
+/** Veículo da colheita (caminhão): motorista e placa. A tara vem das pesagens da placa. */
+export interface Veiculo {
+  id: string;
+  /** Nº de cadastro (da relação de veículos). */
+  numero?: number;
+  motorista: string;
+  /** Placa em maiúsculas, sem hífen (ex.: "CPG0247"). */
+  placa: string;
+  criadoEm?: string;
+}
+
 /** Registro ainda sem id (antes de gravar). */
 export type Novo<T extends { id: string }> = Omit<T, 'id'>;
 
@@ -85,16 +98,17 @@ export interface Dados {
   coletas: Coleta[];
   amostras: Amostra[];
   cargas: Carga[];
+  veiculos: Veiculo[];
 }
 
 export type Colecao = keyof Dados;
 export type Entidade<C extends Colecao> = Dados[C][number];
 
-export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas'];
+export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos'];
 
 /** Estado vazio (todas as coleções). */
 export function dadosVazios(): Dados {
-  return { talhoes: [], coletas: [], amostras: [], cargas: [] };
+  return { talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [] };
 }
 
 /** Completa um estado salvo antes de existirem coleções novas (ex.: cargas). */

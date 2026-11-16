@@ -100,7 +100,7 @@ function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
   // Não consegue ler a lista de membros e não é admin fixo: conta criada, mas ainda não liberada.
   if (!liberado) return <AguardandoLiberacao usuario={usuario} />;
   if (!iniciado) return null;
-  return <Casca repo={repo} usuario={usuario} permissoes={permissoesDoPapel(papelDe(usuario.email, membros))} />;
+  return <Casca repo={repo} usuario={usuario} permissoes={permissoesDoPapel(papelDe(usuario.email, membros), usuario.email)} />;
 }
 
 function AguardandoLiberacao({ usuario }: { usuario: User }) {

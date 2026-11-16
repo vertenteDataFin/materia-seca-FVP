@@ -3,11 +3,14 @@ import { dadosAtuais, repositorio } from './dados';
 import { importarTalhoesFazenda } from './importarFazenda';
 import { migrarLegadoUmaVez } from './migracaoLegado';
 import type { Permissoes } from './permissoes';
+import { importarVeiculosIniciais } from './veiculos';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
 export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v9';
 // Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
 export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v6';
+// Relação de veículos da silagem (planilha): entra uma vez por aparelho, só para quem cadastra veículos.
+export const CHAVE_VEICULOS = 'silagem-ms:veiculos-iniciais-v1';
 
 /**
  * Depois que a fonte de dados confirmou o estado (servidor ou disco): migra o banco antigo do aparelho,
@@ -37,6 +40,17 @@ export async function inicializarDados(p: Permissoes): Promise<string[]> {
       }
     } catch (e) {
       console.error('Falha ao carregar talhões iniciais', e);
+    }
+  }
+
+  // Relação de veículos da planilha: entra uma vez, pela conta de quem cadastra veículos (não duplica placas).
+  if (p.podeCadastrarVeiculos && localStorage.getItem(CHAVE_VEICULOS) !== '1') {
+    try {
+      const n = importarVeiculosIniciais();
+      localStorage.setItem(CHAVE_VEICULOS, '1');
+      if (n) msgs.push(`${n} veículo(s) da relação de veículos da silagem cadastrado(s) (Config → Veículos da colheita).`);
+    } catch (e) {
+      console.error('Falha ao carregar veículos iniciais', e);
     }
   }
 

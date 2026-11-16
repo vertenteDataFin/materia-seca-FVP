@@ -1,5 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { Papel } from './membros';
+import { ehGestorVeiculos } from './firebaseConfig';
 
 export interface Permissoes {
   papel: Papel;
@@ -11,9 +12,11 @@ export interface Permissoes {
   podePesar: boolean;
   /** Pode incluir/remover pessoas. */
   admin: boolean;
+  /** Pode cadastrar, editar e remover veículos da colheita (e-mails em GESTORES_VEICULOS). */
+  podeCadastrarVeiculos: boolean;
 }
 
-export function permissoesDoPapel(papel: Papel): Permissoes {
+export function permissoesDoPapel(papel: Papel, email?: string | null): Permissoes {
   const gestor = papel === 'admin' || papel === 'membro';
   return {
     papel,
@@ -21,11 +24,12 @@ export function permissoesDoPapel(papel: Papel): Permissoes {
     podeEditarTalhoes: gestor,
     podePesar: papel === 'admin' || papel === 'balanceiro',
     admin: papel === 'admin',
+    podeCadastrarVeiculos: ehGestorVeiculos(email),
   };
 }
 
 /** Sem Firebase (modo local) todo mundo é administrador do próprio aparelho. */
-export const PERMISSOES_LOCAL = permissoesDoPapel('admin');
+export const PERMISSOES_LOCAL: Permissoes = { ...permissoesDoPapel('admin'), podeCadastrarVeiculos: true };
 
 export const PermissoesContext = createContext<Permissoes>(PERMISSOES_LOCAL);
 

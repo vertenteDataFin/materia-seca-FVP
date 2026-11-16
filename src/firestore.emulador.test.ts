@@ -124,6 +124,23 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(deleteDoc(carga(tec)));
   });
 
+  it('veículos: todos leem; só o gestor de veículos cadastra, edita e remove', async () => {
+    const gestor = env.authenticatedContext('a', google(ADMIN)).firestore();
+    const outroAdmin = env.authenticatedContext('m', senha('maria.mesquita@fazendavertente.com.br', false)).firestore();
+    await assertSucceeds(setDoc(membro(gestor, 'campo2@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
+    const op = env.authenticatedContext('o2', senha('campo2@fazenda.com.br', false)).firestore();
+    const { deleteDoc, updateDoc, getDoc } = await import('firebase/firestore');
+    const veiculo = (db: Firestore) => doc(collection(db, 'fazendas', FID, 'veiculos'), 'v1');
+    await assertSucceeds(setDoc(veiculo(gestor), { numero: 1, motorista: 'Vitor Alonso', placa: 'CPG0247' }));
+    await assertSucceeds(getDoc(veiculo(op)));
+    await assertFails(updateDoc(veiculo(op), { motorista: 'Outro' }));
+    await assertFails(setDoc(doc(collection(outroAdmin, 'fazendas', FID, 'veiculos'), 'v2'), { motorista: 'X', placa: 'ABC1234' }));
+    await assertFails(setDoc(doc(collection(gestor, 'fazendas', FID, 'veiculos'), 'v3'), { motorista: 'Sem placa' }));
+    await assertSucceeds(updateDoc(veiculo(gestor), { placa: 'CPG0248' }));
+    await assertFails(deleteDoc(veiculo(op)));
+    await assertSucceeds(deleteDoc(veiculo(gestor)));
+  });
+
   it('conta nova registra só o próprio pedido de acesso; admin lê e apaga', async () => {
     const novo = env.authenticatedContext('n', senha('novo@gmail.com', false)).firestore();
     const pedido = (db: Firestore, e: string) => doc(collection(db, 'fazendas', FID, 'solicitacoes'), e);
@@ -208,7 +225,7 @@ describe.skipIf(!ativo)('RepositorioFirestore', () => {
     a.iniciar();
     b.iniciar();
     await Promise.all([a.aguardarPronto(), b.aguardarPronto()]);
-    expect(a.obter()).toEqual({ talhoes: [], coletas: [], amostras: [], cargas: [] });
+    expect(a.obter()).toEqual({ talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [] });
 
     const geometria: [number, number][][] = [[[-52, -19], [-51.99, -19], [-51.99, -19.01]]];
     const id = a.adicionar('talhoes', { nome: 'Talhão 18 - PD', capim: 'Miyagi', areaHa: 118, geometria, fazenda: undefined });

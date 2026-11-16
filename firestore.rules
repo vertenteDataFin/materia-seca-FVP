@@ -114,6 +114,20 @@ service cloud.firestore {
       allow delete: if podeExcluir(fid);
     }
 
+    // Quem cadastra veículos da colheita. Mantenha igual a GESTORES_VEICULOS em src/firebaseConfig.ts.
+    function gestoresVeiculos() {
+      return ['marialauragcardoso@gmail.com'];
+    }
+
+    // Veículos da colheita (motorista e placa): todo membro lê; só os gestores de veículos gravam.
+    match /fazendas/{fid}/veiculos/{id} {
+      allow read: if ehMembro(fid);
+      allow create, update: if ehMembro(fid) && email() in gestoresVeiculos()
+        && request.resource.data.motorista is string
+        && request.resource.data.placa is string;
+      allow delete: if ehMembro(fid) && email() in gestoresVeiculos();
+    }
+
     // Coletas e amostras: todo membro registra e edita; só administrador e membro excluem.
     match /fazendas/{fid}/{col}/{id} {
       allow read, create, update: if ehMembro(fid) && col in ['coletas', 'amostras'];

@@ -483,6 +483,15 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
 .andamento-topo strong { font-size: 1.05rem; }
 .barra-progresso { height: 0.7rem; border-radius: 999px; background: var(--fundo); border: 1px solid var(--borda); overflow: hidden; margin: 0.6rem 0 0.3rem; }
 .barra-progresso > span { display: block; height: 100%; background: var(--verde); border-radius: 999px; transition: width 0.4s; }
+/* Config: veículos da colheita */
+.tabela-veiculos { width: 100%; }
+.tabela-veiculos td.placa { font-variant-numeric: tabular-nums; letter-spacing: 0.04em; font-weight: 600; }
+.tabela-veiculos td.acoes-veiculo { text-align: right; white-space: nowrap; }
+.tabela-veiculos td.acoes-veiculo .erro { white-space: normal; margin: 0.3rem 0 0; }
+.tabela-veiculos input { width: 100%; min-width: 0; }
+.novo-veiculo { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--borda); }
+.novo-veiculo h3 { margin: 0; font-size: 1rem; }
+
 /* Painel: progresso da colheita numa coluna do resumo por talhão */
 td.col-colheita { min-width: 8.5rem; }
 .progresso-mini { display: flex; align-items: center; gap: 0.45rem; color: inherit; text-decoration: none; }

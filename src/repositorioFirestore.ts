@@ -64,10 +64,10 @@ export class RepositorioFirestore extends RepositorioMemoria {
           if (this.confirmadas.size === COLECOES.length) this.marcarPronto();
         },
         (e) => {
-          // Coleção nova (cargas) com regras antigas publicadas: segue sem ela em vez de travar o app inteiro.
-          if (colecao === 'cargas' && (e as { code?: string }).code === 'permission-denied') {
-            console.warn('Cargas indisponíveis: publique as regras do Firestore (npm run regras).');
-            this.parciais.cargas = [];
+          // Coleção nova (cargas, veículos) com regras antigas publicadas: segue sem ela em vez de travar o app inteiro.
+          if ((colecao === 'cargas' || colecao === 'veiculos') && (e as { code?: string }).code === 'permission-denied') {
+            console.warn(`${colecao} indisponível: publique as regras do Firestore (npm run regras).`);
+            this.parciais[colecao] = [];
             this.confirmadas.add(colecao);
             if (COLECOES.every((c) => this.parciais[c])) this.substituir({ ...(this.parciais as Dados) });
             if (this.confirmadas.size === COLECOES.length) this.marcarPronto();
