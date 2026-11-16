@@ -11,18 +11,21 @@ import { nomeCurto } from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 import { seriesMS } from '../evolucaoMS';
 import GraficoMS from '../GraficoMS';
+import { progressoColheita, resumoColheita, type AndamentoTalhao } from '../colheita';
 
-type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'mvKgM2' | 'tMVha' | 'msPct' | 'tMSha';
+type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'mvKgM2' | 'tMVha' | 'msPct' | 'tMSha' | 'colheita';
 
 const ROTULO_COLUNA: Record<Coluna, string> = {
   nome: 'talhão', capim: 'capim', data: 'última coleta', area: 'área (ha)', amostras: 'amostras',
-  mvKgM2: 'MV (kg/m²)', tMVha: 'MV (t/ha)', msPct: 'MS (%)', tMSha: 'MS (t/ha)',
+  mvKgM2: 'MV (kg/m²)', tMVha: 'MV (t/ha)', msPct: 'MS (%)', tMSha: 'MS (t/ha)', colheita: 'colheita (%)',
 };
 
 interface Linha {
   t: Talhao;
   c?: Coleta;
   r: ResumoColeta | null;
+  /** Andamento da colheita (só talhões que já tiveram carga). */
+  a?: AndamentoTalhao;
 }
 
 /** Valor da coluna para ordenar; null = sem valor (fica sempre no fim). */
@@ -33,6 +36,7 @@ function valorColuna(l: Linha, col: Coluna): string | number | null {
     case 'data': return l.c?.data ?? null;
     case 'area': return l.t.areaHa;
     case 'amostras': return l.r?.nPontos ?? null;
+    case 'colheita': return l.a ? progressoColheita(l.a) : null;
     default: return l.r?.[col] ?? null;
   }
 }
@@ -49,6 +53,19 @@ export function comparadorColuna(col: Coluna, asc: boolean) {
   };
 }
 
+/** Barrinha da colheita na tabela: % colhida, "finalizada" ou "—" se não começou. */
+function ProgressoColheita({ a }: { a?: AndamentoTalhao }) {
+  if (!a) return <span className="mudo">—</span>;
+  const pct = progressoColheita(a);
+  const texto = a.finalizada ? 'finalizada' : pct == null ? 'sem amostragem' : `${fmt(pct, 0)}%`;
+  return (
+    <Link to="/colheita" className={`progresso-mini${a.finalizada ? ' finalizado' : ''}`} title={a.areaColhidaHa != null ? `${fmt(a.areaColhidaHa, 1)} de ${fmt(a.talhao.areaHa, 1)} ha` : undefined}>
+      <span className="barra-progresso" aria-hidden="true"><span style={{ width: `${pct ?? 0}%` }} /></span>
+      <span className="progresso-texto">{texto}</span>
+    </Link>
+  );
+}
+
 export default function Painel() {
   const parametros = useParametros();
   const dados = useDados();
@@ -56,19 +73,21 @@ export default function Painel() {
   const [filtro, setFiltro] = useState(FILTRO_VAZIO);
   const [ordem, setOrdem] = useState<{ col: Coluna; asc: boolean } | null>(null);
 
-  const linhas = useMemo(() => {
-    if (!dados) return [];
+  const { linhas, colheita } = useMemo(() => {
+    if (!dados) return { linhas: [], colheita: null };
     const ultima = ultimaColetaPorTalhao(dados.coletas);
     const porColeta = amostrasPorColeta(dados.amostras);
-    return dados.talhoes.map((t) => {
+    const colheita = resumoColheita(dados.talhoes, dados.cargas, dados.coletas, porColeta);
+    const linhas = dados.talhoes.map((t) => {
       const c = ultima.get(t.id);
       const r = c ? resumoColeta(c, porColeta.get(c.id) ?? []) : null;
       const e = r ? estimativaTalhao(t.areaHa, r, parametros) : null;
-      return { t, c, r, e };
+      return { t, c, r, e, a: colheita.porTalhao.get(t.id) };
     });
+    return { linhas, colheita };
   }, [dados, parametros]);
 
-  if (!dados) return null;
+  if (!dados || !colheita) return null;
 
   const soma = (f: (l: (typeof linhas)[number]) => number | null | undefined) =>
     linhas.reduce((s, l) => s + (f(l) ?? 0), 0);
@@ -87,6 +106,7 @@ export default function Painel() {
   const mvKgHa = porHa(mvTotal, areaComMV);
   const msKgHa = porHa(msTotal, areaComMS);
   const silagemKgHa = porHa(silagemTotal, areaComMV);
+  const pctColhidoFazenda = areaTotal > 0 ? (colheita.areaColhidaHa / areaTotal) * 100 : null;
   const contagem: Record<Semaforo, number> = { verde: 0, amarelo: 0, vermelho: 0 };
   for (const l of linhas) contagem[semaforoDe(statusMS(l.r?.msPct ?? null, parametros))]++;
   const capins = [...new Set(dados.talhoes.map((t) => t.capim).filter(Boolean))].sort((a, b) => a.localeCompare(b, 'pt-BR'));
@@ -183,6 +203,36 @@ export default function Painel() {
 
       <div className="cartao">
         <div className="cabecalho-cartao">
+          <h2>Resumo de colheita</h2>
+          <Link to="/colheita">Abrir colheita →</Link>
+        </div>
+        {!colheita.porTalhao.size ? (
+          <p className="vazio">Nenhuma carga registrada ainda. A colheita aparece aqui quando sair a primeira carga do campo.</p>
+        ) : (
+          <>
+            <div className="indicadores grade-kpi">
+              <div className="kpi-ha"><Indicador rotulo="Área colhida" valor={fmt(colheita.areaColhidaHa, 1)} unidade="ha" /></div>
+              <div className="kpi-ha">
+                <Indicador rotulo="Colhido" valor={fmt(pctColhidoFazenda, pctColhidoFazenda != null && pctColhidoFazenda < 10 ? 1 : 0)} unidade="% da área" />
+              </div>
+              <div className="kpi-ha"><Indicador rotulo="Ritmo" valor={fmt(colheita.ritmoTdia, 0)} unidade="t/dia" /></div>
+              <Indicador rotulo="Massa verde entregue" valor={fmt(colheita.tMV)} unidade="t" />
+              <Indicador rotulo="Matéria seca entregue" valor={fmt(colheita.tMS)} unidade="t" />
+              <Indicador rotulo="Talhões em colheita" valor={String(colheita.emColheita)} unidade={`+ ${colheita.finalizados} finalizado${colheita.finalizados === 1 ? '' : 's'}`} />
+            </div>
+            <p className="dica">
+              {colheita.pesadas} carga{colheita.pesadas === 1 ? '' : 's'} pesada{colheita.pesadas === 1 ? '' : 's'} em {colheita.diasAtivos} dia
+              {colheita.diasAtivos === 1 ? '' : 's'}
+              {colheita.pendentes > 0 && <>, <strong>{colheita.pendentes} aguardando pesagem</strong></>}. Área colhida estimada pela última amostragem de
+              cada talhão; talhão com colheita finalizada conta a área toda.
+              {colheita.semReferencia > 0 && <> {colheita.semReferencia} talhão(ões) com carga sem amostragem ficam fora da área colhida.</>}
+            </p>
+          </>
+        )}
+      </div>
+
+      <div className="cartao">
+        <div className="cabecalho-cartao">
           <h2>Resumo por talhão</h2>
           <span className="semaforo-resumo">
             <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>{contagem.verde} pronto(s)</span>{' '}
@@ -238,6 +288,7 @@ export default function Painel() {
                 <Th col="tMVha" className="n">MV (t/ha)</Th>
                 <Th col="msPct" className="n">MS (%)</Th>
                 <Th col="tMSha" className="n">MS (t/ha)</Th>
+                <Th col="colheita" className="col-colheita">Colheita</Th>
               </tr>
               <tr className="filtros-linha">
                 <th>{campoBusca}</th>
@@ -249,15 +300,16 @@ export default function Painel() {
                 <th />
                 <th>{campoMS}</th>
                 <th />
+                <th />
               </tr>
             </thead>
             <tbody>
               {!filtradas.length && (
                 <tr>
-                  <td colSpan={9} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
+                  <td colSpan={10} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
                 </tr>
               )}
-              {filtradas.map(({ t, c, r }) => (
+              {filtradas.map(({ t, c, r, a }) => (
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
                     <Bolinha cor={semaforoDe(statusMS(r?.msPct ?? null, parametros))} />{' '}
@@ -278,6 +330,9 @@ export default function Painel() {
                   <td className="n" data-rotulo="MV t/ha">{fmt(r?.tMVha)}</td>
                   <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
                   <td className="n" data-rotulo="MS t/ha">{fmt(r?.tMSha)}</td>
+                  <td className={`col-colheita largo-cel${a ? '' : ' oculta-cel'}`} data-rotulo="Colheita">
+                    <ProgressoColheita a={a} />
+                  </td>
                 </tr>
               ))}
             </tbody>

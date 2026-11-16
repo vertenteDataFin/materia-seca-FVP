@@ -135,7 +135,6 @@ export function fmtSaida(iso: string): string {
   return `${d}/${m}${hora ? ` ${hora.slice(0, 5)}` : ''}`;
 }
 
-/** Placas e silos já usados (para sugerir ao digitar), do mais usado ao menos. */
 /** Placa normalizada para comparar: maiúsculas, sem espaço nem hífen ("abc-1d23" = "ABC1D23"). */
 export function normalizarPlaca(placa?: string | null): string {
   return (placa ?? '').toUpperCase().replace(/[\s-]/g, '');
@@ -154,6 +153,76 @@ export function tarasPorPlaca(cargas: Carga[]): Map<string, number> {
   return m;
 }
 
+/** % colhida para mostrar: talhão finalizado conta 100%; em colheita, a estimativa limitada a 100%. */
+export function progressoColheita(a: AndamentoTalhao): number | null {
+  if (a.finalizada) return 100;
+  return a.pctColhida == null ? null : Math.min(100, a.pctColhida);
+}
+
+export interface ResumoColheita {
+  /** Andamento de cada talhão que já teve carga. */
+  porTalhao: Map<string, AndamentoTalhao>;
+  areaColhidaHa: number;
+  /** Área dos talhões com carga sem amostragem de referência (não entra na área colhida). */
+  semReferencia: number;
+  tMV: number;
+  tMS: number | null;
+  emColheita: number;
+  finalizados: number;
+  pesadas: number;
+  pendentes: number;
+  diasAtivos: number;
+  ritmoTdia: number | null;
+}
+
+/** Totais da colheita na fazenda (para o Painel). */
+export function resumoColheita(
+  talhoes: Talhao[],
+  cargas: Carga[],
+  coletas: Coleta[],
+  porColeta: Map<string, Amostra[]>,
+): ResumoColheita {
+  const comCarga = new Set(cargas.map((c) => c.talhaoId));
+  const porTalhao = new Map<string, AndamentoTalhao>();
+  for (const t of talhoes) {
+    if (comCarga.has(t.id)) porTalhao.set(t.id, andamentoTalhao(t, cargas, referenciaDoTalhao(t.id, coletas, porColeta)));
+  }
+  let areaColhidaHa = 0;
+  let semReferencia = 0;
+  let tMV = 0;
+  let tMS: number | null = 0;
+  let emColheita = 0;
+  let finalizados = 0;
+  let pesadas = 0;
+  let pendentes = 0;
+  for (const a of porTalhao.values()) {
+    const pct = progressoColheita(a);
+    if (pct == null) semReferencia++;
+    else areaColhidaHa += (pct / 100) * a.talhao.areaHa;
+    tMV += a.tMV;
+    if (a.pesadas) tMS = tMS != null && a.tMS != null ? tMS + a.tMS : null;
+    if (a.finalizada) finalizados++;
+    else emColheita++;
+    pesadas += a.pesadas;
+    pendentes += a.pendentes;
+  }
+  const dias = new Set(cargas.filter(cargaPesada).map((c) => c.saidaEm.slice(0, 10)));
+  return {
+    porTalhao,
+    areaColhidaHa,
+    semReferencia,
+    tMV,
+    tMS: pesadas ? tMS : null,
+    emColheita,
+    finalizados,
+    pesadas,
+    pendentes,
+    diasAtivos: dias.size,
+    ritmoTdia: dias.size ? tMV / dias.size : null,
+  };
+}
+
+/** Placas e silos já usados (para sugerir ao digitar), do mais usado ao menos. */
 export function sugestoes(cargas: Carga[], campo: 'placa' | 'silo'): string[] {
   const n = new Map<string, number>();
   for (const c of cargas) {
