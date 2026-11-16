@@ -9,6 +9,8 @@ const HOST = '127.0.0.1';
 const PORTA = 8080;
 const FID = 'vertente';
 const ADMIN = 'marialauragcardoso@gmail.com';
+// Projeto separado do usado pelo app em npm run dev:emulador (demo-silagem): os testes apagam o banco a cada caso.
+const PROJETO_TESTES = 'demo-silagem-testes';
 
 async function emuladorNoAr() {
   try {
@@ -26,7 +28,7 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
 
   beforeAll(async () => {
     env = await initializeTestEnvironment({
-      projectId: 'demo-silagem',
+      projectId: PROJETO_TESTES,
       firestore: { host: HOST, port: PORTA, rules: readFileSync('firestore.rules', 'utf8') },
     });
   });
@@ -212,7 +214,7 @@ describe.skipIf(!ativo)('RepositorioFirestore', () => {
   let env: RulesTestEnvironment;
   beforeAll(async () => {
     env = await initializeTestEnvironment({
-      projectId: 'demo-silagem',
+      projectId: PROJETO_TESTES,
       firestore: { host: HOST, port: PORTA, rules: readFileSync('firestore.rules', 'utf8') },
     });
   });
