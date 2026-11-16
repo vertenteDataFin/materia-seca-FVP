@@ -279,7 +279,7 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
   const [bruto, setBruto] = useState('');
   const [tara, setTara] = useState('');
   const [alterarTara, setAlterarTara] = useState(false);
-  const [ticket, setTicket] = useState('');
+  const [romaneio, setRomaneio] = useState('');
   const [erro, setErro] = useState('');
   const usaTaraDoCaminhao = taraDoCaminhao != null && !alterarTara;
   const b = parseNum(bruto);
@@ -291,7 +291,7 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
     if (b == null) return setErro('Informe o peso bruto.');
     if (t == null) return setErro('Informe a tara do caminhão.');
     if (!(b > t)) return setErro('O peso bruto tem de ser maior que a tara.');
-    atualizarCarga(c.id, { pesoBrutoKg: b, taraKg: t, ticket: ticket.trim() || undefined, pesadoEm: new Date().toISOString() });
+    atualizarCarga(c.id, { pesoBrutoKg: b, taraKg: t, romaneio: romaneio.trim() || undefined, pesadoEm: new Date().toISOString() });
   }
 
   return (
@@ -326,8 +326,8 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
             </label>
           )}
           <label>
-            Ticket
-            <input value={ticket} onChange={(e) => setTicket(e.target.value)} />
+            Romaneio
+            <input value={romaneio} onChange={(e) => setRomaneio(e.target.value)} />
           </label>
           <div className="carga-liquido">
             <span className="mudo"><small>Líquido</small></span>
@@ -432,7 +432,7 @@ function LinhaPesada({ c, nomeTalhao, aberta, alternar, podePesar, podeExcluir }
               </label>
               <p className="mudo largo">
                 <small>
-                  {c.ticket ? `Ticket ${c.ticket} · ` : ''}
+                  {c.romaneio ? `Romaneio ${c.romaneio} · ` : ''}
                   {c.pesadoEm ? `pesada ${fmtSaida(agoraLocal(new Date(c.pesadoEm)))}` : ''}
                   {' · '}MS da carga: só se amostrada na colheita (capim emurchecido); em branco vale a MS da última amostragem.
                 </small>

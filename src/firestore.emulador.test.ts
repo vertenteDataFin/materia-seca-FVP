@@ -109,6 +109,7 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(setDoc(carga(op), { talhaoId: 't1', saidaEm: '2026-11-14T07:00', pesoBrutoKg: null, taraKg: null }));
     await assertSucceeds(updateDoc(carga(op), { placa: 'ABC1D23' }));
     await assertFails(updateDoc(carga(op), { pesoBrutoKg: 40000, taraKg: 15000 }));
+    await assertFails(updateDoc(carga(op), { romaneio: '1234' }));
     await assertFails(setDoc(carga(op, 'k2'), { talhaoId: 't1', saidaEm: '2026-11-14T08:00', pesoBrutoKg: 40000, taraKg: 15000 }));
     // membro (não balanceiro) também não pesa
     await assertFails(updateDoc(carga(tec), { pesoBrutoKg: 40000, taraKg: 15000 }));

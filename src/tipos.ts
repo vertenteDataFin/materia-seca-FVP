@@ -72,7 +72,8 @@ export interface Carga {
   taraKg: number | null;
   /** Instante da pesagem (ISO). */
   pesadoEm?: string | null;
-  ticket?: string;
+  /** Nº do romaneio da balança. */
+  romaneio?: string;
   /** MS da carga (%), se amostrada na colheita; sem ela vale a MS da última amostragem do talhão. */
   msPct?: number | null;
   observacoes?: string;

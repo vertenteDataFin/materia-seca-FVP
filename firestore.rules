@@ -48,7 +48,7 @@ service cloud.firestore {
 
     // Campos da pesagem (só quem pode pesar grava).
     function camposPesagem() {
-      return ['pesoBrutoKg', 'taraKg', 'pesadoEm', 'ticket'];
+      return ['pesoBrutoKg', 'taraKg', 'pesadoEm', 'romaneio'];
     }
 
     match /fazendas/{fid}/membros/{m} {
