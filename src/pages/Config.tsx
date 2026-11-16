@@ -87,8 +87,8 @@ export default function Config({ usuario }: { usuario?: User }) {
   }
 
   function exportarJSON() {
-    const { talhoes, coletas, amostras } = dadosAtuais();
-    const backup: Backup = { app: 'silagem-ms', versao: 2, exportadoEm: new Date().toISOString(), parametros, talhoes, coletas, amostras };
+    const { talhoes, coletas, amostras, cargas } = dadosAtuais();
+    const backup: Backup = { app: 'silagem-ms', versao: 2, exportadoEm: new Date().toISOString(), parametros, talhoes, coletas, amostras, cargas };
     baixarArquivo(`silagem-ms-backup-${hoje()}.json`, JSON.stringify(backup, null, 2), 'application/json');
   }
 
@@ -293,7 +293,8 @@ function Conta({ usuario }: { usuario: User }) {
         Logado como <strong>{usuario.email}</strong>
         <span className={`selo ${admin ? 'selo-ideal' : ''}`} style={{ marginLeft: '0.5rem' }}>{ROTULO_PAPEL[meuPapel].split(' (')[0].toLowerCase()}</span>
       </p>
-      {meuPapel === 'operador' && <p className="dica">Perfil de operador: consulta e registra coletas, mas não exclui registros nem altera o cadastro de talhões.</p>}
+      {meuPapel === 'operador' && <p className="dica">Perfil de operador: consulta e registra coletas e cargas, mas não exclui registros, não lança peso de balança nem altera o cadastro de talhões.</p>}
+      {meuPapel === 'balanceiro' && <p className="dica">Perfil de balanceiro: lança o peso da balança nas cargas da colheita e registra coletas, mas não exclui registros nem altera o cadastro de talhões.</p>}
 
       {admin && <PedidosDeAcesso porQuem={usuario.email ?? ''} aoMensagem={setMsg} />}
 

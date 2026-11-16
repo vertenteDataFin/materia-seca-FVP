@@ -94,6 +94,35 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(deleteDoc(doc(collection(tec, 'fazendas', FID, 'amostras'), 'a1')));
   });
 
+  it('cargas: todos registram a saída; só balanceiro e admin lançam peso; balanceiro não exclui', async () => {
+    const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
+    await assertSucceeds(setDoc(talhao(admin), { nome: 'Talhão 18 - PD', areaHa: 118, capim: 'Miyagi' }));
+    await assertSucceeds(setDoc(membro(admin, 'campo@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
+    await assertSucceeds(setDoc(membro(admin, 'balanca@fazenda.com.br'), { nome: 'Balança', papel: 'balanceiro' }));
+    await assertSucceeds(setDoc(membro(admin, 'tec@fazenda.com.br'), { nome: 'Téc', papel: 'membro' }));
+    const op = env.authenticatedContext('o', senha('campo@fazenda.com.br', false)).firestore();
+    const bal = env.authenticatedContext('b', senha('balanca@fazenda.com.br', false)).firestore();
+    const tec = env.authenticatedContext('t', senha('tec@fazenda.com.br', false)).firestore();
+    const { deleteDoc, updateDoc } = await import('firebase/firestore');
+    const carga = (db: Firestore, id = 'k1') => doc(collection(db, 'fazendas', FID, 'cargas'), id);
+    // operador registra a saída (sem peso), mas não lança peso
+    await assertSucceeds(setDoc(carga(op), { talhaoId: 't1', saidaEm: '2026-11-14T07:00', pesoBrutoKg: null, taraKg: null }));
+    await assertSucceeds(updateDoc(carga(op), { placa: 'ABC1D23' }));
+    await assertFails(updateDoc(carga(op), { pesoBrutoKg: 40000, taraKg: 15000 }));
+    await assertFails(setDoc(carga(op, 'k2'), { talhaoId: 't1', saidaEm: '2026-11-14T08:00', pesoBrutoKg: 40000, taraKg: 15000 }));
+    // membro (não balanceiro) também não pesa
+    await assertFails(updateDoc(carga(tec), { pesoBrutoKg: 40000, taraKg: 15000 }));
+    // balanceiro pesa, mas não exclui nem edita talhões (só marca colheita finalizada)
+    await assertSucceeds(updateDoc(carga(bal), { pesoBrutoKg: 40000, taraKg: 15000, pesadoEm: '2026-11-14T09:00:00Z' }));
+    await assertFails(deleteDoc(carga(bal)));
+    await assertFails(updateDoc(talhao(bal), { capim: 'Mombaça' }));
+    await assertSucceeds(updateDoc(talhao(op), { colheitaFinalizadaEm: '2026-11-20' }));
+    await assertFails(updateDoc(talhao(op), { colheitaFinalizadaEm: null, areaHa: 1 }));
+    // admin pesa direto ao criar; membro exclui
+    await assertSucceeds(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: 41000, taraKg: 15000 }));
+    await assertSucceeds(deleteDoc(carga(tec)));
+  });
+
   it('conta nova registra só o próprio pedido de acesso; admin lê e apaga', async () => {
     const novo = env.authenticatedContext('n', senha('novo@gmail.com', false)).firestore();
     const pedido = (db: Firestore, e: string) => doc(collection(db, 'fazendas', FID, 'solicitacoes'), e);
@@ -178,7 +207,7 @@ describe.skipIf(!ativo)('RepositorioFirestore', () => {
     a.iniciar();
     b.iniciar();
     await Promise.all([a.aguardarPronto(), b.aguardarPronto()]);
-    expect(a.obter()).toEqual({ talhoes: [], coletas: [], amostras: [] });
+    expect(a.obter()).toEqual({ talhoes: [], coletas: [], amostras: [], cargas: [] });
 
     const geometria: [number, number][][] = [[[-52, -19], [-51.99, -19], [-51.99, -19.01]]];
     const id = a.adicionar('talhoes', { nome: 'Talhão 18 - PD', capim: 'Miyagi', areaHa: 118, geometria, fazenda: undefined });

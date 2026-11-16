@@ -20,8 +20,11 @@ import config from '@material-design-icons/svg/filled/settings.svg?raw';
 import mais from '@material-design-icons/svg/filled/more_horiz.svg?raw';
 import adicionar from '@material-design-icons/svg/filled/add.svg?raw';
 import filtro from '@material-design-icons/svg/filled/filter_list.svg?raw';
+import colheita from '@material-design-icons/svg/filled/agriculture.svg?raw';
+import caminhao from '@material-design-icons/svg/filled/local_shipping.svg?raw';
+import balanca from '@material-design-icons/svg/filled/scale.svg?raw';
 
-const ICONES = { editar, excluir, fechar, atualizar, gps, alerta, ok, expandir, recolher, subir, descer, ordenar, painel, mapa, campo, lab, talhoes, config, mais, adicionar, filtro } as const;
+const ICONES = { editar, excluir, fechar, atualizar, gps, alerta, ok, expandir, recolher, subir, descer, ordenar, painel, mapa, campo, lab, talhoes, config, mais, adicionar, filtro, colheita, caminhao, balanca } as const;
 
 export type NomeIcone = keyof typeof ICONES;
 

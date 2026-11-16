@@ -3,19 +3,23 @@ import type { Papel } from './membros';
 
 export interface Permissoes {
   papel: Papel;
-  /** Pode excluir coletas, pontos e talhões. */
+  /** Pode excluir coletas, pontos, cargas e talhões. */
   podeExcluir: boolean;
   /** Pode criar/editar talhões (cadastro) e restaurar backup. */
   podeEditarTalhoes: boolean;
+  /** Pode lançar o peso da balança nas cargas da colheita (administrador e balanceiro). */
+  podePesar: boolean;
   /** Pode incluir/remover pessoas. */
   admin: boolean;
 }
 
 export function permissoesDoPapel(papel: Papel): Permissoes {
+  const gestor = papel === 'admin' || papel === 'membro';
   return {
     papel,
-    podeExcluir: papel !== 'operador',
-    podeEditarTalhoes: papel !== 'operador',
+    podeExcluir: gestor,
+    podeEditarTalhoes: gestor,
+    podePesar: papel === 'admin' || papel === 'balanceiro',
     admin: papel === 'admin',
   };
 }

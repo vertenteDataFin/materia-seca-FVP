@@ -1,5 +1,5 @@
 import { useEffect, useState } from 'react';
-import { HashRouter, NavLink, Route, Routes } from 'react-router-dom';
+import { HashRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { definirRepositorio } from './dados';
 import { FIREBASE_ATIVO, obterFirebase } from './firebase';
@@ -20,7 +20,7 @@ import NovaColeta from './pages/NovaColeta';
 import ColetaDetalhe from './pages/ColetaDetalhe';
 import ColetaPontos from './pages/ColetaPontos';
 import ColetaPesos from './pages/ColetaPesos';
-import Laboratorio from './pages/Laboratorio';
+import Colheita from './pages/Colheita';
 import { Icone } from './Icone';
 import Config from './pages/Config';
 import Login from './pages/Login';
@@ -143,6 +143,12 @@ function AguardandoLiberacao({ usuario }: { usuario: User }) {
   );
 }
 
+/** Links antigos para /laboratorio (?coleta=…) abrem a Amostragem com a mesma coleta em destaque. */
+function ParaAmostragem() {
+  const { search } = useLocation();
+  return <Navigate to={`/coletas${search}`} replace />;
+}
+
 /** Cabeçalho, navegação e rotas; roda a inicialização (migração, KML, fichas) quando a fonte está pronta. */
 function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: User; permissoes: Permissoes }) {
   const [avisos, setAvisos] = useState<string[]>([]);
@@ -164,8 +170,8 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
         const codigo = (e as { code?: string }).code ?? '';
         if (codigo === 'permission-denied') {
           setErro(
-            permissoes.papel === 'operador'
-              ? `Sem permissão para esta ação com o perfil de operador (${usuario?.email ?? ''}). Se você devia ter acesso, peça ao administrador para incluir seu e-mail em Config → Pessoas com acesso.`
+            permissoes.papel === 'operador' || permissoes.papel === 'balanceiro'
+              ? `Sem permissão para esta ação com o perfil de ${permissoes.papel} (${usuario?.email ?? ''}). Se você devia ter acesso, peça ao administrador para incluir seu e-mail em Config → Pessoas com acesso.`
               : `Acesso negado para ${usuario?.email ?? 'este usuário'}: peça ao administrador para incluir seu e-mail em Config → Pessoas com acesso.`,
           );
         } else {
@@ -186,8 +192,8 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
           <nav>
             <NavLink to="/" end><Icone nome="painel" className="icone" /><span>Painel</span></NavLink>
             <NavLink to="/mapa"><Icone nome="mapa" className="icone" /><span>Mapa</span></NavLink>
-            <NavLink to="/coletas"><Icone nome="campo" className="icone" /><span>Coletas</span></NavLink>
-            <NavLink to="/laboratorio"><Icone nome="lab" className="icone" /><span>Lab</span></NavLink>
+            <NavLink to="/coletas"><Icone nome="lab" className="icone" /><span>Amostragem</span></NavLink>
+            <NavLink to="/colheita"><Icone nome="colheita" className="icone" /><span>Colheita</span></NavLink>
             <NavLink to="/talhoes"><Icone nome="talhoes" className="icone" /><span>Talhões</span></NavLink>
             <NavLink to="/config"><Icone nome="config" className="icone" /><span>Config.</span></NavLink>
           </nav>
@@ -212,7 +218,9 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
             <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
             <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
             <Route path="/coletas/:id" element={<ColetaDetalhe />} />
-            <Route path="/laboratorio" element={<Laboratorio />} />
+            {/* o Laboratório virou o quadro "Aguardando MS" no topo de Amostragem */}
+            <Route path="/laboratorio" element={<ParaAmostragem />} />
+            <Route path="/colheita" element={<Colheita />} />
             <Route path="/config" element={<Config usuario={usuario} />} />
           </Routes>
         </main>

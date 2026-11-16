@@ -42,7 +42,7 @@ export function destinoColeta(id: string, status: StatusColeta): string {
   switch (status) {
     case 'semPontos': return `/coletas/${id}/pontos`;
     case 'campo': return `/coletas/${id}/pesos`;
-    case 'laboratorio': return `/laboratorio?coleta=${id}`;
+    case 'laboratorio': return `/coletas?coleta=${id}`;
     default: return `/coletas/${id}`;
   }
 }

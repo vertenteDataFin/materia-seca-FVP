@@ -120,7 +120,7 @@ export default function ColetaDetalhe() {
         </div>
         <p className="dica">
           Situação: <strong>{ROTULO_STATUS_COLETA[statusColeta(amostras)]}</strong>. Peso verde = massa cortada no quadro de 1 m² (campo);
-          o seco da subamostra de {UMIDO_PADRAO_G} g (já sem a tara) dá a MS e normalmente é lançado em <Link to={`/laboratorio?coleta=${coletaId}`}>Laboratório</Link>, mas
+          o seco da subamostra de {UMIDO_PADRAO_G} g (já sem a tara) dá a MS e normalmente é lançado em <Link to={`/coletas?coleta=${coletaId}`}>Aguardando MS (Amostragem)</Link>, mas
           úmido e seco também podem ser editados aqui (o úmido fica em {UMIDO_PADRAO_G} g se não for informado). <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
         {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use o botão <Icone nome="atualizar" titulo="atualizar posição" /> do ponto para tentar de novo.</p>}

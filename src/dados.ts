@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { Repositorio } from './repositorio';
-import { compararNomes, type Amostra, type Coleta, type Dados, type Novo, type Talhao } from './tipos';
+import { compararNomes, completarDados, type Amostra, type Carga, type Coleta, type Dados, type Novo, type Talhao } from './tipos';
 
 let atual: Repositorio | null = null;
 
@@ -15,7 +15,7 @@ export function repositorio(): Repositorio {
 }
 
 export function dadosAtuais(): Dados {
-  return repositorio().obter() ?? { talhoes: [], coletas: [], amostras: [] };
+  return completarDados(repositorio().obter());
 }
 
 const ligacoes = new WeakMap<Repositorio, { assinar: (cb: () => void) => () => void; obter: () => Dados | undefined }>();
@@ -41,6 +41,8 @@ export function useDados(): Dados | undefined {
       talhoes: [...bruto.talhoes].sort((a, b) => compararNomes(a.nome, b.nome)),
       coletas: bruto.coletas,
       amostras: [...bruto.amostras].sort((a, b) => a.coletaId.localeCompare(b.coletaId) || a.ponto - b.ponto),
+      // mais recente primeiro
+      cargas: [...(bruto.cargas ?? [])].sort((a, b) => b.saidaEm.localeCompare(a.saidaEm) || b.id.localeCompare(a.id)),
     };
   }, [bruto]);
 }
@@ -73,7 +75,7 @@ export function atualizarTalhao(id: string, campos: Partial<Novo<Talhao>>) {
   repositorio().atualizar('talhoes', id, campos);
 }
 
-/** Exclui um talhão e todas as suas coletas e amostras. */
+/** Exclui um talhão e todas as suas coletas, amostras e cargas. */
 export function excluirTalhao(id: string) {
   const d = dadosAtuais();
   const coletas = d.coletas.filter((c) => c.talhaoId === id);
@@ -81,8 +83,23 @@ export function excluirTalhao(id: string) {
   repositorio().lote([
     ...d.amostras.filter((a) => ids.has(a.coletaId)).map((a) => ({ tipo: 'remover' as const, colecao: 'amostras' as const, id: a.id })),
     ...coletas.map((c) => ({ tipo: 'remover' as const, colecao: 'coletas' as const, id: c.id })),
+    ...d.cargas.filter((c) => c.talhaoId === id).map((c) => ({ tipo: 'remover' as const, colecao: 'cargas' as const, id: c.id })),
     { tipo: 'remover', colecao: 'talhoes', id },
   ]);
+}
+
+// ---- Cargas (colheita) ----
+
+export function adicionarCarga(c: Novo<Carga>): string {
+  return repositorio().adicionar('cargas', { ...c, criadoEm: c.criadoEm ?? new Date().toISOString() });
+}
+
+export function atualizarCarga(id: string, campos: Partial<Novo<Carga>>) {
+  repositorio().atualizar('cargas', id, campos);
+}
+
+export function excluirCarga(id: string) {
+  repositorio().remover('cargas', id);
 }
 
 // ---- Coletas ----
@@ -124,6 +141,8 @@ export interface Backup {
   talhoes: unknown[];
   coletas: unknown[];
   amostras: unknown[];
+  /** Cargas da colheita (backups antigos não têm). */
+  cargas?: unknown[];
 }
 
 /**
@@ -150,7 +169,14 @@ export function restaurarBackup(b: Backup) {
     id: r.novoId(),
     coletaId: idC.get(String(a.coletaId)) ?? String(a.coletaId),
   }));
+  const cargas = ((b.cargas ?? []) as (Carga & { talhaoId: string | number })[]).map((c) => ({
+    ...c,
+    id: r.novoId(),
+    talhaoId: idT.get(String(c.talhaoId)) ?? String(c.talhaoId),
+  }));
   r.lote([
+    ...d.cargas.map((c) => ({ tipo: 'remover' as const, colecao: 'cargas' as const, id: c.id })),
+    ...cargas.map(({ id, ...c }) => ({ tipo: 'adicionar' as const, colecao: 'cargas' as const, id, dados: c as Record<string, unknown> })),
     ...d.amostras.map((a) => ({ tipo: 'remover' as const, colecao: 'amostras' as const, id: a.id })),
     ...d.coletas.map((c) => ({ tipo: 'remover' as const, colecao: 'coletas' as const, id: c.id })),
     ...d.talhoes.map((t) => ({ tipo: 'remover' as const, colecao: 'talhoes' as const, id: t.id })),

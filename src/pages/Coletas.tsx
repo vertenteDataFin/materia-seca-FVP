@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useSearchParams } from 'react-router-dom';
+import { FilaMS } from './Laboratorio';
 import { amostrasPorColeta, useDados } from '../dados';
 import { compararColetasDesc } from '../tipos';
 import { resumoColeta, statusMS } from '../calc';
@@ -11,10 +12,14 @@ import { useParametros } from '../parametros';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
 
-/** Módulo de coletas: histórico e início de uma nova (talhão escolhido no Mapa). */
+/**
+ * Amostragem: no topo, as amostras aguardando MS (laboratório); embaixo, as coletas.
+ * Nova coleta começa pelo Mapa ou pela lista de talhões.
+ */
 export default function Coletas() {
   const dados = useDados();
   const navigate = useNavigate();
+  const [params] = useSearchParams();
   const parametros = useParametros();
   const [filtro, setFiltro] = useState('');
   const [de, setDe] = useState('');
@@ -37,22 +42,22 @@ export default function Coletas() {
   }, [dados, filtro, de, ate]);
 
   if (!dados) return null;
-  const aguardandoLab = linhas.filter((l) => l.status === 'laboratorio').length;
 
   return (
     <>
       <div className="titulo-linha">
-        <h1>Coletas</h1>
+        <h1>Amostragem</h1>
         <div className="acoes">
           <Link className="botao primario" to="/mapa">+ Nova coleta (pelo mapa)</Link>
           <Link className="botao" to="/coletas/nova">+ Nova coleta (pela lista)</Link>
         </div>
       </div>
       <p className="dica">
-        Em campo: escolha o talhão, marque cada ponto pelo GPS e pese a massa verde do quadro. Etiquete o saco com o código do ponto; a MS é lançada depois em{' '}
-        <Link to="/laboratorio">Laboratório</Link>{aguardandoLab ? ` (${aguardandoLab} coleta(s) aguardando)` : ''}.
-        Toque numa coleta para abrir: as que aguardam MS vão para o laboratório; as em andamento, para a etapa pendente.
+        Em campo: escolha o talhão, marque cada ponto pelo GPS e pese a massa verde do quadro. Etiquete o saco com o código do ponto; a MS é lançada
+        depois, no quadro <strong>Aguardando MS</strong> aqui no topo. Toque numa coleta para abrir a etapa pendente ou o resultado.
       </p>
+
+      <FilaMS destaque={params.get('coleta')} />
 
       <div className="cartao">
         <div className="cabecalho-cartao cabecalho-filtro">

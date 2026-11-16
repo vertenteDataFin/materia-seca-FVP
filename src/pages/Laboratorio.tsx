@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icone } from '../Icone';
-import { Link, useSearchParams } from 'react-router-dom';
+import { Link } from 'react-router-dom';
 import { amostrasPorColeta, atualizarAmostra, useDados } from '../dados';
 import { compararColetasDesc, type Amostra, type Coleta, type Talhao } from '../tipos';
 import { lancarSeco, resumoColeta, teorMS, UMIDO_PADRAO_G } from '../calc';
@@ -15,35 +15,35 @@ interface Grupo {
   pendentes: number;
 }
 
-/** Módulo de laboratório: amostras vindas do campo aguardando peso úmido/seco (MS). */
-export default function Laboratorio() {
+/**
+ * Fila do laboratório (topo da página Amostragem): coletas com o campo concluído e pontos ainda sem MS,
+ * com o peso seco lançado ali mesmo. Some quando não há nada pendente.
+ */
+export function FilaMS({ destaque }: { destaque: string | null }) {
   const dados = useDados();
-  const [params] = useSearchParams();
-  const destaque = params.get('coleta');
-  const [mostrarConcluidas, setMostrarConcluidas] = useState(false);
   const [abertos, setAbertos] = useState<Set<string>>(() => new Set(destaque ? [destaque] : []));
 
-  const grupos = useMemo(() => {
-    if (!dados) return { pendentes: [] as Grupo[], concluidas: [] as Grupo[] };
+  const pendentes = useMemo(() => {
+    if (!dados) return [] as Grupo[];
     const porColeta = amostrasPorColeta(dados.amostras);
     const talhoes = new Map(dados.talhoes.map((t) => [t.id, t]));
-    const todos: Grupo[] = [...dados.coletas].sort(compararColetasDesc).map((c) => {
-      const amostras = porColeta.get(c.id) ?? [];
-      return { c, t: talhoes.get(c.talhaoId), amostras, pendentes: amostras.filter(pendenteLab).length };
-    });
-    return {
+    return [...dados.coletas]
+      .sort(compararColetasDesc)
+      .map((c) => {
+        const amostras = porColeta.get(c.id) ?? [];
+        return { c, t: talhoes.get(c.talhaoId), amostras, pendentes: amostras.filter(pendenteLab).length };
+      })
       // Só entram na fila coletas com o campo concluído (todos os pontos com peso verde).
-      pendentes: todos.filter((g) => statusColeta(g.amostras) === 'laboratorio'),
-      concluidas: todos.filter((g) => g.amostras.length && statusColeta(g.amostras) === 'completa'),
-    };
+      .filter((g) => statusColeta(g.amostras) === 'laboratorio');
   }, [dados]);
 
   useEffect(() => {
     if (!destaque) return;
+    setAbertos((s) => (s.has(destaque) ? s : new Set([...s, destaque])));
     document.getElementById(`lab-${destaque}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
-  }, [destaque, dados]);
+  }, [destaque, dados != null]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!dados) return null;
+  if (!dados || !pendentes.length) return null;
   const alternar = (id: string) =>
     setAbertos((s) => {
       const n = new Set(s);
@@ -51,41 +51,22 @@ export default function Laboratorio() {
       else n.add(id);
       return n;
     });
-  const totalPendentes = grupos.pendentes.reduce((s, g) => s + g.pendentes, 0);
+  const total = pendentes.reduce((s, g) => s + g.pendentes, 0);
 
   return (
-    <>
-      <div className="titulo-linha">
-        <h1>Laboratório</h1>
-        <Link to="/coletas">Coletas →</Link>
+    <div className="cartao fila-ms">
+      <div className="cabecalho-cartao">
+        <h2>Aguardando MS</h2>
+        <span className="selo selo-alto">{total} amostra{total === 1 ? '' : 's'}</span>
       </div>
       <p className="dica">
-        Para cada amostra que veio do campo, pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra úmida e lance o peso <strong>seco</strong> (g, já sem a tara):
-        o seco em gramas já é a MS em %. A coleta sai desta fila quando todos os pontos estiverem aferidos. Confira o código da etiqueta do saco.
+        Pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra úmida e lance o peso <strong>seco</strong> (g, sem a tara): o seco em gramas já é a MS em %.
+        Confira o código da etiqueta do saco. A coleta sai daqui quando todos os pontos estiverem aferidos.
       </p>
-
-      <div className="cartao">
-        <div className="cabecalho-cartao">
-          <h2>Aguardando MS</h2>
-          <span className={`selo ${totalPendentes ? 'selo-alto' : 'selo-ideal'}`}>{totalPendentes} amostra(s)</span>
-        </div>
-        {!grupos.pendentes.length ? (
-          <p className="vazio">Nenhuma amostra pendente. Coletas ainda em campo (sem todos os pesos verdes) aparecem em <Link to="/coletas">Coletas</Link>.</p>
-        ) : (
-          grupos.pendentes.map((g) => <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || grupos.pendentes.length === 1} alternar={() => alternar(g.c.id)} />)
-        )}
-      </div>
-
-      {grupos.concluidas.length > 0 && (
-        <div className="cartao">
-          <div className="cabecalho-cartao">
-            <h2>Concluídas ({grupos.concluidas.length})</h2>
-            <button onClick={() => setMostrarConcluidas((v) => !v)}>{mostrarConcluidas ? 'Ocultar' : 'Mostrar'}</button>
-          </div>
-          {mostrarConcluidas && grupos.concluidas.map((g) => <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id)} alternar={() => alternar(g.c.id)} />)}
-        </div>
-      )}
-    </>
+      {pendentes.map((g) => (
+        <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || pendentes.length === 1} alternar={() => alternar(g.c.id)} />
+      ))}
+    </div>
   );
 }
 

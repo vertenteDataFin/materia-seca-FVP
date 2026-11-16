@@ -36,15 +36,26 @@ service cloud.firestore {
       return ehMembro(fid) && papel(fid) == 'admin';
     }
 
+    // Exclui registros e edita o cadastro de talhões: administrador e membro (operador e balanceiro não).
     function podeExcluir(fid) {
-      return ehMembro(fid) && papel(fid) != 'operador';
+      return ehMembro(fid) && papel(fid) in ['admin', 'membro'];
+    }
+
+    // Lança o peso da balança nas cargas: administrador e balanceiro.
+    function podePesar(fid) {
+      return ehMembro(fid) && papel(fid) in ['admin', 'balanceiro'];
+    }
+
+    // Campos da pesagem (só quem pode pesar grava).
+    function camposPesagem() {
+      return ['pesoBrutoKg', 'taraKg', 'pesadoEm', 'ticket'];
     }
 
     match /fazendas/{fid}/membros/{m} {
       allow read: if ehMembro(fid);
       allow create, update: if ehAdmin(fid)
         && m == m.lower()
-        && request.resource.data.papel in ['admin', 'membro', 'operador']
+        && request.resource.data.papel in ['admin', 'membro', 'operador', 'balanceiro']
         && request.resource.data.nome is string
         // Ninguém muda o próprio papel (evita um admin se rebaixar sem querer).
         && (m != email() || resource == null || request.resource.data.papel == resource.data.papel);
@@ -72,6 +83,9 @@ service cloud.firestore {
     match /fazendas/{fid}/talhoes/{id} {
       allow read: if ehMembro(fid);
       allow write: if podeExcluir(fid);
+      // Marcar/desmarcar "colheita finalizada": qualquer membro (só esse campo).
+      allow update: if ehMembro(fid)
+        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['colheitaFinalizadaEm']);
     }
 
     // Quem lê o histórico de alterações e desfaz exclusões/edições. Mantenha igual a AUDITORES em src/firebaseConfig.ts.
@@ -89,7 +103,18 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Coletas e amostras: todo membro registra e edita; só quem não é operador exclui.
+    // Cargas da colheita: todo membro registra a saída do campo (sem peso); o peso da balança só
+    // administrador e balanceiro lançam ou alteram; excluir, só administrador e membro.
+    match /fazendas/{fid}/cargas/{id} {
+      allow read: if ehMembro(fid);
+      allow create: if ehMembro(fid)
+        && (podePesar(fid) || (request.resource.data.get('pesoBrutoKg', null) == null && request.resource.data.get('taraKg', null) == null));
+      allow update: if ehMembro(fid)
+        && (podePesar(fid) || !request.resource.data.diff(resource.data).affectedKeys().hasAny(camposPesagem()));
+      allow delete: if podeExcluir(fid);
+    }
+
+    // Coletas e amostras: todo membro registra e edita; só administrador e membro excluem.
     match /fazendas/{fid}/{col}/{id} {
       allow read, create, update: if ehMembro(fid) && col in ['coletas', 'amostras'];
       allow delete: if podeExcluir(fid) && col in ['coletas', 'amostras'];

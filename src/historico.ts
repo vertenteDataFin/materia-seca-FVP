@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, doc, limit, onSnapshot, orderBy, query, setDoc, updateDoc, type Firestore } from 'firebase/firestore';
 import type { Operacao } from './repositorio';
 import { gerarId } from './repositorio';
-import type { Amostra, Colecao, Coleta, Dados, Talhao } from './tipos';
+import type { Amostra, Carga, Colecao, Coleta, Dados, Talhao } from './tipos';
 import { fmtData } from './util';
 
 /**
@@ -47,7 +47,12 @@ const ROTULO_CAMPO: Record<string, string> = {
   ponto: 'nº do ponto', pesoVerdeKg: 'peso verde (kg)', pesoUmidoG: 'úmido (g)', pesoSecoG: 'seco (g)',
   lat: 'posição', lng: 'posição', precisaoM: 'precisão GPS', capturadoEm: 'posição', origemPos: 'origem da posição',
   areaKmlHa: 'área do KML (ha)', capimKml: 'capim do KML', geometria: 'contorno',
+  saidaEm: 'saída', placa: 'placa', silo: 'silo', pesoBrutoKg: 'peso bruto (kg)', taraKg: 'tara (kg)', pesadoEm: 'pesagem',
+  ticket: 'ticket', msPct: 'MS da carga (%)', colheitaFinalizadaEm: 'colheita finalizada',
 };
+
+/** Ordem das coleções nas descrições e na restauração (pais antes dos filhos). */
+const ORDEM: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas'];
 
 /** Campos descritos só pelo nome, sem os valores (posição, contorno: valores longos e ilegíveis). */
 const SO_ROTULO: Record<string, string> = { 'posição': 'posição alterada', contorno: 'contorno alterado' };
@@ -84,13 +89,22 @@ function nomes(d: Dados) {
     talhoes: (t: Talhao) => `talhão ${t.nome}`,
     coletas: (c: Coleta) => coleta(c),
     amostras: (a: Amostra) => `ponto ${a.ponto} da ${coleta(d.coletas.find((c) => c.id === a.coletaId))}`,
+    cargas: (c: Carga) => `carga ${talhao(c.talhaoId)} · ${fmtDataHora(c.saidaEm)}${c.placa ? ` · ${c.placa}` : ''}`,
   };
 }
 
-const PLURAL: Record<Colecao, [string, string]> = { talhoes: ['talhão', 'talhões'], coletas: ['coleta', 'coletas'], amostras: ['amostra', 'amostras'] };
+function fmtDataHora(iso: string | undefined): string {
+  if (!iso) return '?';
+  const [data, hora] = iso.split('T');
+  return `${fmtData(data)}${hora ? ` ${hora.slice(0, 5)}` : ''}`;
+}
+
+const PLURAL: Record<Colecao, [string, string]> = {
+  talhoes: ['talhão', 'talhões'], coletas: ['coleta', 'coletas'], amostras: ['amostra', 'amostras'], cargas: ['carga', 'cargas'],
+};
 
 function contagem(porColecao: Partial<Record<Colecao, unknown[]>>): string {
-  return (['talhoes', 'coletas', 'amostras'] as Colecao[])
+  return ORDEM
     .filter((c) => porColecao[c]?.length)
     .map((c) => `${porColecao[c]!.length} ${PLURAL[c][porColecao[c]!.length === 1 ? 0 : 1]}`)
     .join(', ');
@@ -135,7 +149,7 @@ export function descreverLote(ops: Operacao[], anterior: Dados, rotulo?: RotuloL
 
   const principal = (grupo: Partial<Record<Colecao, Record<string, unknown>[]>>) => {
     const total = Object.values(grupo).reduce((s, l) => s + (l?.length ?? 0), 0);
-    for (const c of ['talhoes', 'coletas', 'amostras'] as Colecao[]) {
+    for (const c of ORDEM) {
       const lista = grupo[c];
       if (!lista?.length) continue;
       if (lista.length === 1 && total <= 1) return (n[c] as (x: unknown) => string)(lista[0]);
@@ -160,15 +174,16 @@ export function descreverLote(ops: Operacao[], anterior: Dados, rotulo?: RotuloL
       talhoes: [...anterior.talhoes, ...((criados.talhoes ?? []) as unknown as Talhao[])],
       coletas: [...anterior.coletas, ...((criados.coletas ?? []) as unknown as Coleta[])],
       amostras: anterior.amostras,
+      cargas: anterior.cargas ?? [],
     };
     const nc = nomes(estadoComCriados);
     const total = Object.values(criados).reduce((s, l) => s + (l?.length ?? 0), 0);
-    const primeiro = (['talhoes', 'coletas', 'amostras'] as Colecao[]).find((c) => criados[c]?.length)!;
+    const primeiro = ORDEM.find((c) => criados[c]?.length)!;
     descricao = total === 1 ? (nc[primeiro] as (x: unknown) => string)(criados[primeiro]![0]) : contagem(criados);
   } else if (Object.keys(anteriores).length) {
     acao = 'editou';
     const total = Object.values(anteriores).reduce((s, l) => s + (l?.length ?? 0), 0);
-    const primeiro = (['talhoes', 'coletas', 'amostras'] as Colecao[]).find((c) => anteriores[c]?.length)!;
+    const primeiro = ORDEM.find((c) => anteriores[c]?.length)!;
     const alvo = total === 1 ? (n[primeiro] as (x: unknown) => string)(docAnterior(primeiro, anteriores[primeiro]![0].id as string)) : contagem(anteriores);
     const detalhe = mudancas.slice(0, 3).join(' · ') + (mudancas.length > 3 ? ` · +${mudancas.length - 3}` : '');
     descricao = `${alvo} — ${detalhe}`;
@@ -199,7 +214,7 @@ export function opsDeRestauracao(entrada: EntradaHistorico, atual: Dados): Opera
   const itens = JSON.parse(entrada.itensJson) as ItensHistorico;
   const existe = (colecao: Colecao, id: string) => (atual[colecao] as { id: string }[]).some((x) => x.id === id);
   const ops: Operacao[] = [];
-  for (const colecao of ['talhoes', 'coletas', 'amostras'] as Colecao[]) {
+  for (const colecao of ORDEM) {
     for (const d of itens.removidos[colecao] ?? []) {
       const { id, ...dados } = d as { id: string } & Record<string, unknown>;
       if (!existe(colecao, id)) ops.push({ tipo: 'adicionar', colecao, id, dados });

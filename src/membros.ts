@@ -5,14 +5,17 @@ import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 
 /**
  * admin: tudo, inclui pessoas · membro: tudo nos dados, não gerencia pessoas ·
- * operador: consulta e registra (coletas, pontos, pesos), não exclui nem mexe em talhões.
+ * operador: consulta e registra (coletas, pontos, pesos), não exclui nem mexe em talhões ·
+ * balanceiro: como o operador, e também lança o peso da balança nas cargas da colheita.
+ * Só administrador e balanceiro lançam peso de balança.
  */
-export type Papel = 'admin' | 'membro' | 'operador';
+export type Papel = 'admin' | 'membro' | 'operador' | 'balanceiro';
 
 export const ROTULO_PAPEL: Record<Papel, string> = {
   admin: 'Administrador (tudo, inclui pessoas)',
   membro: 'Membro (registra e exclui)',
   operador: 'Operador (consulta e registra, não exclui)',
+  balanceiro: 'Balanceiro (lança o peso da balança, não exclui)',
 };
 
 export interface Membro {

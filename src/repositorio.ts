@@ -1,4 +1,4 @@
-import { COLECOES, type Colecao, type Dados, type Entidade, type Novo } from './tipos';
+import { COLECOES, completarDados, dadosVazios, type Colecao, type Dados, type Entidade, type Novo } from './tipos';
 import type { RotuloLote } from './historico';
 
 /** Operação de um lote atômico. */
@@ -58,7 +58,7 @@ export class RepositorioMemoria implements Repositorio {
 
   constructor(inicial?: Partial<Dados>) {
     this.reiniciarPronto();
-    if (inicial) this.dados = { talhoes: [], coletas: [], amostras: [], ...inicial };
+    if (inicial) this.dados = completarDados(inicial);
   }
 
   /** Volta ao estado "ainda não confirmado" (ao reiniciar/trocar de usuário). */
@@ -67,7 +67,7 @@ export class RepositorioMemoria implements Repositorio {
   }
 
   iniciar() {
-    if (!this.dados) this.dados = { talhoes: [], coletas: [], amostras: [] };
+    if (!this.dados) this.dados = dadosVazios();
     this.marcarPronto();
     this.notificar();
   }
@@ -187,12 +187,12 @@ export class RepositorioLocal extends RepositorioMemoria {
   override iniciar() {
     lerLocal()
       .then((d) => {
-        this.substituir(d ?? { talhoes: [], coletas: [], amostras: [] });
+        this.substituir(completarDados(d));
         this.marcarPronto();
       })
       .catch((e) => {
         this.falhar(e);
-        this.substituir({ talhoes: [], coletas: [], amostras: [] });
+        this.substituir(dadosVazios());
         this.marcarPronto();
       });
   }

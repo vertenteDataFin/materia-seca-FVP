@@ -454,6 +454,47 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   .lab-linha > .n:last-child { grid-column: 1 / -1; text-align: left; }
   .lab-cabecalho { flex-wrap: wrap; }
 }
+/* ---- Amostragem: fila do laboratório no topo ---- */
+.cartao.fila-ms { border-color: #f0d9a0; }
+/* ---- Colheita ---- */
+.ok { color: var(--verde); font-weight: 600; margin: 0; }
+.lista-cargas { display: grid; gap: 0.6rem; }
+.carga-pendente { border: 1px solid #f0d9a0; background: #fffaf0; border-radius: 10px; padding: 0.6rem 0.75rem; }
+.carga-topo { display: flex; justify-content: space-between; align-items: flex-start; gap: 0.5rem; }
+.carga-pesos { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)) auto auto; gap: 0.5rem 0.75rem; align-items: end; margin-top: 0.5rem; }
+.carga-pesos label { margin: 0; font-size: 0.8rem; min-width: 0; }
+.carga-pesos input { width: 100%; min-width: 0; box-sizing: border-box; }
+.carga-pesos .erro { grid-column: 1 / -1; }
+.carga-liquido { display: flex; flex-direction: column; align-items: flex-end; font-variant-numeric: tabular-nums; }
+.carga-liquido strong { font-size: 1.1rem; }
+.andamento { border: 1px solid var(--borda); border-radius: 10px; padding: 0.7rem 0.8rem; margin-bottom: 0.7rem; background: white; }
+.andamento.finalizado { background: var(--fundo); }
+.andamento-topo { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }
+.andamento-topo strong { font-size: 1.05rem; }
+.barra-progresso { height: 0.7rem; border-radius: 999px; background: var(--fundo); border: 1px solid var(--borda); overflow: hidden; margin: 0.6rem 0 0.3rem; }
+.barra-progresso > span { display: block; height: 100%; background: var(--verde); border-radius: 999px; transition: width 0.4s; }
+.andamento-area { margin: 0 0 0.5rem; font-size: 0.95rem; }
+.andamento-numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+.andamento-numeros > div { background: var(--fundo); border-radius: 8px; padding: 0.35rem 0.5rem; min-width: 0; }
+.andamento-numeros span { display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); }
+.andamento-numeros strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.andamento-numeros small { font-weight: 500; color: var(--alerta); font-size: 0.72rem; }
+.andamento-ref { margin: 0.5rem 0; }
+button.link.mostrar-finalizados { margin: 0.25rem 0 0.6rem; }
+tr.linha-edicao-carga > td { background: var(--fundo); white-space: normal; }
+.carga-edicao { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem 0.75rem; align-items: end; padding: 0.25rem 0; }
+.carga-edicao label { margin: 0; font-size: 0.8rem; min-width: 0; }
+.carga-edicao input { width: 100%; min-width: 0; box-sizing: border-box; }
+.carga-edicao .largo { grid-column: 1 / -1; margin: 0; }
+.carga-edicao > button { justify-self: start; }
+@media (max-width: 700px) {
+  .carga-pesos { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .carga-pesos .carga-liquido { align-items: flex-start; }
+  .carga-pesos > button { grid-column: 1 / -1; }
+  .andamento-numeros { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .carga-edicao { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tabela-cartoes.lista-compacta tr.linha-edicao-carga td { padding: 0.5rem 0.4rem; }
+}
 /* ---- Semáforo ---- */
 .selo-verde { background: #d8f0d0; color: #1d5a24; }
 .selo-amarelo { background: #fff1b8; color: #6b5300; }

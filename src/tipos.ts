@@ -13,6 +13,8 @@ export interface Talhao {
   /** Contorno do talhão (anéis externos [lng, lat]), importado de KML. */
   geometria?: [number, number][][];
   observacoes?: string;
+  /** Colheita marcada como finalizada (data AAAA-MM-DD); null/ausente = não finalizada. */
+  colheitaFinalizadaEm?: string | null;
 }
 
 /** Evento de amostragem em um talhão (uma ida a campo). */
@@ -51,6 +53,30 @@ export interface Amostra {
   observacoes?: string;
 }
 
+/**
+ * Carga de silagem (um caminhão). Registrada em duas etapas: no campo (talhão e saída) e na balança
+ * (pesos). A carga fica "aguardando pesagem" até o peso ser lançado; com o peso, está encerrada.
+ */
+export interface Carga {
+  id: string;
+  talhaoId: string;
+  /** Saída do campo (ISO, data e hora local "AAAA-MM-DDTHH:mm"). */
+  saidaEm: string;
+  placa?: string;
+  silo?: string;
+  /** Peso bruto na balança (kg). */
+  pesoBrutoKg: number | null;
+  /** Tara do caminhão (kg). */
+  taraKg: number | null;
+  /** Instante da pesagem (ISO). */
+  pesadoEm?: string | null;
+  ticket?: string;
+  /** MS da carga (%), se amostrada na colheita; sem ela vale a MS da última amostragem do talhão. */
+  msPct?: number | null;
+  observacoes?: string;
+  criadoEm?: string;
+}
+
 /** Registro ainda sem id (antes de gravar). */
 export type Novo<T extends { id: string }> = Omit<T, 'id'>;
 
@@ -58,12 +84,23 @@ export interface Dados {
   talhoes: Talhao[];
   coletas: Coleta[];
   amostras: Amostra[];
+  cargas: Carga[];
 }
 
 export type Colecao = keyof Dados;
 export type Entidade<C extends Colecao> = Dados[C][number];
 
-export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras'];
+export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas'];
+
+/** Estado vazio (todas as coleções). */
+export function dadosVazios(): Dados {
+  return { talhoes: [], coletas: [], amostras: [], cargas: [] };
+}
+
+/** Completa um estado salvo antes de existirem coleções novas (ex.: cargas). */
+export function completarDados(d: Partial<Dados> | undefined): Dados {
+  return { ...dadosVazios(), ...(d ?? {}) };
+}
 
 /** Ordem natural de nomes: "Talhão 13" < "Talhão 17A" < "Talhão 18" < "Talhão C3" (não 1, 10, 13, 2…). */
 export function compararNomes(a: string, b: string): number {

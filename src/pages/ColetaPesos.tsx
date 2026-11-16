@@ -95,9 +95,9 @@ export default function ColetaPesos() {
       <div className="acoes">
         <Link className="botao" to={`/coletas/${coletaId}/pontos`}>← Pontos</Link>
         <Link className="botao primario" to="/coletas">Concluir coleta de campo</Link>
-        <Link className="botao" to={`/laboratorio?coleta=${coletaId}`}>Lançar MS agora (laboratório)</Link>
+        <Link className="botao" to={`/coletas?coleta=${coletaId}`}>Lançar MS agora</Link>
       </div>
-      <p className="dica">A MS (peso úmido e seco da subamostra) é lançada depois, no módulo Laboratório. O resultado completo fica em "Abrir" na lista de coletas.</p>
+      <p className="dica">A MS (peso úmido e seco da subamostra) é lançada depois, no quadro "Aguardando MS" no topo de Amostragem. O resultado completo fica na lista de coletas.</p>
     </>
   );
 }
