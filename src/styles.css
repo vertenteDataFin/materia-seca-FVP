@@ -381,9 +381,13 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   .tabela-cartoes.painel-lista td.n { text-align: right; font-size: 1.05rem; font-weight: 600; font-variant-numeric: tabular-nums; line-height: 1.15; }
   .tabela-cartoes.painel-lista td[data-rotulo]::before { font-size: 0.58rem; letter-spacing: 0.02em; margin-bottom: 0; white-space: nowrap; }
   .tabela-cartoes.painel-lista td.vazio { grid-column: 1 / -1; text-align: center; font-weight: normal; }
-  /* colheita: linha inteira embaixo, rótulo ao lado da barrinha */
-  .tabela-cartoes.painel-lista td.col-colheita:not(.oculta-cel) { grid-column: 1 / -1; display: flex; align-items: center; gap: 0.5rem; margin-top: 0.35rem; }
-  .tabela-cartoes.painel-lista td.col-colheita .progresso-mini { flex: 1; }
+  /* colheita: mais uma coluna à direita, % em cima e barrinha embaixo */
+  .tabela-cartoes.painel-lista tr:has(td.col-colheita) { grid-template-columns: minmax(0, 1fr) auto auto auto auto; gap: 0 0.55rem; }
+  .tabela-cartoes.painel-lista td.col-colheita { min-width: 0; }
+  .tabela-cartoes.painel-lista td.col-colheita .progresso-mini { flex-direction: column-reverse; align-items: flex-end; gap: 0.15rem; }
+  .tabela-cartoes.painel-lista td.col-colheita .progresso-texto { font-size: inherit; }
+  .tabela-cartoes.painel-lista td.col-colheita .barra-progresso { width: 3.2rem; min-width: 0; flex: none; height: 0.35rem; }
+  .tabela-cartoes.painel-lista td.col-colheita > .mudo { color: inherit; }
 }
 
 /* ---- Login / conta ---- */

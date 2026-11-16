@@ -57,9 +57,15 @@ export function comparadorColuna(col: Coluna, asc: boolean) {
 function ProgressoColheita({ a }: { a?: AndamentoTalhao }) {
   if (!a) return <span className="mudo">—</span>;
   const pct = progressoColheita(a);
-  const texto = a.finalizada ? 'finalizada' : pct == null ? 'sem amostragem' : `${fmt(pct, 0)}%`;
+  // texto curto para caber na coluna do celular; o detalhe vai no title
+  const texto = a.finalizada ? '100% ✓' : pct == null ? '—' : `${fmt(pct, 0)}%`;
+  const titulo = a.finalizada
+    ? 'Colheita finalizada'
+    : a.areaColhidaHa != null
+      ? `${fmt(a.areaColhidaHa, 1)} de ${fmt(a.talhao.areaHa, 1)} ha colhidos`
+      : 'Em colheita, sem amostragem para estimar a área';
   return (
-    <Link to="/colheita" className={`progresso-mini${a.finalizada ? ' finalizado' : ''}`} title={a.areaColhidaHa != null ? `${fmt(a.areaColhidaHa, 1)} de ${fmt(a.talhao.areaHa, 1)} ha` : undefined}>
+    <Link to="/colheita" className={`progresso-mini${a.finalizada ? ' finalizado' : ''}`} title={titulo}>
       <span className="barra-progresso" aria-hidden="true"><span style={{ width: `${pct ?? 0}%` }} /></span>
       <span className="progresso-texto">{texto}</span>
     </Link>
@@ -330,7 +336,7 @@ export default function Painel() {
                   <td className="n" data-rotulo="MV t/ha">{fmt(r?.tMVha)}</td>
                   <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
                   <td className="n" data-rotulo="MS t/ha">{fmt(r?.tMSha)}</td>
-                  <td className={`col-colheita largo-cel${a ? '' : ' oculta-cel'}`} data-rotulo="Colheita">
+                  <td className="n col-colheita" data-rotulo="Colheita">
                     <ProgressoColheita a={a} />
                   </td>
                 </tr>
