@@ -28,7 +28,7 @@ function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; conf
  * Detalhe do talhão: resumo enxuto (capim e área), menu "⋯" com as ações e, abaixo, as coletas em lista.
  * As fontes de capim/área (KML × foto × em uso) ficam recolhidas e abrem pelo menu.
  */
-export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talhao: Talhao; aoFechar: () => void; aoEditar: (t: Talhao) => void }) {
+export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar, embutido = false }: { talhao: Talhao; aoFechar: () => void; aoEditar: (t: Talhao) => void; embutido?: boolean }) {
   const parametros = useParametros();
   const dados = useDados();
   const navigate = useNavigate();
@@ -73,18 +73,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
   const usarArea = (a: number) => atualizarTalhao(t.id, { areaHa: Math.round(a * 100) / 100 });
   const acao = (f: () => void) => () => { setMenuAberto(false); f(); };
 
-  return (
-    <div className="cartao detalhe">
-      <div className="cabecalho-cartao detalhe-topo">
-        <div className="detalhe-titulo">
-          <h2>
-            {t.nome} {t.fazenda && <small className="mudo">· Faz. {t.fazenda}</small>}
-          </h2>
-          <p className="resumo-talhao">
-            <span><span className="mudo">Capim</span> <strong>{t.capim || '—'}</strong></span>
-            <span><span className="mudo">Área</span> <strong>{t.areaHa > 0 ? `${fmt(t.areaHa, 2)} ha` : '—'}</strong></span>
-          </p>
-        </div>
+  const menu = (
         <div className="menu-acoes" ref={menuRef}>
           <button type="button" className="icone-acao" aria-haspopup="menu" aria-expanded={menuAberto} aria-label="Mais ações" title="Mais ações" onClick={() => setMenuAberto((v) => !v)}>
             <Icone nome="mais" />
@@ -99,8 +88,31 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
             </div>
           )}
         </div>
+  );
+
+  return (
+    <div className={embutido ? 'detalhe-embutido' : 'cartao detalhe'}>
+      {embutido ? (
+        // dentro do card do talhão: nome, área e capim já estão no card; aqui só as coletas e o menu
+        <div className="cabecalho-cartao detalhe-topo">
+          <h3 className="detalhe-titulo">Coletas neste talhão</h3>
+          {menu}
+        </div>
+      ) : (
+      <div className="cabecalho-cartao detalhe-topo">
+        <div className="detalhe-titulo">
+          <h2>
+            {t.nome} {t.fazenda && <small className="mudo">· Faz. {t.fazenda}</small>}
+          </h2>
+          <p className="resumo-talhao">
+            <span><span className="mudo">Capim</span> <strong>{t.capim || '—'}</strong></span>
+            <span><span className="mudo">Área</span> <strong>{t.areaHa > 0 ? `${fmt(t.areaHa, 2)} ha` : '—'}</strong></span>
+          </p>
+        </div>
+        {menu}
         <button type="button" className="icone-acao" onClick={aoFechar} aria-label="Fechar" title="Fechar"><Icone nome="fechar" /></button>
       </div>
+      )}
 
       {mostrarFontes && (
         <div className="colunas fontes-talhao">
@@ -162,7 +174,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar }: { talha
         </div>
       )}
 
-      <h3>Coletas neste talhão</h3>
+      {!embutido && <h3>Coletas neste talhão</h3>}
       {!dados ? null : !coletas.length ? (
         <p className="vazio">Nenhuma coleta ainda.</p>
       ) : (

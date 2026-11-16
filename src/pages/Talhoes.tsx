@@ -183,7 +183,7 @@ export default function Talhoes() {
                   {aberto && (
                     <tr className="linha-detalhe">
                       <td colSpan={8}>
-                        <DetalheTalhao talhao={t} aoFechar={() => setMostrarRegistros(false)} aoEditar={editar} />
+                        <DetalheTalhao talhao={t} aoFechar={() => setMostrarRegistros(false)} aoEditar={editar} embutido />
                       </td>
                     </tr>
                   )}
