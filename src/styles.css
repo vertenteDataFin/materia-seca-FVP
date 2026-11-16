@@ -467,6 +467,9 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
 .carga-pesos .erro { grid-column: 1 / -1; }
 .carga-liquido { display: flex; flex-direction: column; align-items: flex-end; font-variant-numeric: tabular-nums; }
 .carga-liquido strong { font-size: 1.1rem; }
+.carga-tara { display: flex; flex-direction: column; font-variant-numeric: tabular-nums; }
+.carga-tara strong { font-size: 1.05rem; }
+.carga-tara .link { align-self: flex-start; padding: 0; font-size: .85rem; }
 .andamento { border: 1px solid var(--borda); border-radius: 10px; padding: 0.7rem 0.8rem; margin-bottom: 0.7rem; background: white; }
 .andamento.finalizado { background: var(--fundo); }
 .andamento-topo { display: flex; justify-content: space-between; align-items: center; gap: 0.5rem; }

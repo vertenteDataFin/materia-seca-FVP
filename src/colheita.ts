@@ -136,6 +136,24 @@ export function fmtSaida(iso: string): string {
 }
 
 /** Placas e silos já usados (para sugerir ao digitar), do mais usado ao menos. */
+/** Placa normalizada para comparar: maiúsculas, sem espaço nem hífen ("abc-1d23" = "ABC1D23"). */
+export function normalizarPlaca(placa?: string | null): string {
+  return (placa ?? '').toUpperCase().replace(/[\s-]/g, '');
+}
+
+/**
+ * Tara de cada caminhão (pela placa): a da pesagem mais recente daquela placa.
+ * A tara é do caminhão, então a próxima carga dele já vem com ela.
+ */
+export function tarasPorPlaca(cargas: Carga[]): Map<string, number> {
+  const ordem = cargas
+    .filter((c) => c.taraKg != null && normalizarPlaca(c.placa))
+    .sort((a, b) => (a.pesadoEm ?? a.saidaEm).localeCompare(b.pesadoEm ?? b.saidaEm));
+  const m = new Map<string, number>();
+  for (const c of ordem) m.set(normalizarPlaca(c.placa), c.taraKg as number);
+  return m;
+}
+
 export function sugestoes(cargas: Carga[], campo: 'placa' | 'silo'): string[] {
   const n = new Map<string, number>();
   for (const c of cargas) {

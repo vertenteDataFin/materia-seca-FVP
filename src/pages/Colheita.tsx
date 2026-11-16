@@ -1,6 +1,6 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { adicionarCarga, amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDados } from '../dados';
-import { agoraLocal, andamentoTalhao, cargaPesada, fmtSaida, liquidoKg, referenciaDoTalhao, sugestoes, type AndamentoTalhao } from '../colheita';
+import { agoraLocal, andamentoTalhao, cargaPesada, fmtSaida, liquidoKg, normalizarPlaca, referenciaDoTalhao, sugestoes, tarasPorPlaca, type AndamentoTalhao } from '../colheita';
 import type { Carga, Talhao } from '../tipos';
 import { CampoNumero } from '../components';
 import { Icone } from '../Icone';
@@ -45,6 +45,7 @@ export default function Colheita() {
       pesadas: dados.cargas.filter(cargaPesada),
       placas: sugestoes(dados.cargas, 'placa'),
       silos: sugestoes(dados.cargas, 'silo'),
+      taras: tarasPorPlaca(dados.cargas),
     };
   }, [dados]);
 
@@ -53,12 +54,8 @@ export default function Colheita() {
   const emColheita = calc.andamentos.filter((a) => !a.finalizada);
   const finalizados = calc.andamentos.filter((a) => a.finalizada);
 
-  // Última tara usada por placa: sugere ao pesar o mesmo caminhão de novo.
-  const taraDaPlaca = (placa?: string) => {
-    if (!placa) return null;
-    const c = calc.pesadas.find((x) => x.placa?.trim().toLowerCase() === placa.trim().toLowerCase() && x.taraKg != null);
-    return c?.taraKg ?? null;
-  };
+  // A tara é do caminhão: vem da última pesagem da mesma placa.
+  const taraDaPlaca = (placa?: string) => calc.taras.get(normalizarPlaca(placa)) ?? null;
 
   return (
     <>
@@ -71,7 +68,8 @@ export default function Colheita() {
         )}
       </div>
       <p className="dica">
-        No campo, registre cada caminhão que sai do talhão. Na balança, o balanceiro lança o peso e a carga é encerrada. A área colhida de cada
+        No campo, registre cada caminhão que sai do talhão (talhão e placa, sem peso). Na balança, o balanceiro ou o administrador lança o
+        peso bruto, a tara vem da placa do caminhão, e a carga é encerrada. A área colhida de cada
         talhão é estimada pela matéria seca entregue e pela última amostragem do talhão.
       </p>
 
@@ -80,8 +78,6 @@ export default function Colheita() {
           talhoes={dados.talhoes}
           placas={calc.placas}
           silos={calc.silos}
-          podePesar={podePesar}
-          taraDaPlaca={taraDaPlaca}
           aoFechar={() => setMostrarForm(false)}
         />
       )}
@@ -99,7 +95,7 @@ export default function Colheita() {
         ) : (
           <div className="lista-cargas">
             {calc.pendentes.map((c) => (
-              <CargaPendente key={c.id} c={c} nomeTalhao={nome(c.talhaoId)} podePesar={podePesar} podeExcluir={podeExcluir} taraSugerida={taraDaPlaca(c.placa)} />
+              <CargaPendente key={c.id} c={c} nomeTalhao={nome(c.talhaoId)} podePesar={podePesar} podeExcluir={podeExcluir} taraDoCaminhao={taraDaPlaca(c.placa)} />
             ))}
           </div>
         )}
@@ -168,23 +164,17 @@ function NovaCarga({
   talhoes,
   placas,
   silos,
-  podePesar,
-  taraDaPlaca,
   aoFechar,
 }: {
   talhoes: Talhao[];
   placas: string[];
   silos: string[];
-  podePesar: boolean;
-  taraDaPlaca: (placa?: string) => number | null;
   aoFechar: () => void;
 }) {
   const [talhaoId, setTalhaoId] = useState(() => (talhoes.some((t) => t.id === lembrado()) ? lembrado() : ''));
   const [saidaEm, setSaidaEm] = useState(agoraLocal());
   const [placa, setPlaca] = useState('');
   const [silo, setSilo] = useState('');
-  const [bruto, setBruto] = useState('');
-  const [tara, setTara] = useState('');
   const [erro, setErro] = useState('');
   const [ok, setOk] = useState('');
 
@@ -192,18 +182,16 @@ function NovaCarga({
     e.preventDefault();
     setOk('');
     if (!talhaoId) return setErro('Escolha o talhão de onde a carga saiu.');
-    const b = parseNum(bruto);
-    const t = parseNum(tara);
-    if ((b != null) !== (t != null)) return setErro('Para pesar agora, informe o peso bruto e a tara (ou deixe os dois em branco).');
-    if (b != null && t != null && !(b > t)) return setErro('O peso bruto tem de ser maior que a tara.');
+    if (!normalizarPlaca(placa)) return setErro('Informe a placa do caminhão (a tara na balança vem por ela).');
+    // A carga sai do campo sempre sem peso: o peso é lançado na balança, pelo balanceiro ou administrador.
     adicionarCarga({
       talhaoId,
       saidaEm,
-      placa: placa.trim() || undefined,
+      placa: placa.trim(),
       silo: silo.trim() || undefined,
-      pesoBrutoKg: podePesar ? b : null,
-      taraKg: podePesar ? t : null,
-      pesadoEm: podePesar && b != null ? new Date().toISOString() : null,
+      pesoBrutoKg: null,
+      taraKg: null,
+      pesadoEm: null,
     });
     try {
       localStorage.setItem(CHAVE_ULTIMO_TALHAO, talhaoId);
@@ -211,12 +199,10 @@ function NovaCarga({
       /* sem armazenamento: só não lembra o talhão */
     }
     setErro('');
-    setOk(`Carga registrada${b != null ? ' e pesada' : ' — aguardando pesagem'}.`);
+    setOk(`Carga ${placa.trim()} registrada, aguardando pesagem.`);
     // pronto para a próxima carga do mesmo talhão
     setSaidaEm(agoraLocal());
     setPlaca('');
-    setBruto('');
-    setTara('');
   }
 
   const emUso = talhoes.filter((t) => !t.colheitaFinalizadaEm);
@@ -237,14 +223,8 @@ function NovaCarga({
         <input type="datetime-local" value={saidaEm} onChange={(e) => setSaidaEm(e.target.value)} />
       </label>
       <label>
-        Placa (opcional)
-        <input
-          list="placas"
-          value={placa}
-          onChange={(e) => setPlaca(e.target.value.toUpperCase())}
-          onBlur={() => !tara && taraDaPlaca(placa) != null && podePesar && setTara(String(taraDaPlaca(placa)))}
-          placeholder="Ex.: ABC1D23"
-        />
+        Placa do caminhão
+        <input list="placas" value={placa} onChange={(e) => setPlaca(e.target.value.toUpperCase())} placeholder="Ex.: ABC1D23" required />
         <datalist id="placas">{placas.map((p) => <option key={p} value={p} />)}</datalist>
       </label>
       <label>
@@ -252,19 +232,7 @@ function NovaCarga({
         <input list="silos" value={silo} onChange={(e) => setSilo(e.target.value)} placeholder="Ex.: Silo 1" />
         <datalist id="silos">{silos.map((s) => <option key={s} value={s} />)}</datalist>
       </label>
-      {podePesar && (
-        <>
-          <p className="dica largo">Já passou na balança? Lance o peso agora; senão, deixe em branco e lance depois em "Aguardando pesagem".</p>
-          <label>
-            Peso bruto (kg)
-            <input inputMode="decimal" value={bruto} onChange={(e) => setBruto(e.target.value)} placeholder="Ex.: 42.350" />
-          </label>
-          <label>
-            Tara (kg)
-            <input inputMode="decimal" value={tara} onChange={(e) => setTara(e.target.value)} placeholder="Ex.: 15.200" />
-          </label>
-        </>
-      )}
+      <p className="dica largo">O peso é lançado na balança, em "Aguardando pesagem".</p>
       {erro && <p className="erro largo">{erro}</p>}
       {ok && <p className="ok largo">{ok}</p>}
       <div className="acoes largo">
@@ -275,19 +243,25 @@ function NovaCarga({
   );
 }
 
-/** Carga aguardando pesagem: quem pode pesar lança bruto e tara ali mesmo. */
-function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraSugerida }: { c: Carga; nomeTalhao: string; podePesar: boolean; podeExcluir: boolean; taraSugerida: number | null }) {
+/**
+ * Carga aguardando pesagem: balanceiro ou administrador lança o bruto ali mesmo.
+ * A tara é do caminhão: se a placa já foi pesada, vem pronta (dá para alterar); se é a primeira vez, digita-se.
+ */
+function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }: { c: Carga; nomeTalhao: string; podePesar: boolean; podeExcluir: boolean; taraDoCaminhao: number | null }) {
   const [bruto, setBruto] = useState('');
-  const [tara, setTara] = useState(taraSugerida != null ? String(taraSugerida) : '');
+  const [tara, setTara] = useState('');
+  const [alterarTara, setAlterarTara] = useState(false);
   const [ticket, setTicket] = useState('');
   const [erro, setErro] = useState('');
+  const usaTaraDoCaminhao = taraDoCaminhao != null && !alterarTara;
   const b = parseNum(bruto);
-  const t = parseNum(tara);
+  const t = usaTaraDoCaminhao ? taraDoCaminhao : parseNum(tara);
   const liquido = b != null && t != null && b > t ? b - t : null;
 
   function pesar(e: FormEvent) {
     e.preventDefault();
-    if (b == null || t == null) return setErro('Informe o peso bruto e a tara.');
+    if (b == null) return setErro('Informe o peso bruto.');
+    if (t == null) return setErro('Informe a tara do caminhão.');
     if (!(b > t)) return setErro('O peso bruto tem de ser maior que a tara.');
     atualizarCarga(c.id, { pesoBrutoKg: b, taraKg: t, ticket: ticket.trim() || undefined, pesadoEm: new Date().toISOString() });
   }
@@ -311,10 +285,18 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraSugerida }: 
             Bruto (kg)
             <input inputMode="decimal" value={bruto} onChange={(e) => setBruto(e.target.value)} />
           </label>
-          <label>
-            Tara (kg)
-            <input inputMode="decimal" value={tara} onChange={(e) => setTara(e.target.value)} />
-          </label>
+          {usaTaraDoCaminhao ? (
+            <div className="carga-tara">
+              <span className="mudo"><small>Tara do caminhão</small></span>
+              <strong>{fmt(taraDoCaminhao, 0)} kg</strong>
+              <button type="button" className="link" onClick={() => { setTara(String(taraDoCaminhao)); setAlterarTara(true); }}>alterar</button>
+            </div>
+          ) : (
+            <label>
+              {taraDoCaminhao == null ? 'Tara (1ª pesagem do caminhão)' : 'Nova tara do caminhão (kg)'}
+              <input inputMode="decimal" value={tara} onChange={(e) => setTara(e.target.value)} />
+            </label>
+          )}
           <label>
             Ticket
             <input value={ticket} onChange={(e) => setTicket(e.target.value)} />

@@ -118,8 +118,9 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(updateDoc(talhao(bal), { capim: 'Mombaça' }));
     await assertSucceeds(updateDoc(talhao(op), { colheitaFinalizadaEm: '2026-11-20' }));
     await assertFails(updateDoc(talhao(op), { colheitaFinalizadaEm: null, areaHa: 1 }));
-    // admin pesa direto ao criar; membro exclui
-    await assertSucceeds(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: 41000, taraKg: 15000 }));
+    // carga saindo do campo nunca leva peso, nem a do admin; membro exclui
+    await assertFails(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: 41000, taraKg: 15000 }));
+    await assertSucceeds(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: null, taraKg: null }));
     await assertSucceeds(deleteDoc(carga(tec)));
   });
 

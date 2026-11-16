@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { amostrasPorColeta } from './dados';
-import { andamentoTalhao, cargaPesada, liquidoKg, referenciaDoTalhao, sugestoes } from './colheita';
+import { andamentoTalhao, cargaPesada, liquidoKg, referenciaDoTalhao, sugestoes, tarasPorPlaca } from './colheita';
 import type { Amostra, Carga, Coleta, Talhao } from './tipos';
 
 const talhao: Talhao = { id: 't1', nome: 'Talhão 18 - PD', areaHa: 100, capim: 'Miyagi' };
@@ -21,6 +21,16 @@ const carga = (id: string, saidaEm: string, bruto: number | null, tara: number |
 });
 
 describe('colheita', () => {
+  it('tara é do caminhão: a da pesagem mais recente da placa, sem ligar para hífen ou caixa', () => {
+    const taras = tarasPorPlaca([
+      carga('a', '2026-11-14T07:00', 40000, 15000, { placa: 'abc-1d23', pesadoEm: '2026-11-14T10:00:00Z' }),
+      carga('b', '2026-11-15T07:00', 41000, 15200, { placa: 'ABC1D23', pesadoEm: '2026-11-15T10:00:00Z' }),
+      carga('c', '2026-11-15T08:00', null, null, { placa: 'XYZ9K88' }),
+    ]);
+    expect(taras.get('ABC1D23')).toBe(15200);
+    expect(taras.has('XYZ9K88')).toBe(false);
+  });
+
   it('peso líquido só com bruto e tara válidos', () => {
     expect(liquidoKg({ pesoBrutoKg: 40000, taraKg: 15000 })).toBe(25000);
     expect(liquidoKg({ pesoBrutoKg: 40000, taraKg: null })).toBeNull();
