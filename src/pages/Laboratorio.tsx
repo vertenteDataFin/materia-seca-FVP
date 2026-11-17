@@ -73,7 +73,7 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
       </div>
       <p className="dica">
         Pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra úmida e lance o peso <strong>seco</strong> (g, sem a tara): o seco em gramas já é a MS em %.
-        Confira o código da etiqueta do saco. A coleta sai daqui quando todos os pontos estiverem aferidos.
+        Confira o código da etiqueta do saco. A coleta sai daqui quando todos os pontos estiverem aferidos; a amostra do caminhão, quando o seco for lançado.
       </p>
       {pendentes.map((g) => (
         <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || (pendentes.length === 1 && !colheita.length)} alternar={() => alternar(g.c.id)} />
@@ -96,6 +96,7 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
             {colheita.map((a) => (
               <div key={a.id} id={`ac-${a.id}`} className={`lab-linha pendente${a.id === destaqueColheita ? ' destaque' : ''}`}>
                 <span>
+                  {a.codigo && <><code className="codigo">{a.codigo}</code> </>}
                   <strong>{a.placa}</strong> <span className="mudo"><small>{nomeTalhao(a.talhaoId)} · {fmtSaida(a.coletadaEm)}</small></span>
                 </span>
                 <span className="mv" data-rotulo="Silo">{a.silo}</span>

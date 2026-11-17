@@ -56,8 +56,8 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
                     onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(); } }}
                   >
                     <td className="nome-talhao largo-cel">
-                      <strong>{a.placa}</strong> <span className="mudo"><small>{fmtSaida(a.coletadaEm)}</small></span>
-                      <div className="mudo so-cel"><small>{talhao} → {a.silo}</small></div>
+                      <strong>{a.codigo ?? a.placa}</strong> <span className="mudo"><small>{fmtSaida(a.coletadaEm)}</small></span>
+                      <div className="mudo"><small>{a.codigo ? `${a.placa}` : ''}<span className="so-cel">{a.codigo ? ' · ' : ''}{talhao} → {a.silo}</span></small></div>
                     </td>
                     <td className="oculta-cel">{talhao}</td>
                     <td className="oculta-cel">{a.silo}</td>
@@ -115,7 +115,7 @@ function EdicaoAmostra({ a, talhao, podeExcluir }: { a: AmostraColheita; talhao:
           <button
             type="button"
             className="perigo"
-            onClick={() => confirm(`Excluir a amostra do caminhão ${a.placa} (${fmtSaida(a.coletadaEm)})?`) && excluirAmostraColheita(a.id)}
+            onClick={() => confirm(`Excluir a amostra ${a.codigo ?? ''} do caminhão ${a.placa} (${fmtSaida(a.coletadaEm)})?`) && excluirAmostraColheita(a.id)}
           >
             Excluir amostra
           </button>

@@ -98,6 +98,8 @@ export interface Veiculo {
  */
 export interface AmostraColheita {
   id: string;
+  /** Código automático da etiqueta: talhão, dia/mês e sequência do talhão no dia ("TL18-1711-C2"). */
+  codigo?: string;
   talhaoId: string;
   /** Data e hora local da amostragem ("AAAA-MM-DDTHH:mm"). */
   coletadaEm: string;

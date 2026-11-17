@@ -3,7 +3,7 @@ import { Link, useNavigate } from 'react-router-dom';
 import { adicionarAmostraColheita, useDados } from '../dados';
 import { agoraLocal, normalizarPlaca } from '../colheita';
 import { veiculoDaPlaca } from '../veiculos';
-import { PENEIRAS, pennState, type CampoPeneira } from '../amostragemColheita';
+import { PENEIRAS, pennState, proximoCodigoColheita, type CampoPeneira } from '../amostragemColheita';
 import { fmt, parseNum } from '../util';
 
 const CHAVE_TALHAO = 'silagem-ms:amostra-colheita-talhao';
@@ -58,10 +58,12 @@ export default function NovaAmostraColheita() {
   const digitarPlaca = !veiculos.length || veiculoId === OUTRO;
   const numeros = Object.fromEntries(PENEIRAS.map((p) => [p.campo, parseNum(pesos[p.campo])])) as Record<CampoPeneira, number | null>;
   const ps = pennState(numeros);
+  const talhao = dados.talhoes.find((t) => t.id === talhaoId);
+  const codigo = talhao ? proximoCodigoColheita(talhao.nome, coletadaEm, dados.amostrasColheita) : null;
 
   function salvar(e: FormEvent) {
     e.preventDefault();
-    if (!talhaoId || !dados!.talhoes.some((t) => t.id === talhaoId)) return setErro('Escolha o talhão de onde veio o caminhão.');
+    if (!talhao || !codigo) return setErro('Escolha o talhão de onde veio o caminhão.');
     const v = digitarPlaca ? veiculoDaPlaca(veiculos, placa) : veiculos.find((x) => x.id === veiculoId);
     if (!digitarPlaca && !v) return setErro('Escolha o caminhão.');
     const p = v?.placa ?? normalizarPlaca(placa);
@@ -71,6 +73,7 @@ export default function NovaAmostraColheita() {
       if (pesos[pen.campo].trim() && (numeros[pen.campo] == null || numeros[pen.campo]! < 0)) return setErro(`Peso inválido na peneira ${pen.rotulo}.`);
     }
     const id = adicionarAmostraColheita({
+      codigo,
       talhaoId,
       coletadaEm,
       placa: p,
@@ -154,6 +157,11 @@ export default function NovaAmostraColheita() {
           Observações (opcional)
           <input value={observacoes} onChange={(e) => setObservacoes(e.target.value)} />
         </label>
+        <p className="codigo-amostra largo">
+          Código da amostra:{' '}
+          {codigo ? <code className="codigo">{codigo}</code> : <span className="mudo">escolha o talhão</span>}
+          <small className="mudo"> · gerado automaticamente; anote na etiqueta do saco.</small>
+        </p>
         {erro && <p className="erro largo">{erro}</p>}
         <div className="acoes largo">
           <button type="submit" className="primario">Salvar amostra</button>

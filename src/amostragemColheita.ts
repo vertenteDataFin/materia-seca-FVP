@@ -1,4 +1,5 @@
 import { teorMS } from './calc';
+import { nomeCurto } from './MapaTalhoes';
 import type { AmostraColheita } from './tipos';
 
 /** Peneiras do Penn State (4 peneiras), da mais grossa para o fundo. */
@@ -30,6 +31,31 @@ export function pennState(a: Pick<AmostraColheita, CampoPeneira>): PennState | n
 /** MS (%) da amostra do caminhão (mesmo método do laboratório: seco ÷ úmido). */
 export function msColheita(a: Pick<AmostraColheita, 'pesoUmidoG' | 'pesoSecoG'>): number | null {
   return teorMS(a);
+}
+
+/** Início do código: talhão e dia/mês, como nas etiquetas de campo ("TL18-1711-C"). */
+function prefixoCodigo(nomeTalhao: string, coletadaEm: string): string {
+  const tl = nomeCurto(nomeTalhao).replace(/\s+/g, '').toUpperCase();
+  const [, m, d] = coletadaEm.slice(0, 10).split('-');
+  return `${tl}-${d ?? '??'}${m ?? '??'}-C`;
+}
+
+/**
+ * Próximo código de amostra de caminhão: "TL18-1711-C1", "TL18-1711-C2"… (sequência do talhão no dia).
+ * Segue o maior número já usado, então excluir uma amostra não repete o código de outra.
+ */
+export function proximoCodigoColheita(
+  nomeTalhao: string,
+  coletadaEm: string,
+  existentes: Pick<AmostraColheita, 'codigo'>[],
+): string {
+  const prefixo = prefixoCodigo(nomeTalhao, coletadaEm);
+  const maior = existentes.reduce((m, a) => {
+    if (!a.codigo?.startsWith(prefixo)) return m;
+    const n = Number(a.codigo.slice(prefixo.length));
+    return Number.isInteger(n) && n > m ? n : m;
+  }, 0);
+  return `${prefixo}${maior + 1}`;
 }
 
 /** Amostra ainda sem o peso seco: fica em "Aguardando MS". */

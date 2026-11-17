@@ -93,7 +93,7 @@ function nomes(d: Dados) {
     amostras: (a: Amostra) => `ponto ${a.ponto} da ${coleta(d.coletas.find((c) => c.id === a.coletaId))}`,
     cargas: (c: Carga) => `carga ${talhao(c.talhaoId)} · ${fmtDataHora(c.saidaEm)}${c.placa ? ` · ${c.placa}` : ''}`,
     veiculos: (v: Veiculo) => `veículo ${v.placa} · ${v.motorista}`,
-    amostrasColheita: (a: AmostraColheita) => `amostra de colheita ${talhao(a.talhaoId)} · ${fmtDataHora(a.coletadaEm)} · ${a.placa}`,
+    amostrasColheita: (a: AmostraColheita) => `amostra de colheita ${a.codigo ? `${a.codigo} · ` : ''}${talhao(a.talhaoId)} · ${fmtDataHora(a.coletadaEm)} · ${a.placa}`,
   };
 }
 
