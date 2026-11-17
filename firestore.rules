@@ -103,12 +103,12 @@ service cloud.firestore {
       allow delete: if false;
     }
 
-    // Cargas da colheita: todo membro registra a saída do campo, sempre sem peso; o peso da balança
-    // só administrador e balanceiro lançam ou alteram; excluir, só administrador e membro.
+    // Cargas da colheita (vêm do relatório da balança): o peso só administrador e balanceiro lançam,
+    // criam ou alteram; sem peso, qualquer membro; excluir, só administrador e membro.
     match /fazendas/{fid}/cargas/{id} {
       allow read: if ehMembro(fid);
       allow create: if ehMembro(fid)
-        && request.resource.data.get('pesoBrutoKg', null) == null && request.resource.data.get('taraKg', null) == null;
+        && (podePesar(fid) || (request.resource.data.get('pesoBrutoKg', null) == null && request.resource.data.get('taraKg', null) == null));
       allow update: if ehMembro(fid)
         && (podePesar(fid) || !request.resource.data.diff(resource.data).affectedKeys().hasAny(camposPesagem()));
       allow delete: if podeExcluir(fid);

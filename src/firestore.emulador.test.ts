@@ -121,9 +121,10 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(updateDoc(talhao(bal), { capim: 'Mombaça' }));
     await assertSucceeds(updateDoc(talhao(op), { colheitaFinalizadaEm: '2026-11-20' }));
     await assertFails(updateDoc(talhao(op), { colheitaFinalizadaEm: null, areaHa: 1 }));
-    // carga saindo do campo nunca leva peso, nem a do admin; membro exclui
-    await assertFails(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: 41000, taraKg: 15000 }));
-    await assertSucceeds(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: null, taraKg: null }));
+    // carga do relatório da balança já entra pesada: administrador e balanceiro criam com peso; membro exclui
+    await assertSucceeds(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: 41000, taraKg: 15000, romaneio: '101' }));
+    await assertSucceeds(setDoc(carga(bal, 'k4'), { talhaoId: 't1', saidaEm: '2026-11-14T11:00', pesoBrutoKg: 41000, taraKg: 15000, romaneio: '102' }));
+    await assertFails(setDoc(carga(tec, 'k5'), { talhaoId: 't1', saidaEm: '2026-11-14T12:00', pesoBrutoKg: 41000, taraKg: 15000 }));
     await assertSucceeds(deleteDoc(carga(tec)));
   });
 
