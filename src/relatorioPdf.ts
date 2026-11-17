@@ -2,7 +2,7 @@ import { amostrasPorColeta, dadosAtuais, ultimaColetaPorTalhao } from './dados';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, type Parametros, type ResumoColeta } from './calc';
 import { areaAnelM2 } from './kml';
 import { colheitaPorTalhao } from './amostragemColheita';
-import { nomeCurto } from './MapaTalhoes';
+import { nomeComSigla } from './MapaTalhoes';
 import { compararNomes, type Coleta, type Dados, type Talhao } from './tipos';
 import { fmt, fmtData, hoje, lerParametros } from './util';
 
@@ -61,7 +61,7 @@ function montarColheita(d: Dados): Relatorio['colheita'] {
   return {
     cabecalho: ['Talhão', 'Amostras de caminhão', 'MS colheita (%)', 'Penn State médio (19 · 8 · 4 · fundo %)', 'Cargas', 'MV entregue (t)', 'MS entregue (t)', 'Área colhida (ha)', 'Colhido'],
     linhas: linhas.map((l) => [
-      nomeCurto(l.talhao.nome),
+      nomeComSigla(l.talhao.nome, l.talhao.fazenda),
       String(l.nAmostras),
       l.msColheita == null ? '—' : fmt(l.msColheita, 1),
       l.pennMedio ? l.pennMedio.map((p) => fmt(p, 0)).join(' · ') : '—',
@@ -97,7 +97,7 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
   const coletas = [...d.coletas]
     .filter((c) => porId.has(c.talhaoId))
     .sort((a, b) => compararNomes(porId.get(a.talhaoId)!.nome, porId.get(b.talhaoId)!.nome) || a.data.localeCompare(b.data) || (a.criadoEm ?? '').localeCompare(b.criadoEm ?? ''));
-  const curto = (c: Coleta) => nomeCurto(porId.get(c.talhaoId)!.nome);
+  const curto = (c: Coleta) => nomeComSigla(porId.get(c.talhaoId)!.nome, porId.get(c.talhaoId)!.fazenda);
   const fazendas = [...new Set(coletas.map((c) => porId.get(c.talhaoId)!.fazenda).filter(Boolean))];
   const quadros = [...new Set(coletas.map((c) => c.areaAmostralM2))];
 
@@ -109,7 +109,7 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
       const mv = producaoPonto(a, c.areaAmostralM2)!;
       const ms = teorMS(a);
       linhasAmostras.push([
-        nomeCurto(t.nome), t.capim || '—', fmtData(c.data), String(a.ponto), fmt(mv, 2), fmt(mv * 10, 1),
+        nomeComSigla(t.nome, t.fazenda), t.capim || '—', fmtData(c.data), String(a.ponto), fmt(mv, 2), fmt(mv * 10, 1),
         ms == null ? 'a aferir' : fmt(ms, 0), ms == null ? '—' : fmt((mv * 10 * ms) / 100, 1),
       ]);
     }
@@ -127,11 +127,11 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
     .filter((x) => x.r.nPontos > 0);
   const soma = (f: (x: (typeof resumos)[number]) => number | null | undefined) => resumos.reduce((s, x) => s + (f(x) ?? 0), 0);
   const linhasTalhoes = resumos.map(({ t, r, e }) => [
-    nomeCurto(t.nome), fmt(t.areaHa, 1), fmt(r.tMVha, 1), pct(r.cvPct), r.msPct == null ? '—' : fmt(r.msPct, 0), fmt(r.tMSha, 1),
+    nomeComSigla(t.nome, t.fazenda), fmt(t.areaHa, 1), fmt(r.tMVha, 1), pct(r.cvPct), r.msPct == null ? '—' : fmt(r.msPct, 0), fmt(r.tMSha, 1),
     milhar(e.tMVtotal), milhar(e.tMStotal), milhar(e.silagemT), milhar(e.volumeM3), situacao(r, p),
   ]);
   const total = ['Total', fmt(soma((x) => x.t.areaHa), 1), '', '', '', '', milhar(soma((x) => x.e.tMVtotal)), milhar(soma((x) => x.e.tMStotal)), milhar(soma((x) => x.e.silagemT)), milhar(soma((x) => x.e.volumeM3)), ''];
-  const notas = resumos.filter(({ t }) => t.observacoes?.trim()).map(({ t }) => `${nomeCurto(t.nome)}: ${t.observacoes!.trim()}`);
+  const notas = resumos.filter(({ t }) => t.observacoes?.trim()).map(({ t }) => `${nomeComSigla(t.nome, t.fazenda)}: ${t.observacoes!.trim()}`);
 
   // 4. leitura automática
   const leitura: string[] = [];
@@ -146,7 +146,7 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
     } else {
       partes.push(`MS ainda a aferir (coleta de ${fmtData(c.data)})`);
     }
-    let frase = `${nomeCurto(t.nome)} — ${partes.join(', ')}.`;
+    let frase = `${nomeComSigla(t.nome, t.fazenda)} — ${partes.join(', ')}.`;
     if (melhor && melhor.t.id === t.id && resumos.length > 1) frase += ' Melhor talhão em MS por hectare.';
     const contorno = areaContornoHa(t);
     if (contorno && Math.abs(contorno / t.areaHa - 1) > 0.1) {
@@ -165,23 +165,23 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
     } else if (mins > p.msMax) {
       leitura.push(`Todos os talhões com MS média acima da faixa ideal (${faixa}): compactação mais difícil; ensilar sem demora.`);
     } else {
-      const prontos = comMS.filter((x) => statusMS(x.r.msPct, p) === 'ideal').map((x) => nomeCurto(x.t.nome));
+      const prontos = comMS.filter((x) => statusMS(x.r.msPct, p) === 'ideal').map((x) => nomeComSigla(x.t.nome, x.t.fazenda));
       leitura.push(`MS média entre ${fmt(mins, 0)} e ${fmt(maxs, 0)} %; faixa ideal ${faixa}.${prontos.length ? ` No ponto de ensilar: ${prontos.join(', ')}.` : ''}`);
     }
   }
 
   // 5. pendências
   const pendencias: string[] = [];
-  const poucos = resumos.filter((x) => x.r.nPontos < 3).map((x) => `${nomeCurto(x.t.nome)} (só ${pontos(x.r.nPontos)})`);
+  const poucos = resumos.filter((x) => x.r.nPontos < 3).map((x) => `${nomeComSigla(x.t.nome, x.t.fazenda)} (só ${pontos(x.r.nPontos)})`);
   if (poucos.length) pendencias.push(`Amostrar mais pontos em ${poucos.join(', ')}: com menos de 3 pontos a estimativa não é confiável.`);
-  const cvAlto = resumos.filter((x) => x.r.nPontos >= 3 && x.r.cvPct != null && x.r.cvPct > CV_LIMITE).map((x) => `${nomeCurto(x.t.nome)} (CV ${fmt(x.r.cvPct, 0)} % em ${x.r.nPontos} pontos)`);
+  const cvAlto = resumos.filter((x) => x.r.nPontos >= 3 && x.r.cvPct != null && x.r.cvPct > CV_LIMITE).map((x) => `${nomeComSigla(x.t.nome, x.t.fazenda)} (CV ${fmt(x.r.cvPct, 0)} % em ${x.r.nPontos} pontos)`);
   if (cvAlto.length) pendencias.push(`Talhão desuniforme, estimativa com margem de erro: ${cvAlto.join(', ')}.`);
   const semMS = coletas.filter((c) => {
     const r = resumoColeta(c, porColeta.get(c.id) ?? []);
     return r.nPontos > 0 && r.nPontosMS < r.nPontos;
   });
   if (semMS.length) pendencias.push(`Aferir a MS no laboratório: ${semMS.map((c) => `${curto(c)} de ${fmtData(c.data)}`).join(', ')}.`);
-  const semColeta = talhoes.filter((t) => t.capim && !ultima.has(t.id)).map((t) => nomeCurto(t.nome));
+  const semColeta = talhoes.filter((t) => t.capim && !ultima.has(t.id)).map((t) => nomeComSigla(t.nome, t.fazenda));
   if (semColeta.length) pendencias.push(`Talhões ainda sem coleta: ${semColeta.join(', ')}.`);
   if (!pendencias.length) pendencias.push('Nenhuma pendência.');
 

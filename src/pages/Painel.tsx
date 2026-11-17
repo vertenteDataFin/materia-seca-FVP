@@ -7,7 +7,7 @@ import { compararNomes, type Coleta, type Talhao } from '../tipos';
 import { Bolinha, Indicador } from '../components';
 import { fmt, fmtData } from '../util';
 import { useParametros } from '../parametros';
-import { nomeCurto } from '../MapaTalhoes';
+import { nomeComSigla } from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 import { seriesMS } from '../evolucaoMS';
 import GraficoMS from '../GraficoMS';
@@ -122,7 +122,7 @@ export default function Painel() {
     (l) =>
       (!filtro.semaforo || semaforoDe(statusMS(l.r?.msPct ?? null, parametros)) === filtro.semaforo) &&
       (!filtro.capim || l.t.capim === filtro.capim) &&
-      (!busca || normal(`${l.t.nome} ${nomeCurto(l.t.nome)} ${l.t.fazenda ?? ''}`).includes(busca)) &&
+      (!busca || normal(`${l.t.nome} ${nomeComSigla(l.t.nome, l.t.fazenda)} ${l.t.fazenda ?? ''}`).includes(busca)) &&
       // data exata da última coleta: talhões sem coleta saem quando há data informada
       (!filtro.data || l.c?.data === filtro.data),
   );
@@ -321,7 +321,7 @@ export default function Painel() {
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
                     <Bolinha cor={semaforoDe(statusMS(r?.msPct ?? null, parametros))} />{' '}
-                    <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{nomeCurto(t.nome)}</strong></Link>
+                    <Link to={`/talhoes?talhao=${t.id}`} title={t.nome}><strong>{nomeComSigla(t.nome, t.fazenda)}</strong></Link>
                     <div className="mudo so-cel">
                       <small>
                         {t.capim || '—'}

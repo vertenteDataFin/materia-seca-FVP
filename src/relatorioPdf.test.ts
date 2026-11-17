@@ -52,10 +52,10 @@ describe('colheita nos relatórios (MS dos caminhões)', () => {
 
   it('PDF: por talhão, MS e Penn State dos caminhões, cargas e MS entregue', () => {
     const c = montarRelatorio(comColheita, PARAMETROS_PADRAO).colheita!;
-    // TL 18: 2 amostras (32%); 55 t entregues × 32% = 17,6 t MS · TL 21: só amostra sem MS
+    // TL 18 - PD: 2 amostras (32%); 55 t entregues × 32% = 17,6 t MS · TL 21 - Conf: só amostra sem MS
     expect(c.linhas).toEqual([
-      ['TL 18', '2', '32,0', '8 · 53 · 30 · 10', '2', '55,0', '17,6', expect.any(String), expect.stringMatching(/%$/)],
-      ['TL 21', '1', '—', '—', '0', '—', '—', '—', '—'],
+      ['TL 18 - PD', '2', '32,0', '8 · 53 · 30 · 10', '2', '55,0', '17,6', expect.any(String), expect.stringMatching(/%$/)],
+      ['TL 21 - Conf', '1', '—', '—', '0', '—', '—', '—', '—'],
     ]);
     expect(c.total.slice(0, 3)).toEqual(['Total', '3', '32,0']);
   });
@@ -64,7 +64,7 @@ describe('colheita nos relatórios (MS dos caminhões)', () => {
     const pl = montarPlanilhas(comColheita, PARAMETROS_PADRAO);
     expect(pl.map((p) => p.nome)).toEqual(['Talhões', 'Coletas', 'Amostras', 'Amostras de colheita', 'Cargas', 'Colheita por talhão', 'Parâmetros']);
     const amostrasCol = pl.find((p) => p.nome === 'Amostras de colheita')!;
-    expect(amostrasCol.linhas[0].slice(0, 3)).toEqual(['X-a', new Date(2026, 10, 14, 8, 0), 'TL 18']);
+    expect(amostrasCol.linhas[0].slice(0, 3)).toEqual(['X-a', new Date(2026, 10, 14, 8, 0), 'TL 18 - PD']);
     expect(amostrasCol.linhas[0][11]).toBeCloseTo(10); // 20 g de 200 g na peneira de 19 mm
     const cargasPl = pl.find((p) => p.nome === 'Cargas')!;
     expect(cargasPl.linhas.map((l) => [l[0], l[8]])).toEqual([['101', 25000], ['102', 30000]]);
@@ -86,29 +86,29 @@ describe('relatório em PDF', () => {
     const r = montarRelatorio(dados, PARAMETROS_PADRAO, new Date(2026, 10, 11, 10, 0));
     expect(r.subtitulo).toMatch(/^Fazenda Pedra \/ Confinamento · coletas de 06\/11\/2026 a 10\/11\/2026 · emitido em/);
     // 2. amostras: ordem por talhão e data; a coleta sem MS aparece "a aferir"
-    expect(r.amostras.linhas[0]).toEqual(['TL 18', 'Miyagi', '07/11/2026', '1', '2,02', '20,2', '22', '4,4']);
+    expect(r.amostras.linhas[0]).toEqual(['TL 18 - PD', 'Miyagi', '07/11/2026', '1', '2,02', '20,2', '22', '4,4']);
     expect(r.amostras.linhas).toHaveLength(12);
-    expect(r.amostras.linhas[r.amostras.linhas.length - 1]).toEqual(['TL 23', 'Mombaça', '10/11/2026', '2', '2,40', '24,0', 'a aferir', '—']);
-    // 3. por talhão: última coleta; TL 23 de 10/11 ainda sem MS
-    const t18 = r.talhoes.linhas.find((l) => l[0] === 'TL 18')!;
-    expect(t18).toEqual(['TL 18', '118,0', '16,7', '33 %', '24', '3,9', '1.967', '465', '1.672', '2.786', 'MS baixa; CV alto']);
-    const t21 = r.talhoes.linhas.find((l) => l[0] === 'TL 21')!;
-    expect(t21.slice(0, 4)).toEqual(['TL 21', '73,0', '21,0', '61 %']);
-    const t23 = r.talhoes.linhas.find((l) => l[0] === 'TL 23')!;
+    expect(r.amostras.linhas[r.amostras.linhas.length - 1]).toEqual(['TL 23 - Conf', 'Mombaça', '10/11/2026', '2', '2,40', '24,0', 'a aferir', '—']);
+    // 3. por talhão: última coleta; TL 23 - Conf de 10/11 ainda sem MS
+    const t18 = r.talhoes.linhas.find((l) => l[0] === 'TL 18 - PD')!;
+    expect(t18).toEqual(['TL 18 - PD', '118,0', '16,7', '33 %', '24', '3,9', '1.967', '465', '1.672', '2.786', 'MS baixa; CV alto']);
+    const t21 = r.talhoes.linhas.find((l) => l[0] === 'TL 21 - Conf')!;
+    expect(t21.slice(0, 4)).toEqual(['TL 21 - Conf', '73,0', '21,0', '61 %']);
+    const t23 = r.talhoes.linhas.find((l) => l[0] === 'TL 23 - Conf')!;
     expect(t23[2]).toBe('28,2');
     expect(t23[10]).toBe('MS a aferir');
     expect(r.talhoes.total[0]).toBe('Total');
     expect(r.talhoes.total[1]).toBe('240,9');
-    expect(r.talhoes.notas).toEqual(['TL 21: Talhão desuniforme']);
+    expect(r.talhoes.notas).toEqual(['TL 21 - Conf: Talhão desuniforme']);
     // 4 e 5
-    expect(r.leitura.find((l) => l.startsWith('TL 18 — '))).toContain('16,7 t MV/ha em 6 pontos (CV 33 %, variação alta), MS média de 24 % (abaixo da faixa ideal), 3,9 t MS/ha e ~465 t de MS no talhão');
-    expect(r.leitura.find((l) => l.startsWith('TL 23 — '))).toContain('MS ainda a aferir (coleta de 10/11/2026)');
+    expect(r.leitura.find((l) => l.startsWith('TL 18 - PD — '))).toContain('16,7 t MV/ha em 6 pontos (CV 33 %, variação alta), MS média de 24 % (abaixo da faixa ideal), 3,9 t MS/ha e ~465 t de MS no talhão');
+    expect(r.leitura.find((l) => l.startsWith('TL 23 - Conf — '))).toContain('MS ainda a aferir (coleta de 10/11/2026)');
     expect(r.leitura[r.leitura.length - 1]).toMatch(/^Todos os talhões com MS média entre 21 e 24 %, abaixo da faixa ideal/);
     expect(r.pendencias).toEqual([
-      'Amostrar mais pontos em TL 21 (só 2 pontos), TL 23 (só 2 pontos): com menos de 3 pontos a estimativa não é confiável.',
-      'Talhão desuniforme, estimativa com margem de erro: TL 18 (CV 33 % em 6 pontos).',
-      'Aferir a MS no laboratório: TL 23 de 10/11/2026.',
-      'Talhões ainda sem coleta: TL 20.',
+      'Amostrar mais pontos em TL 21 - Conf (só 2 pontos), TL 23 - Conf (só 2 pontos): com menos de 3 pontos a estimativa não é confiável.',
+      'Talhão desuniforme, estimativa com margem de erro: TL 18 - PD (CV 33 % em 6 pontos).',
+      'Aferir a MS no laboratório: TL 23 - Conf de 10/11/2026.',
+      'Talhões ainda sem coleta: TL 20 - Conf.',
     ]);
     expect(r.premissas[3]).toContain('15 % de perdas');
   });

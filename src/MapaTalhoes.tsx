@@ -2,6 +2,7 @@ import { useEffect, useRef } from 'react';
 import L from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 import type { Talhao } from './tipos';
+import { siglaFazenda } from './kml';
 
 export interface EstiloTalhao {
   /** Cor de preenchimento (padrão: verde). */
@@ -47,6 +48,23 @@ const SATELITE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Ima
  * Nome curto como na foto: "Talhão 17A - PD" ou "PD - TALHAO 17 A" → "TL 17A"; "Pivô 1 - Conf" → "Pivô 1";
  * "Talhão C3 - Conf" → "C3"; "Talhão 17A Miyagi - PD" → "TL 17A Miyagi".
  */
+/**
+ * Nome curto com a identificação do local, como no KML: "Talhão 18 - PD" → "TL 18 - PD";
+ * "Pivô 1 - Conf" → "Pivô 1 - Conf"; "PD - TALHAO 17 A" → "TL 17A - PD". Sem sigla no nome, usa a da fazenda.
+ */
+export function nomeComSigla(nome: string, fazenda = ''): string {
+  const semAtividade = nome.replace(/\s*—.*$/, '').trim();
+  const sigla =
+    semAtividade.match(/\s+-\s+([A-Za-z]{1,5})$/)?.[1] ??
+    semAtividade.match(/^([A-Za-z]{1,5})\s*-\s*/)?.[1] ??
+    (fazenda ? siglaFazenda(fazenda) : '');
+  const curto = nomeCurto(nome);
+  if (!sigla) return curto;
+  // Sigla em maiúsculas como no KML, exceto "Conf" (já é o padrão do app).
+  const s = sigla.toUpperCase() === 'CONF' ? 'Conf' : sigla.toUpperCase();
+  return `${curto} - ${s}`;
+}
+
 export function nomeCurto(nome: string): string {
   const s = nome
     .replace(/\s*—.*$/, '')

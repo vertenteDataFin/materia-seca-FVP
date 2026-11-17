@@ -2,7 +2,7 @@ import { useState, type PointerEvent } from 'react';
 import { Link } from 'react-router-dom';
 import type { Parametros } from './calc';
 import { diaDe, faixaDias, faixaMS, type PontoMS, type SerieMS } from './evolucaoMS';
-import { nomeCurto } from './MapaTalhoes';
+import { nomeComSigla } from './MapaTalhoes';
 import { fmt, fmtData } from './util';
 
 const L = 150; // largura lógica do desenho (viewBox); a largura real vem do CSS
@@ -80,14 +80,14 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
   return (
     <figure className="grafico-ms">
       <figcaption>
-        <Link to={`/talhoes?talhao=${serie.talhao.id}`}><strong>{nomeCurto(serie.talhao.nome)}</strong></Link>
+        <Link to={`/talhoes?talhao=${serie.talhao.id}`}><strong>{nomeComSigla(serie.talhao.nome, serie.talhao.fazenda)}</strong></Link>
         <span className="mudo"> {serie.talhao.capim}</span>
       </figcaption>
       <div className="grafico-ms-area">
         <svg
           viewBox={`0 0 ${L} ${A}`}
           role="img"
-          aria-label={`Evolução da MS de ${nomeCurto(serie.talhao.nome)}: ${descricao}`}
+          aria-label={`Evolução da MS de ${nomeComSigla(serie.talhao.nome, serie.talhao.fazenda)}: ${descricao}`}
           onPointerMove={aoMover}
           onPointerDown={aoMover}
           onPointerLeave={() => setAtivo(null)}
@@ -168,7 +168,7 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
             <tbody>
               {series.map((s) => (
                 <tr key={s.talhao.id}>
-                  <td className="largo-cel"><strong>{nomeCurto(s.talhao.nome)}</strong></td>
+                  <td className="largo-cel"><strong>{nomeComSigla(s.talhao.nome, s.talhao.fazenda)}</strong></td>
                   {datas.map((d) => {
                     const pt = s.pontos.find((x) => x.data === d);
                     return (

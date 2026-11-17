@@ -5,7 +5,7 @@ import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, teorUm
 import { areaAnelM2 } from './kml';
 import { rotuloOrigem } from './geo';
 import { hoje, lerParametros } from './util';
-import { nomeCurto } from './MapaTalhoes';
+import { nomeComSigla } from './MapaTalhoes';
 import { colheitaPorTalhao, msColheita, pennState } from './amostragemColheita';
 import { liquidoKg } from './colheita';
 
@@ -42,7 +42,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
   const idColeta = new Map<string, string>(coletas.map((c, i) => [c.id, `C${String(i + 1).padStart(3, '0')}`]));
   const nome = (c: Coleta) => {
     const t = talhaoPorId.get(c.talhaoId);
-    return t ? nomeCurto(t.nome) : '?';
+    return t ? nomeComSigla(t.nome, t.fazenda) : '?';
   };
 
   const planTalhoes: Planilha = {
@@ -53,7 +53,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
       { titulo: 'Área contorno KML (ha)', largura: 14, formato: '0.0' }, { titulo: 'Observações', largura: 40 },
     ],
     linhas: talhoes.map((t) => [
-      nomeCurto(t.nome), t.nome, t.fazenda ?? '', t.capim, n(t.areaHa), n(t.areaKmlHa),
+      nomeComSigla(t.nome, t.fazenda), t.nome, t.fazenda ?? '', t.capim, n(t.areaHa), n(t.areaKmlHa),
       t.geometria?.length ? Math.round((t.geometria.reduce((s, anel) => s + areaAnelM2(anel), 0) / 10000) * 10) / 10 : null,
       t.observacoes ?? '',
     ]),
@@ -123,7 +123,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
   const cargas = [...(d.cargas ?? [])].filter((c) => c.pesoBrutoKg != null).sort((a, b) => a.saidaEm.localeCompare(b.saidaEm));
   const nomeTalhao = (id: string) => {
     const t = talhaoPorId.get(id);
-    return t ? nomeCurto(t.nome) : '?';
+    return t ? nomeComSigla(t.nome, t.fazenda) : '?';
   };
   const extras: Planilha[] = [];
   if (amostrasColheita.length) {
@@ -176,7 +176,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
         { titulo: 'Área colhida (ha)', largura: 11, formato: '0.0' }, { titulo: 'Colhido (%)', largura: 9, formato: '0' }, { titulo: 'Situação', largura: 14 },
       ],
       linhas: porTalhaoColheita.map((l) => [
-        nomeCurto(l.talhao.nome), l.nAmostras, n(l.msColheita),
+        nomeComSigla(l.talhao.nome, l.talhao.fazenda), l.nAmostras, n(l.msColheita),
         l.pennMedio ? l.pennMedio[0] : null, l.pennMedio ? l.pennMedio[1] : null, l.pennMedio ? l.pennMedio[2] : null, l.pennMedio ? l.pennMedio[3] : null,
         l.cargas, l.cargas ? l.tMV : null, n(l.tMS), n(l.areaColhidaHa), n(l.progresso),
         l.finalizada ? 'finalizada' : l.cargas ? 'em colheita' : 'só amostragem',
