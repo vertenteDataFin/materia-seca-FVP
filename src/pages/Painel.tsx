@@ -1,4 +1,4 @@
-import { useMemo, useState, type ReactNode } from 'react';
+import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Icone } from '../Icone';
 import { Link } from 'react-router-dom';
 import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
@@ -14,6 +14,14 @@ import GraficoMS from '../GraficoMS';
 import { progressoColheita, resumoColheita, type AndamentoTalhao } from '../colheita';
 
 type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'mvKgM2' | 'tMVha' | 'msPct' | 'tMSha' | 'colheita';
+
+/** Campos do filtro que cada coluna limpa (botão "Limpar" no filtro do título). */
+const LIMPAR_FILTRO: Partial<Record<Coluna, Partial<{ busca: string; capim: string; data: string; semaforo: '' }>>> = {
+  nome: { busca: '' },
+  capim: { capim: '' },
+  data: { data: '' },
+  msPct: { semaforo: '' },
+};
 
 const ROTULO_COLUNA: Record<Coluna, string> = {
   nome: 'talhão', capim: 'capim', data: 'última coleta', area: 'área (ha)', amostras: 'amostras',
@@ -78,6 +86,19 @@ export default function Painel() {
   const FILTRO_VAZIO = { semaforo: '' as Semaforo | '', capim: '', busca: '', data: '' };
   const [filtro, setFiltro] = useState(FILTRO_VAZIO);
   const [ordem, setOrdem] = useState<{ col: Coluna; asc: boolean } | null>(null);
+  // Filtro aberto no título da coluna (computador); fecha ao clicar fora.
+  const [filtroAberto, setFiltroAberto] = useState<Coluna | null>(null);
+  useEffect(() => {
+    if (!filtroAberto) return;
+    // leva o cursor para o campo do filtro que abriu
+    document.querySelector<HTMLElement>('.popover-filtro input, .popover-filtro select')?.focus();
+    const fora = (e: MouseEvent) => {
+      const alvo = e.target as Element;
+      if (!alvo.closest('.popover-filtro') && !alvo.closest('.filtro-col')) setFiltroAberto(null);
+    };
+    document.addEventListener('mousedown', fora);
+    return () => document.removeEventListener('mousedown', fora);
+  }, [filtroAberto]);
 
   const { linhas, colheita } = useMemo(() => {
     if (!dados) return { linhas: [], colheita: null };
@@ -133,14 +154,46 @@ export default function Painel() {
     // 1º clique: crescente; 2º: decrescente; 3º: volta à ordem natural
     setOrdem(!ordem || ordem.col !== col ? { col, asc: true } : ordem.asc ? { col, asc: false } : null);
   }
-  const Th = ({ col, children, className = '' }: { col: Coluna; children: ReactNode; className?: string }) => {
+  /**
+   * Título da coluna: ordena ao tocar; colunas com filtro ganham o ícone de filtro, que abre o campo logo abaixo.
+   * É uma função (não um componente) para o campo de busca não ser recriado a cada letra digitada.
+   */
+  const cab = (col: Coluna, rotulo: ReactNode, className = '', campo?: ReactNode, filtroAtivo = false) => {
     const ativa = ordem?.col === col;
+    const aberto = filtroAberto === col;
     return (
-      <th className={`${className} ordenavel${ativa ? ' ativa' : ''}`} aria-sort={ativa ? (ordem!.asc ? 'ascending' : 'descending') : 'none'}>
-        <button type="button" onClick={() => alternarOrdem(col)} title="Ordenar por esta coluna">
-          {children}
-          <span className="seta" aria-hidden="true"><Icone nome={ativa ? (ordem!.asc ? 'subir' : 'descer') : 'ordenar'} /></span>
-        </button>
+      <th key={col} className={`${className} ordenavel${ativa ? ' ativa' : ''}${campo ? ' com-filtro' : ''}`} aria-sort={ativa ? (ordem!.asc ? 'ascending' : 'descending') : 'none'}>
+        <div className="cab-col">
+          <button type="button" className="ordenar-col" onClick={() => alternarOrdem(col)} title="Ordenar por esta coluna">
+            {rotulo}
+            <span className="seta" aria-hidden="true"><Icone nome={ativa ? (ordem!.asc ? 'subir' : 'descer') : 'ordenar'} /></span>
+          </button>
+          {campo && (
+            <button
+              type="button"
+              className={`filtro-col${filtroAtivo ? ' ativo' : ''}`}
+              aria-expanded={aberto}
+              aria-label={`Filtrar ${ROTULO_COLUNA[col]}${filtroAtivo ? ' (filtro ativo)' : ''}`}
+              title={filtroAtivo ? 'Filtro ativo: toque para alterar' : 'Filtrar'}
+              onClick={() => setFiltroAberto(aberto ? null : col)}
+            >
+              <Icone nome="filtro" />
+            </button>
+          )}
+        </div>
+        {campo && aberto && (
+          <div className="popover-filtro" onKeyDown={(e) => e.key === 'Escape' && setFiltroAberto(null)}>
+            {campo}
+            <div className="acoes-popover">
+              {filtroAtivo && (
+                <button type="button" className="link" onClick={() => { setFiltro({ ...filtro, ...LIMPAR_FILTRO[col] }); setFiltroAberto(null); }}>
+                  Limpar
+                </button>
+              )}
+              <button type="button" className="mini" onClick={() => setFiltroAberto(null)}>OK</button>
+            </div>
+          </div>
+        )}
       </th>
     );
   };
@@ -287,28 +340,16 @@ export default function Painel() {
           <table className="tabela-cartoes painel-lista">
             <thead className="com-filtros">
               <tr className="titulos">
-                <Th col="nome">Talhão</Th>
-                <Th col="capim" className="oculta-cel">Capim</Th>
-                <Th col="data" className="oculta-cel">Última coleta</Th>
-                <Th col="area" className="n">Área (ha)</Th>
-                <Th col="amostras" className="n">Amostras</Th>
-                <Th col="mvKgM2" className="n">MV (kg/m²)</Th>
-                <Th col="tMVha" className="n">MV (t/ha)</Th>
-                <Th col="msPct" className="n">MS (%)</Th>
-                <Th col="tMSha" className="n">MS (t/ha)</Th>
-                <Th col="colheita" className="col-colheita">Colheita</Th>
-              </tr>
-              <tr className="filtros-linha">
-                <th>{campoBusca}</th>
-                <th>{campoCapim}</th>
-                <th>{campoData}</th>
-                <th />
-                <th />
-                <th />
-                <th />
-                <th>{campoMS}</th>
-                <th />
-                <th />
+                {cab('nome', 'Talhão', '', campoBusca, !!filtro.busca)}
+                {cab('capim', 'Capim', 'oculta-cel', campoCapim, !!filtro.capim)}
+                {cab('data', 'Última coleta', 'oculta-cel', campoData, !!filtro.data)}
+                {cab('area', 'Área (ha)', 'n')}
+                {cab('amostras', 'Amostras', 'n')}
+                {cab('mvKgM2', 'MV (kg/m²)', 'n')}
+                {cab('tMVha', 'MV (t/ha)', 'n')}
+                {cab('msPct', 'MS (%)', 'n', campoMS, !!filtro.semaforo)}
+                {cab('tMSha', 'MS (t/ha)', 'n')}
+                {cab('colheita', 'Colheita', 'col-colheita')}
               </tr>
             </thead>
             <tbody>

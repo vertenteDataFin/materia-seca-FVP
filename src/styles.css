@@ -619,10 +619,31 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
 .grafico-ms .ponto.pendente { fill: #fff; stroke: var(--verde); stroke-width: 1.2; }
 
 /* ---- Ordenação das colunas do Painel ---- */
-th.ordenavel { padding: 0; }
-th.ordenavel button { all: unset; cursor: pointer; display: block; width: 100%; box-sizing: border-box; padding: 0.45rem 0.5rem; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; white-space: nowrap; min-height: 0; }
-th.ordenavel.n button { text-align: right; }
-th.ordenavel button:hover, th.ordenavel.ativa button { color: var(--verde); }
+th.ordenavel { padding: 0; position: relative; }
+th.ordenavel .cab-col { display: flex; align-items: center; }
+th.ordenavel.n .cab-col { justify-content: flex-end; }
+th.ordenavel button.ordenar-col { all: unset; cursor: pointer; display: block; flex: 1; box-sizing: border-box; padding: 0.45rem 0.5rem; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; white-space: nowrap; min-height: 0; }
+th.ordenavel.com-filtro button.ordenar-col { flex: 0 1 auto; padding-right: 0.1rem; }
+th.ordenavel.n button.ordenar-col { text-align: right; }
+th.ordenavel button.ordenar-col:hover, th.ordenavel.ativa button.ordenar-col { color: var(--verde); }
+/* Filtro no título da coluna: ícone ao lado das setas; abre o campo numa caixinha logo abaixo */
+th.ordenavel button.filtro-col {
+  all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: none;
+  width: 1.5rem; height: 1.5rem; margin-right: 0.25rem; border-radius: 6px; color: var(--mudo); opacity: 0.6; font-size: 1rem;
+}
+th.ordenavel button.filtro-col:hover, th.ordenavel button.filtro-col[aria-expanded='true'] { opacity: 1; background: var(--fundo); color: var(--texto); }
+th.ordenavel button.filtro-col.ativo { opacity: 1; background: var(--verde-claro); color: var(--verde); }
+th.ordenavel button.filtro-col:focus-visible { outline: 2px solid var(--verde); }
+.popover-filtro {
+  position: absolute; top: calc(100% + 2px); left: 0.3rem; z-index: 20; min-width: 14rem;
+  display: grid; gap: 0.5rem; padding: 0.6rem; background: #fff; border: 1px solid var(--borda); border-radius: 10px;
+  box-shadow: 0 6px 18px rgba(0, 0, 0, 0.14); text-transform: none; letter-spacing: 0; font-weight: normal; text-align: left;
+}
+th.ordenavel.n .popover-filtro { left: auto; right: 0.3rem; }
+.popover-filtro input, .popover-filtro select { width: 100%; min-width: 0; box-sizing: border-box; padding: 0.4rem 0.5rem; font-size: 0.9rem; min-height: 0; }
+.popover-filtro .acoes-popover { display: flex; justify-content: flex-end; align-items: center; gap: 0.6rem; }
+/* a caixinha do filtro não pode ser cortada pela rolagem da tabela */
+.rolagem:has(.popover-filtro) { overflow: visible; }
 th.ordenavel .seta { margin-left: 0.15rem; font-size: 1.1em; opacity: 0.55; }
 th.ordenavel.ativa .seta { opacity: 1; }
 /* Controles do Painel no celular: busca → ordenação → filtros (o cabeçalho da tabela some) */
