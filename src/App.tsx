@@ -17,6 +17,7 @@ import Mapa from './pages/Mapa';
 import Talhoes from './pages/Talhoes';
 import Coletas from './pages/Coletas';
 import NovaColeta from './pages/NovaColeta';
+import NovaAmostraColheita from './pages/NovaAmostraColheita';
 import ColetaDetalhe from './pages/ColetaDetalhe';
 import ColetaPontos from './pages/ColetaPontos';
 import ColetaPesos from './pages/ColetaPesos';
@@ -215,6 +216,7 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
             <Route path="/talhoes" element={<Talhoes />} />
             <Route path="/coletas" element={<Coletas />} />
             <Route path="/coletas/nova" element={<NovaColeta />} />
+            <Route path="/coletas/colheita/nova" element={<NovaAmostraColheita />} />
             <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
             <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
             <Route path="/coletas/:id" element={<ColetaDetalhe />} />

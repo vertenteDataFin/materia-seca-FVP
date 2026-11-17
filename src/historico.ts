@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, doc, limit, onSnapshot, orderBy, query, setDoc, updateDoc, type Firestore } from 'firebase/firestore';
 import type { Operacao } from './repositorio';
 import { gerarId } from './repositorio';
-import type { Amostra, Carga, Colecao, Coleta, Dados, Talhao, Veiculo } from './tipos';
+import type { Amostra, AmostraColheita, Carga, Colecao, Coleta, Dados, Talhao, Veiculo } from './tipos';
 import { fmtData } from './util';
 
 /**
@@ -50,10 +50,11 @@ const ROTULO_CAMPO: Record<string, string> = {
   saidaEm: 'saída', placa: 'placa', silo: 'silo', pesoBrutoKg: 'peso bruto (kg)', taraKg: 'tara (kg)', pesadoEm: 'pesagem',
   romaneio: 'romaneio', msPct: 'MS da carga (%)', colheitaFinalizadaEm: 'colheita finalizada',
   motorista: 'motorista', numero: 'nº de cadastro',
+  coletadaEm: 'amostrada em', peneira19G: 'peneira 19 mm (g)', peneira8G: 'peneira 8 mm (g)', peneira4G: 'peneira 4 mm (g)', fundoG: 'fundo (g)',
 };
 
 /** Ordem das coleções nas descrições e na restauração (pais antes dos filhos). */
-const ORDEM: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos'];
+const ORDEM: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos', 'amostrasColheita'];
 
 /** Campos descritos só pelo nome, sem os valores (posição, contorno: valores longos e ilegíveis). */
 const SO_ROTULO: Record<string, string> = { 'posição': 'posição alterada', contorno: 'contorno alterado' };
@@ -92,6 +93,7 @@ function nomes(d: Dados) {
     amostras: (a: Amostra) => `ponto ${a.ponto} da ${coleta(d.coletas.find((c) => c.id === a.coletaId))}`,
     cargas: (c: Carga) => `carga ${talhao(c.talhaoId)} · ${fmtDataHora(c.saidaEm)}${c.placa ? ` · ${c.placa}` : ''}`,
     veiculos: (v: Veiculo) => `veículo ${v.placa} · ${v.motorista}`,
+    amostrasColheita: (a: AmostraColheita) => `amostra de colheita ${talhao(a.talhaoId)} · ${fmtDataHora(a.coletadaEm)} · ${a.placa}`,
   };
 }
 
@@ -104,6 +106,7 @@ function fmtDataHora(iso: string | undefined): string {
 const PLURAL: Record<Colecao, [string, string]> = {
   talhoes: ['talhão', 'talhões'], coletas: ['coleta', 'coletas'], amostras: ['amostra', 'amostras'], cargas: ['carga', 'cargas'],
   veiculos: ['veículo', 'veículos'],
+  amostrasColheita: ['amostra de colheita', 'amostras de colheita'],
 };
 
 function contagem(porColecao: Partial<Record<Colecao, unknown[]>>): string {
@@ -179,6 +182,7 @@ export function descreverLote(ops: Operacao[], anterior: Dados, rotulo?: RotuloL
       amostras: anterior.amostras,
       cargas: anterior.cargas ?? [],
       veiculos: anterior.veiculos ?? [],
+      amostrasColheita: anterior.amostrasColheita ?? [],
     };
     const nc = nomes(estadoComCriados);
     const total = Object.values(criados).reduce((s, l) => s + (l?.length ?? 0), 0);

@@ -128,10 +128,10 @@ service cloud.firestore {
       allow delete: if ehMembro(fid) && email() in gestoresVeiculos();
     }
 
-    // Coletas e amostras: todo membro registra e edita; só administrador e membro excluem.
+    // Coletas e amostras (de campo e de colheita): todo membro registra e edita; só administrador e membro excluem.
     match /fazendas/{fid}/{col}/{id} {
-      allow read, create, update: if ehMembro(fid) && col in ['coletas', 'amostras'];
-      allow delete: if podeExcluir(fid) && col in ['coletas', 'amostras'];
+      allow read, create, update: if ehMembro(fid) && col in ['coletas', 'amostras', 'amostrasColheita'];
+      allow delete: if podeExcluir(fid) && col in ['coletas', 'amostras', 'amostrasColheita'];
     }
   }
 }

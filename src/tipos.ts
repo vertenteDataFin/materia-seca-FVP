@@ -91,6 +91,34 @@ export interface Veiculo {
   criadoEm?: string;
 }
 
+/**
+ * Amostra de colheita: o time de campo amostra o caminhão (talhão de origem, silo de destino),
+ * faz o Penn State na hora (4 peneiras, peso em g) e a MS depois (úmido/seco, como no laboratório).
+ * Fica separada das coletas de campo: não entra na estimativa de produtividade.
+ */
+export interface AmostraColheita {
+  id: string;
+  talhaoId: string;
+  /** Data e hora local da amostragem ("AAAA-MM-DDTHH:mm"). */
+  coletadaEm: string;
+  /** Placa do caminhão (maiúsculas, sem hífen). */
+  placa: string;
+  motorista?: string;
+  /** Silo para onde vai o caminhão. */
+  silo: string;
+  responsavel?: string;
+  /** Penn State: peso retido em cada peneira (g). */
+  peneira19G: number | null;
+  peneira8G: number | null;
+  peneira4G: number | null;
+  fundoG: number | null;
+  /** MS: subamostra úmida (g, padrão 100) e peso seco (g). */
+  pesoUmidoG: number | null;
+  pesoSecoG: number | null;
+  observacoes?: string;
+  criadoEm?: string;
+}
+
 /** Registro ainda sem id (antes de gravar). */
 export type Novo<T extends { id: string }> = Omit<T, 'id'>;
 
@@ -100,16 +128,17 @@ export interface Dados {
   amostras: Amostra[];
   cargas: Carga[];
   veiculos: Veiculo[];
+  amostrasColheita: AmostraColheita[];
 }
 
 export type Colecao = keyof Dados;
 export type Entidade<C extends Colecao> = Dados[C][number];
 
-export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos'];
+export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos', 'amostrasColheita'];
 
 /** Estado vazio (todas as coleções). */
 export function dadosVazios(): Dados {
-  return { talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [] };
+  return { talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [], amostrasColheita: [] };
 }
 
 /** Completa um estado salvo antes de existirem coleções novas (ex.: cargas). */

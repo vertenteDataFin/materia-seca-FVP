@@ -461,6 +461,31 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   .lab-linha > .n:last-child { grid-column: 1 / -1; text-align: left; }
   .lab-cabecalho { flex-wrap: wrap; }
 }
+/* ---- Amostragem de colheita (caminhões) ---- */
+.lab-cabecalho.estatico { cursor: default; }
+.lab-cabecalho.estatico .mi { color: var(--verde); }
+.lab-linha.destaque { outline: 2px solid var(--verde); }
+.escolha-coleta { display: grid; grid-template-columns: 1fr 1fr; gap: 0.8rem; }
+.opcao-coleta { border: 1px solid var(--borda); border-radius: 10px; padding: 0.7rem 0.8rem; background: var(--fundo); display: flex; flex-direction: column; }
+.opcao-coleta h2 { margin: 0 0 0.2rem; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem; }
+.opcao-coleta h2 .mi { color: var(--verde); }
+.opcao-coleta .dica { flex: 1; }
+.penn-state { border: 1px solid var(--borda); border-radius: 10px; padding: 0.6rem 0.8rem 0.7rem; margin: 0; }
+.penn-state legend { padding: 0 0.3rem; font-weight: 600; font-size: 0.9rem; }
+.peneiras { display: grid; grid-template-columns: repeat(auto-fit, minmax(6.5rem, 1fr)); gap: 0.6rem; margin-bottom: 0.3rem; }
+.peneiras label { display: flex; flex-direction: column; gap: 0.2rem; }
+.peneiras input { width: 100%; min-width: 0; }
+.pct-peneira { font-variant-numeric: tabular-nums; font-weight: 600; }
+.tabela-amostras-colheita td.col-penn, .tabela-amostras-colheita th.col-penn { white-space: nowrap; font-variant-numeric: tabular-nums; }
+tr.linha-edicao-amostra > td { background: var(--verde-claro); }
+.edicao-amostra-colheita .acoes { margin-top: 0.5rem; }
+@media (max-width: 700px) {
+  .escolha-coleta { grid-template-columns: 1fr; }
+  .peneiras { grid-template-columns: 1fr 1fr; }
+  /* edição da amostra: o cartão inteiro, não uma célula da grade */
+  .tabela-cartoes tr.linha-edicao-amostra { display: block; padding: 0.7rem; background: var(--verde-claro); }
+  .tabela-cartoes tr.linha-edicao-amostra > td { display: block; width: auto; padding: 0; background: none; }
+}
 /* ---- Amostragem: fila do laboratório no topo ---- */
 .cartao.fila-ms { border-color: #f0d9a0; }
 /* ---- Colheita ---- */

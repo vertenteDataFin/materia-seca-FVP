@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FilaMS } from './Laboratorio';
+import AmostrasColheitaCard from './AmostrasColheita';
 import { amostrasPorColeta, useDados } from '../dados';
 import { compararColetasDesc } from '../tipos';
 import { resumoColeta, statusMS } from '../calc';
@@ -25,6 +26,7 @@ export default function Coletas() {
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
   const [mostrarFiltros, setMostrarFiltros] = useState(false);
+  const [escolhendo, setEscolhendo] = useState(false);
   const nFiltros = (filtro ? 1 : 0) + (de || ate ? 1 : 0);
   const limparFiltros = () => { setFiltro(''); setDe(''); setAte(''); };
 
@@ -47,21 +49,39 @@ export default function Coletas() {
     <>
       <div className="titulo-linha">
         <h1>Amostragem</h1>
-        <div className="acoes">
-          <Link className="botao primario" to="/mapa">+ Nova coleta (pelo mapa)</Link>
-          <Link className="botao" to="/coletas/nova">+ Nova coleta (pela lista)</Link>
-        </div>
+        <button type="button" className="primario" aria-expanded={escolhendo} onClick={() => setEscolhendo((v) => !v)}>
+          <Icone nome="adicionar" /> Nova coleta
+        </button>
       </div>
+      {escolhendo && (
+        <div className="cartao escolha-coleta">
+          <div className="opcao-coleta">
+            <h2><Icone nome="campo" /> Amostragem de campo</h2>
+            <p className="dica">Pontos no talhão: GPS e peso verde do quadro, para estimar a produtividade e a MS antes da colheita.</p>
+            <div className="acoes">
+              <Link className="botao primario" to="/mapa">Pelo mapa</Link>
+              <Link className="botao" to="/coletas/nova">Pela lista</Link>
+            </div>
+          </div>
+          <div className="opcao-coleta">
+            <h2><Icone nome="caminhao" /> Amostragem de colheita</h2>
+            <p className="dica">Amostra do caminhão: talhão de origem, silo de destino, Penn State na hora e MS depois.</p>
+            <div className="acoes">
+              <Link className="botao primario" to="/coletas/colheita/nova">Amostrar caminhão</Link>
+            </div>
+          </div>
+        </div>
+      )}
       <p className="dica">
-        Em campo: escolha o talhão, marque cada ponto pelo GPS e pese a massa verde do quadro. Etiquete o saco com o código do ponto; a MS é lançada
-        depois, no quadro <strong>Aguardando MS</strong> aqui no topo. Toque numa coleta para abrir a etapa pendente ou o resultado.
+        A MS das amostras (de campo e dos caminhões) é lançada depois, no quadro <strong>Aguardando MS</strong> aqui no topo. Toque numa coleta para
+        abrir a etapa pendente ou o resultado.
       </p>
 
-      <FilaMS destaque={params.get('coleta')} />
+      <FilaMS destaque={params.get('coleta')} destaqueColheita={params.get('colheita')} />
 
       <div className="cartao">
         <div className="cabecalho-cartao cabecalho-filtro">
-          <h2>Coletas</h2>
+          <h2>Amostragem de campo</h2>
           <button
             type="button"
             className={`icone-acao botao-filtro${nFiltros ? ' ativo' : ''}`}
@@ -146,6 +166,8 @@ export default function Coletas() {
           </div>
         )}
       </div>
+
+      <AmostrasColheitaCard destaque={params.get('colheita')} />
     </>
   );
 }

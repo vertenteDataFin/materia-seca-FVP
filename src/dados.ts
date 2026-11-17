@@ -1,6 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { Repositorio } from './repositorio';
-import { compararNomes, completarDados, type Amostra, type Carga, type Coleta, type Dados, type Novo, type Talhao, type Veiculo } from './tipos';
+import { compararNomes, completarDados, type Amostra, type AmostraColheita, type Carga, type Coleta, type Dados, type Novo, type Talhao, type Veiculo } from './tipos';
 
 let atual: Repositorio | null = null;
 
@@ -43,6 +43,8 @@ export function useDados(): Dados | undefined {
       amostras: [...bruto.amostras].sort((a, b) => a.coletaId.localeCompare(b.coletaId) || a.ponto - b.ponto),
       // mais recente primeiro
       cargas: [...(bruto.cargas ?? [])].sort((a, b) => b.saidaEm.localeCompare(a.saidaEm) || b.id.localeCompare(a.id)),
+      // mais recente primeiro
+      amostrasColheita: [...(bruto.amostrasColheita ?? [])].sort((a, b) => b.coletadaEm.localeCompare(a.coletadaEm) || b.id.localeCompare(a.id)),
       // pelo nº de cadastro; sem número, no fim por motorista
       veiculos: [...(bruto.veiculos ?? [])].sort(
         (a, b) => (a.numero ?? Infinity) - (b.numero ?? Infinity) || a.motorista.localeCompare(b.motorista, 'pt-BR'),
@@ -79,7 +81,7 @@ export function atualizarTalhao(id: string, campos: Partial<Novo<Talhao>>) {
   repositorio().atualizar('talhoes', id, campos);
 }
 
-/** Exclui um talhão e todas as suas coletas, amostras e cargas. */
+/** Exclui um talhão e todas as suas coletas, amostras, cargas e amostras de colheita. */
 export function excluirTalhao(id: string) {
   const d = dadosAtuais();
   const coletas = d.coletas.filter((c) => c.talhaoId === id);
@@ -88,6 +90,7 @@ export function excluirTalhao(id: string) {
     ...d.amostras.filter((a) => ids.has(a.coletaId)).map((a) => ({ tipo: 'remover' as const, colecao: 'amostras' as const, id: a.id })),
     ...coletas.map((c) => ({ tipo: 'remover' as const, colecao: 'coletas' as const, id: c.id })),
     ...d.cargas.filter((c) => c.talhaoId === id).map((c) => ({ tipo: 'remover' as const, colecao: 'cargas' as const, id: c.id })),
+    ...d.amostrasColheita.filter((a) => a.talhaoId === id).map((a) => ({ tipo: 'remover' as const, colecao: 'amostrasColheita' as const, id: a.id })),
     { tipo: 'remover', colecao: 'talhoes', id },
   ]);
 }
@@ -104,6 +107,20 @@ export function atualizarCarga(id: string, campos: Partial<Novo<Carga>>) {
 
 export function excluirCarga(id: string) {
   repositorio().remover('cargas', id);
+}
+
+// ---- Amostras de colheita (caminhões) ----
+
+export function adicionarAmostraColheita(a: Novo<AmostraColheita>): string {
+  return repositorio().adicionar('amostrasColheita', { ...a, criadoEm: a.criadoEm ?? new Date().toISOString() });
+}
+
+export function atualizarAmostraColheita(id: string, campos: Partial<Novo<AmostraColheita>>) {
+  repositorio().atualizar('amostrasColheita', id, campos);
+}
+
+export function excluirAmostraColheita(id: string) {
+  repositorio().remover('amostrasColheita', id);
 }
 
 // ---- Veículos (colheita) ----

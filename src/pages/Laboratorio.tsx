@@ -1,7 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icone } from '../Icone';
 import { Link } from 'react-router-dom';
-import { amostrasPorColeta, atualizarAmostra, useDados } from '../dados';
+import { amostrasPorColeta, atualizarAmostra, atualizarAmostraColheita, useDados } from '../dados';
+import { aguardandoMSColheita } from '../amostragemColheita';
+import { fmtSaida } from '../colheita';
 import { compararColetasDesc, type Amostra, type Coleta, type Talhao } from '../tipos';
 import { lancarSeco, resumoColeta, teorMS, UMIDO_PADRAO_G } from '../calc';
 import { CampoNumero } from '../components';
@@ -19,9 +21,14 @@ interface Grupo {
  * Fila do laboratório (topo da página Amostragem): coletas com o campo concluído e pontos ainda sem MS,
  * com o peso seco lançado ali mesmo. Some quando não há nada pendente.
  */
-export function FilaMS({ destaque }: { destaque: string | null }) {
+export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null; destaqueColheita?: string | null }) {
   const dados = useDados();
   const [abertos, setAbertos] = useState<Set<string>>(() => new Set(destaque ? [destaque] : []));
+  // Amostras de caminhão (amostragem de colheita) ainda sem o peso seco, da mais antiga para a mais nova.
+  const colheita = useMemo(
+    () => (dados ? dados.amostrasColheita.filter(aguardandoMSColheita).sort((a, b) => a.coletadaEm.localeCompare(b.coletadaEm)) : []),
+    [dados],
+  );
 
   const pendentes = useMemo(() => {
     if (!dados) return [] as Grupo[];
@@ -43,7 +50,12 @@ export function FilaMS({ destaque }: { destaque: string | null }) {
     document.getElementById(`lab-${destaque}`)?.scrollIntoView({ behavior: 'smooth', block: 'start' });
   }, [destaque, dados != null]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!dados || !pendentes.length) return null;
+  useEffect(() => {
+    if (destaqueColheita) document.getElementById(`ac-${destaqueColheita}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
+  }, [destaqueColheita, dados != null]); // eslint-disable-line react-hooks/exhaustive-deps
+
+  if (!dados || (!pendentes.length && !colheita.length)) return null;
+  const nomeTalhao = (id: string) => dados.talhoes.find((t) => t.id === id)?.nome ?? 'talhão removido';
   const alternar = (id: string) =>
     setAbertos((s) => {
       const n = new Set(s);
@@ -51,7 +63,7 @@ export function FilaMS({ destaque }: { destaque: string | null }) {
       else n.add(id);
       return n;
     });
-  const total = pendentes.reduce((s, g) => s + g.pendentes, 0);
+  const total = pendentes.reduce((s, g) => s + g.pendentes, 0) + colheita.length;
 
   return (
     <div className="cartao fila-ms">
@@ -64,8 +76,41 @@ export function FilaMS({ destaque }: { destaque: string | null }) {
         Confira o código da etiqueta do saco. A coleta sai daqui quando todos os pontos estiverem aferidos.
       </p>
       {pendentes.map((g) => (
-        <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || pendentes.length === 1} alternar={() => alternar(g.c.id)} />
+        <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || (pendentes.length === 1 && !colheita.length)} alternar={() => alternar(g.c.id)} />
       ))}
+      {colheita.length > 0 && (
+        <div className="lab-grupo">
+          <div className="lab-cabecalho estatico">
+            <Icone nome="caminhao" />
+            <strong>Amostragem de colheita</strong>
+            <span className="espaco" />
+            <span className="selo selo-alto">{colheita.length} sem MS</span>
+          </div>
+          <div className="lab-linhas">
+            <div className="lab-linha lab-titulo">
+              <span>Caminhão</span>
+              <span>Silo</span>
+              <span>Seco (g) de {UMIDO_PADRAO_G} g</span>
+              <span className="n">MS %</span>
+            </div>
+            {colheita.map((a) => (
+              <div key={a.id} id={`ac-${a.id}`} className={`lab-linha pendente${a.id === destaqueColheita ? ' destaque' : ''}`}>
+                <span>
+                  <strong>{a.placa}</strong> <span className="mudo"><small>{nomeTalhao(a.talhaoId)} · {fmtSaida(a.coletadaEm)}</small></span>
+                </span>
+                <span className="mv" data-rotulo="Silo">{a.silo}</span>
+                <CampoNumero
+                  valor={a.pesoSecoG}
+                  ariaLabel={`Peso seco da amostra do caminhão ${a.placa}`}
+                  placeholder="seco (g)"
+                  aoSalvar={(v) => atualizarAmostraColheita(a.id, lancarSeco(a, v))}
+                />
+                <span className="n ms oculta-cel" data-rotulo="MS %">—</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
     </div>
   );
 }

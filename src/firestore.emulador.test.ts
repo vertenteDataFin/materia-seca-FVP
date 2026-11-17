@@ -144,6 +144,20 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(deleteDoc(veiculo(gestor)));
   });
 
+  it('amostras de colheita: operador registra e lança MS, mas não exclui; membro exclui', async () => {
+    const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
+    await assertSucceeds(setDoc(membro(admin, 'campo3@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
+    await assertSucceeds(setDoc(membro(admin, 'tec3@fazenda.com.br'), { nome: 'Técnico', papel: 'membro' }));
+    const op = env.authenticatedContext('o3', senha('campo3@fazenda.com.br', false)).firestore();
+    const tec = env.authenticatedContext('t3', senha('tec3@fazenda.com.br', false)).firestore();
+    const { deleteDoc, updateDoc } = await import('firebase/firestore');
+    const ac = (db: Firestore) => doc(collection(db, 'fazendas', FID, 'amostrasColheita'), 'ac1');
+    await assertSucceeds(setDoc(ac(op), { talhaoId: 't1', coletadaEm: '2026-11-17T08:00', placa: 'CPG0247', silo: 'Silo 1', peneira19G: 20, peneira8G: 100, peneira4G: 60, fundoG: 20, pesoUmidoG: null, pesoSecoG: null }));
+    await assertSucceeds(updateDoc(ac(op), { pesoUmidoG: 100, pesoSecoG: 31 }));
+    await assertFails(deleteDoc(ac(op)));
+    await assertSucceeds(deleteDoc(ac(tec)));
+  });
+
   it('conta nova registra só o próprio pedido de acesso; admin lê e apaga', async () => {
     const novo = env.authenticatedContext('n', senha('novo@gmail.com', false)).firestore();
     const pedido = (db: Firestore, e: string) => doc(collection(db, 'fazendas', FID, 'solicitacoes'), e);
@@ -228,7 +242,7 @@ describe.skipIf(!ativo)('RepositorioFirestore', () => {
     a.iniciar();
     b.iniciar();
     await Promise.all([a.aguardarPronto(), b.aguardarPronto()]);
-    expect(a.obter()).toEqual({ talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [] });
+    expect(a.obter()).toEqual({ talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [], amostrasColheita: [] });
 
     const geometria: [number, number][][] = [[[-52, -19], [-51.99, -19], [-51.99, -19.01]]];
     const id = a.adicionar('talhoes', { nome: 'Talhão 18 - PD', capim: 'Miyagi', areaHa: 118, geometria, fazenda: undefined });
