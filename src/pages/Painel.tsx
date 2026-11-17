@@ -83,7 +83,7 @@ export default function Painel() {
     if (!dados) return { linhas: [], colheita: null };
     const ultima = ultimaColetaPorTalhao(dados.coletas);
     const porColeta = amostrasPorColeta(dados.amostras);
-    const colheita = resumoColheita(dados.talhoes, dados.cargas, dados.coletas, porColeta);
+    const colheita = resumoColheita(dados.talhoes, dados.cargas, dados.coletas, porColeta, dados.amostrasColheita);
     const linhas = dados.talhoes.map((t) => {
       const c = ultima.get(t.id);
       const r = c ? resumoColeta(c, porColeta.get(c.id) ?? []) : null;
@@ -212,8 +212,8 @@ export default function Painel() {
           <h2>Resumo de colheita</h2>
           <Link to="/colheita">Abrir colheita →</Link>
         </div>
-        {!colheita.porTalhao.size ? (
-          <p className="vazio">Nenhuma carga registrada ainda. A colheita aparece aqui quando sair a primeira carga do campo.</p>
+        {!colheita.porTalhao.size && !colheita.nAmostrasColheita ? (
+          <p className="vazio">Nenhuma carga nem amostra de caminhão ainda. A colheita aparece aqui com o relatório da balança e a amostragem de colheita.</p>
         ) : (
           <>
             <div className="indicadores grade-kpi">
@@ -224,14 +224,16 @@ export default function Painel() {
               <div className="kpi-ha"><Indicador rotulo="Ritmo" valor={fmt(colheita.ritmoTdia, 0)} unidade="t/dia" /></div>
               <Indicador rotulo="Massa verde entregue" valor={fmt(colheita.tMV)} unidade="t" />
               <Indicador rotulo="Matéria seca entregue" valor={fmt(colheita.tMS)} unidade="t" />
-              <Indicador rotulo="Talhões em colheita" valor={String(colheita.emColheita)} unidade={`+ ${colheita.finalizados} finalizado${colheita.finalizados === 1 ? '' : 's'}`} />
+              <Indicador rotulo="MS da colheita" valor={fmt(colheita.msColheitaPct)} unidade="% (caminhões)" />
             </div>
             <p className="dica">
               {colheita.pesadas} carga{colheita.pesadas === 1 ? '' : 's'} pesada{colheita.pesadas === 1 ? '' : 's'} em {colheita.diasAtivos} dia
-              {colheita.diasAtivos === 1 ? '' : 's'}
-              {colheita.pendentes > 0 && <>, <strong>{colheita.pendentes} aguardando pesagem</strong></>}. Área colhida estimada pela última amostragem de
-              cada talhão; talhão com colheita finalizada conta a área toda.
-              {colheita.semReferencia > 0 && <> {colheita.semReferencia} talhão(ões) com carga sem amostragem ficam fora da área colhida.</>}
+              {colheita.diasAtivos === 1 ? '' : 's'} · {colheita.emColheita} talhão(ões) em colheita, {colheita.finalizados} finalizado(s) ·{' '}
+              {colheita.nAmostrasColheita} amostra(s) de caminhão com MS
+              {colheita.pendentes > 0 && <> · <strong>{colheita.pendentes} aguardando pesagem</strong></>}. A MS da colheita vem dos caminhões amostrados
+              (média do talhão no dia da carga); só na falta deles, da amostragem de campo. A massa verde por hectare vem sempre da amostragem de campo.
+              Talhão com colheita finalizada conta a área toda.
+              {colheita.semReferencia > 0 && <> {colheita.semReferencia} talhão(ões) com carga sem amostragem de campo ficam fora da área colhida.</>}
             </p>
           </>
         )}

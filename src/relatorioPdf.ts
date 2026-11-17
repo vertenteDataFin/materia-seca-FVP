@@ -1,6 +1,7 @@
 import { amostrasPorColeta, dadosAtuais, ultimaColetaPorTalhao } from './dados';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, type Parametros, type ResumoColeta } from './calc';
 import { areaAnelM2 } from './kml';
+import { colheitaPorTalhao } from './amostragemColheita';
 import { nomeCurto } from './MapaTalhoes';
 import { compararNomes, type Coleta, type Dados, type Talhao } from './tipos';
 import { fmt, fmtData, hoje, lerParametros } from './util';
@@ -17,6 +18,8 @@ export interface Relatorio {
   talhoes: { cabecalho: string[]; linhas: string[][]; total: string[]; notas: string[] };
   leitura: string[];
   pendencias: string[];
+  /** Colheita (amostragem dos caminhões + balança); null antes de a colheita começar. */
+  colheita: { cabecalho: string[]; linhas: string[][]; total: string[]; notas: string[] } | null;
   rodape: string;
 }
 
@@ -43,6 +46,47 @@ function situacao(r: ResumoColeta, p: Parametros): string {
 function areaContornoHa(t: Talhao): number | null {
   if (!t.geometria?.length) return null;
   return Math.round((t.geometria.reduce((s, anel) => s + areaAnelM2(anel), 0) / 10000) * 10) / 10;
+}
+
+/** Seção de colheita: MS e Penn State dos caminhões, cargas da balança e área colhida, por talhão. */
+function montarColheita(d: Dados): Relatorio['colheita'] {
+  const linhas = colheitaPorTalhao(d);
+  if (!linhas.length) return null;
+  const tMV = linhas.reduce((s, l) => s + l.tMV, 0);
+  const comMS = linhas.filter((l) => l.tMS != null);
+  const tMS = comMS.reduce((s, l) => s + (l.tMS ?? 0), 0);
+  const area = linhas.reduce((s, l) => s + (l.areaColhidaHa ?? 0), 0);
+  const nAmostras = linhas.reduce((s, l) => s + l.nComMS, 0);
+  const msMedia = nAmostras ? linhas.reduce((s, l) => s + (l.msColheita ?? 0) * l.nComMS, 0) / nAmostras : null;
+  return {
+    cabecalho: ['Talhão', 'Amostras de caminhão', 'MS colheita (%)', 'Penn State médio (19 · 8 · 4 · fundo %)', 'Cargas', 'MV entregue (t)', 'MS entregue (t)', 'Área colhida (ha)', 'Colhido'],
+    linhas: linhas.map((l) => [
+      nomeCurto(l.talhao.nome),
+      String(l.nAmostras),
+      l.msColheita == null ? '—' : fmt(l.msColheita, 1),
+      l.pennMedio ? l.pennMedio.map((p) => fmt(p, 0)).join(' · ') : '—',
+      String(l.cargas),
+      l.cargas ? fmt(l.tMV, 1) : '—',
+      l.tMS == null ? '—' : fmt(l.tMS, 1),
+      l.areaColhidaHa == null ? '—' : fmt(l.areaColhidaHa, 1),
+      l.finalizada ? 'finalizada' : pct(l.progresso),
+    ]),
+    total: [
+      'Total',
+      String(linhas.reduce((s, l) => s + l.nAmostras, 0)),
+      msMedia == null ? '—' : fmt(msMedia, 1),
+      '',
+      String(linhas.reduce((s, l) => s + l.cargas, 0)),
+      fmt(tMV, 1),
+      comMS.length ? fmt(tMS, 1) : '—',
+      fmt(area, 1),
+      '',
+    ],
+    notas: [
+      'MS da colheita = média das amostras dos caminhões do talhão; a MS entregue usa, em cada carga, a média dos caminhões amostrados no mesmo dia (sem amostra no dia, a média do talhão; sem amostragem de colheita, a da amostragem de campo).',
+      'Área colhida = MS entregue ÷ t MS/ha da amostragem de campo mais recente (a massa verde por hectare vem sempre da amostragem de campo); talhão finalizado conta a área toda.',
+    ],
+  };
 }
 
 /** Monta o relatório (dados puros, testável) a partir do estado atual e dos parâmetros. */
@@ -163,6 +207,7 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
     },
     leitura,
     pendencias,
+    colheita: montarColheita(d),
     rodape: `Gerado pelo app Silagem MS em ${agora.toLocaleString('pt-BR')} a partir dos dados de campo informados; cálculos conforme as fórmulas do app (${URL_APP}).`,
   };
 }
@@ -278,7 +323,21 @@ export async function gerarRelatorioPdf(rel: Relatorio = montarRelatorio()) {
     }
   } else marcadores(['Nenhuma coleta registrada.']);
 
-  titulo('4. Leitura dos resultados');
+  let secao = 4;
+  if (rel.colheita) {
+    titulo(`${secao++}. Colheita (amostragem dos caminhões e balança)`, 40);
+    tabela(rel.colheita.cabecalho, rel.colheita.linhas, { total: rel.colheita.total, numericasDesde: 1, larguras: { 3: 46 } });
+    doc.setFont('helvetica', 'italic').setFontSize(8).setTextColor(...MUDO);
+    for (const n of rel.colheita.notas) {
+      const linhas = doc.splitTextToSize(`Nota: ${n}`, largura - 2 * M - 4) as string[];
+      quebra(linhas.length * 3.8);
+      doc.text(linhas, M + 4, y);
+      y += linhas.length * 3.8;
+    }
+    y += 3;
+  }
+
+  titulo(`${secao}. Leitura dos resultados`);
   marcadores(rel.leitura, 20);
   // (as pendências continuam em `rel.pendencias`, mas não vão para o PDF a pedido do usuário)
 

@@ -2,7 +2,8 @@
 import { describe, expect, it } from 'vitest';
 import { PARAMETROS_PADRAO } from './calc';
 import { descreverDatas, montarRelatorio } from './relatorioPdf';
-import type { Amostra, Dados } from './tipos';
+import { montarPlanilhas } from './exportarExcel';
+import type { Amostra, AmostraColheita, Dados } from './tipos';
 
 const am = (coletaId: string, ponto: number, verde: number, seco: number | null): Amostra => ({
   id: `${coletaId}-${ponto}`, coletaId, ponto, pesoVerdeKg: verde, pesoUmidoG: seco == null ? null : 100, pesoSecoG: seco,
@@ -27,6 +28,51 @@ const dados: Dados = {
     am('c4', 1, 3.23, null), am('c4', 2, 2.4, null),
   ],
 };
+
+describe('colheita nos relatórios (MS dos caminhões)', () => {
+  const ac = (id: string, talhaoId: string, coletadaEm: string, seco: number | null, p: [number, number, number, number] | null = null): AmostraColheita => ({
+    id, codigo: `X-${id}`, talhaoId, coletadaEm, placa: 'CPG0247', silo: 'Silo 1',
+    peneira19G: p?.[0] ?? null, peneira8G: p?.[1] ?? null, peneira4G: p?.[2] ?? null, fundoG: p?.[3] ?? null,
+    pesoUmidoG: seco == null ? null : 100, pesoSecoG: seco,
+  });
+  const comColheita: Dados = {
+    ...dados,
+    veiculos: [],
+    amostrasColheita: [ac('a', 't18', '2026-11-14T08:00', 30, [20, 100, 60, 20]), ac('b', 't18', '2026-11-14T10:00', 34, [10, 110, 60, 20]), ac('c', 't21', '2026-11-14T09:00', null)],
+    cargas: [
+      { id: 'k1', talhaoId: 't18', saidaEm: '2026-11-14T07:30', placa: 'CPG0247', romaneio: '101', pesoBrutoKg: 40000, taraKg: 15000 }, // 25 t
+      { id: 'k2', talhaoId: 't18', saidaEm: '2026-11-15T07:30', placa: 'CPG0247', romaneio: '102', pesoBrutoKg: 45000, taraKg: 15000 }, // 30 t
+    ],
+  };
+
+  it('sem colheita, o PDF não tem a seção e o Excel não ganha abas', () => {
+    expect(montarRelatorio(dados, PARAMETROS_PADRAO).colheita).toBeNull();
+    expect(montarPlanilhas(dados, PARAMETROS_PADRAO).map((p) => p.nome)).toEqual(['Talhões', 'Coletas', 'Amostras', 'Parâmetros']);
+  });
+
+  it('PDF: por talhão, MS e Penn State dos caminhões, cargas e MS entregue', () => {
+    const c = montarRelatorio(comColheita, PARAMETROS_PADRAO).colheita!;
+    // TL 18: 2 amostras (32%); 55 t entregues × 32% = 17,6 t MS · TL 21: só amostra sem MS
+    expect(c.linhas).toEqual([
+      ['TL 18', '2', '32,0', '8 · 53 · 30 · 10', '2', '55,0', '17,6', expect.any(String), expect.stringMatching(/%$/)],
+      ['TL 21', '1', '—', '—', '0', '—', '—', '—', '—'],
+    ]);
+    expect(c.total.slice(0, 3)).toEqual(['Total', '3', '32,0']);
+  });
+
+  it('Excel: abas de amostras de colheita, cargas e colheita por talhão', () => {
+    const pl = montarPlanilhas(comColheita, PARAMETROS_PADRAO);
+    expect(pl.map((p) => p.nome)).toEqual(['Talhões', 'Coletas', 'Amostras', 'Amostras de colheita', 'Cargas', 'Colheita por talhão', 'Parâmetros']);
+    const amostrasCol = pl.find((p) => p.nome === 'Amostras de colheita')!;
+    expect(amostrasCol.linhas[0].slice(0, 3)).toEqual(['X-a', new Date(2026, 10, 14, 8, 0), 'TL 18']);
+    expect(amostrasCol.linhas[0][11]).toBeCloseTo(10); // 20 g de 200 g na peneira de 19 mm
+    const cargasPl = pl.find((p) => p.nome === 'Cargas')!;
+    expect(cargasPl.linhas.map((l) => [l[0], l[8]])).toEqual([['101', 25000], ['102', 30000]]);
+    const porTalhao = pl.find((p) => p.nome === 'Colheita por talhão')!;
+    expect(porTalhao.linhas[0][2]).toBeCloseTo(32);
+    expect(porTalhao.linhas[0][9]).toBeCloseTo(17.6);
+  });
+});
 
 describe('relatório em PDF', () => {
   it('descreve as datas das coletas', () => {

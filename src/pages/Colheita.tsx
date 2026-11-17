@@ -1,6 +1,18 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDados } from '../dados';
-import { agoraLocal, andamentoTalhao, cargaPesada, fmtSaida, liquidoKg, normalizarPlaca, referenciaDoTalhao, tarasPorPlaca, type AndamentoTalhao } from '../colheita';
+import {
+  agoraLocal,
+  andamentoTalhao,
+  cargaPesada,
+  fmtSaida,
+  liquidoKg,
+  msColheitaPorTalhao,
+  normalizarPlaca,
+  referenciaDoTalhao,
+  tarasPorPlaca,
+  type AndamentoTalhao,
+  type MSColheitaTalhao,
+} from '../colheita';
 import type { Carga } from '../tipos';
 import { CampoNumero } from '../components';
 import { Icone } from '../Icone';
@@ -22,9 +34,11 @@ export default function Colheita() {
     const porColeta = amostrasPorColeta(dados.amostras);
     const nomes = new Map(dados.talhoes.map((t) => [t.id, t.nome]));
     const comCarga = new Set(dados.cargas.map((c) => c.talhaoId));
+    // MS da produção: caminhões amostrados (amostragem de colheita); a de campo só na falta deles.
+    const msPorTalhao = msColheitaPorTalhao(dados.amostrasColheita);
     const andamentos = dados.talhoes
       .filter((t) => comCarga.has(t.id))
-      .map((t) => andamentoTalhao(t, dados.cargas, referenciaDoTalhao(t.id, dados.coletas, porColeta)))
+      .map((t) => andamentoTalhao(t, dados.cargas, referenciaDoTalhao(t.id, dados.coletas, porColeta), msPorTalhao.get(t.id) ?? null))
       // em colheita primeiro, pela carga mais recente
       .sort((a, b) => Number(a.finalizada) - Number(b.finalizada) || (b.ultima ?? '').localeCompare(a.ultima ?? ''));
     return {
@@ -33,12 +47,14 @@ export default function Colheita() {
       pendentes: dados.cargas.filter((c) => !cargaPesada(c)).sort((a, b) => a.saidaEm.localeCompare(b.saidaEm)),
       pesadas: dados.cargas.filter(cargaPesada),
       taras: tarasPorPlaca(dados.cargas),
+      msPorTalhao,
     };
   }, [dados]);
 
   if (!dados || !calc) return null;
   const nome = (id: string) => calc.nomes.get(id) ?? 'talhão removido';
   const emColheita = calc.andamentos.filter((a) => !a.finalizada);
+  const andamentoDe = new Map(calc.andamentos.map((a) => [a.talhao.id, a]));
   const finalizados = calc.andamentos.filter((a) => a.finalizada);
 
   // A tara é do caminhão: vem da última pesagem da mesma placa.
@@ -118,6 +134,7 @@ export default function Colheita() {
                     alternar={() => setEditando(editando === c.id ? null : c.id)}
                     podePesar={podePesar}
                     podeExcluir={podeExcluir}
+                    msAuto={msAutomatica(c, andamentoDe.get(c.talhaoId), calc.msPorTalhao.get(c.talhaoId))}
                   />
                 ))}
               </tbody>
@@ -241,6 +258,15 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
         ) : (
           'Faça uma amostragem neste talhão para estimar a área colhida.'
         )}
+        <br />
+        {a.msColheita ? (
+          <>
+            MS da colheita (caminhões): <strong>{fmt(a.msColheita.media, 1)}%</strong> em {a.msColheita.n} amostra{a.msColheita.n === 1 ? '' : 's'}; é a
+            usada na MS entregue{a.tMS != null && a.tMV > 0 ? ` (${fmt(a.tMS, 1)} t MS)` : ''}.
+          </>
+        ) : (
+          'Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.'
+        )}
       </p>
       <div className="acoes">
         {a.finalizada ? (
@@ -255,7 +281,32 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
   );
 }
 
-function LinhaPesada({ c, nomeTalhao, aberta, alternar, podePesar, podeExcluir }: { c: Carga; nomeTalhao: string; aberta: boolean; alternar: () => void; podePesar: boolean; podeExcluir: boolean }) {
+/** MS que a carga usa sem valor próprio, e de onde ela vem. */
+function msAutomatica(c: Carga, a: AndamentoTalhao | undefined, msCol: MSColheitaTalhao | undefined): { ms: number | null; fonte: string } {
+  const doDia = msCol?.porDia.get(c.saidaEm.slice(0, 10));
+  if (doDia) return { ms: doDia.media, fonte: `caminhões amostrados no dia (${doDia.n})` };
+  if (msCol) return { ms: msCol.media, fonte: `média dos caminhões do talhão (${msCol.n})` };
+  if (a?.ref?.msPct != null) return { ms: a.ref.msPct, fonte: 'amostragem de campo' };
+  return { ms: null, fonte: 'sem MS' };
+}
+
+function LinhaPesada({
+  c,
+  nomeTalhao,
+  aberta,
+  alternar,
+  podePesar,
+  podeExcluir,
+  msAuto,
+}: {
+  c: Carga;
+  nomeTalhao: string;
+  aberta: boolean;
+  alternar: () => void;
+  podePesar: boolean;
+  podeExcluir: boolean;
+  msAuto: { ms: number | null; fonte: string };
+}) {
   return (
     <>
       <tr className="clicavel" tabIndex={0} aria-expanded={aberta} onClick={alternar} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); alternar(); } }}>
@@ -282,13 +333,20 @@ function LinhaPesada({ c, nomeTalhao, aberta, alternar, podePesar, podeExcluir }
               </label>
               <label>
                 MS da carga (%)
-                <CampoNumero valor={c.msPct ?? null} ariaLabel="MS da carga" placeholder="da amostragem" aoSalvar={(v) => atualizarCarga(c.id, { msPct: v })} />
+                <CampoNumero
+                  valor={c.msPct ?? null}
+                  ariaLabel="MS da carga"
+                  placeholder={msAuto.ms != null ? fmt(msAuto.ms, 1) : '—'}
+                  aoSalvar={(v) => atualizarCarga(c.id, { msPct: v })}
+                />
               </label>
               <p className="mudo largo">
                 <small>
                   {c.romaneio ? `Romaneio ${c.romaneio} · ` : ''}
-                  {c.pesadoEm ? `pesada ${fmtSaida(agoraLocal(new Date(c.pesadoEm)))}` : ''}
-                  {' · '}MS da carga: só se amostrada na colheita (capim emurchecido); em branco vale a MS da última amostragem.
+                  {c.pesadoEm ? `pesada ${fmtSaida(agoraLocal(new Date(c.pesadoEm)))} · ` : ''}
+                  {c.msPct != null
+                    ? 'MS informada nesta carga (apague para voltar à automática).'
+                    : `MS usada: ${msAuto.ms != null ? `${fmt(msAuto.ms, 1)}%` : '—'}, ${msAuto.fonte}.`}
                 </small>
               </p>
               {podeExcluir && (

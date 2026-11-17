@@ -1,5 +1,5 @@
-import { resumoColeta } from './calc';
-import { compararColetasDesc, type Amostra, type Carga, type Coleta, type Talhao } from './tipos';
+import { resumoColeta, teorMS } from './calc';
+import { compararColetasDesc, type Amostra, type AmostraColheita, type Carga, type Coleta, type Talhao } from './tipos';
 
 /**
  * Acompanhamento da colheita: as cargas pesadas de cada talhão, convertidas em área colhida pela
@@ -46,8 +46,54 @@ export function referenciaDoTalhao(talhaoId: string, coletas: Coleta[], porColet
   return semMS;
 }
 
+/** MS das amostras de caminhão (amostragem de colheita) de um talhão: média geral e por dia. */
+export interface MSColheitaTalhao {
+  /** Média simples das amostras com MS (%). */
+  media: number;
+  n: number;
+  /** Por dia ("AAAA-MM-DD"): média e nº de amostras. */
+  porDia: Map<string, { media: number; n: number }>;
+}
+
+/** Agrupa a MS das amostras de caminhão por talhão (só as que já têm o peso seco). */
+export function msColheitaPorTalhao(amostras: AmostraColheita[]): Map<string, MSColheitaTalhao> {
+  const soma = new Map<string, { s: number; n: number; dias: Map<string, { s: number; n: number }> }>();
+  for (const a of amostras) {
+    const ms = teorMS(a);
+    if (ms == null) continue;
+    const t = soma.get(a.talhaoId) ?? { s: 0, n: 0, dias: new Map() };
+    t.s += ms;
+    t.n++;
+    const dia = a.coletadaEm.slice(0, 10);
+    const d = t.dias.get(dia) ?? { s: 0, n: 0 };
+    d.s += ms;
+    d.n++;
+    t.dias.set(dia, d);
+    soma.set(a.talhaoId, t);
+  }
+  const r = new Map<string, MSColheitaTalhao>();
+  for (const [id, t] of soma) {
+    r.set(id, {
+      media: t.s / t.n,
+      n: t.n,
+      porDia: new Map([...t.dias].map(([dia, d]) => [dia, { media: d.s / d.n, n: d.n }])),
+    });
+  }
+  return r;
+}
+
+/**
+ * MS (%) usada para uma carga: a informada na carga; senão a dos caminhões amostrados do talhão no mesmo dia;
+ * senão a média dos caminhões do talhão; senão a da amostragem de campo.
+ */
+export function msDaCarga(c: Pick<Carga, 'msPct' | 'saidaEm'>, msCol: MSColheitaTalhao | null | undefined, ref: ReferenciaAmostragem | null): number | null {
+  return c.msPct ?? msCol?.porDia.get(c.saidaEm.slice(0, 10))?.media ?? msCol?.media ?? ref?.msPct ?? null;
+}
+
 export interface AndamentoTalhao {
   talhao: Talhao;
+  /** MS das amostras de caminhão do talhão (null sem amostragem de colheita com MS). */
+  msColheita: MSColheitaTalhao | null;
   cargas: Carga[];
   /** Cargas que saíram do campo e ainda não foram pesadas. */
   pendentes: number;
@@ -74,14 +120,20 @@ export interface AndamentoTalhao {
   tMVhaReal: number | null;
 }
 
-export function andamentoTalhao(talhao: Talhao, cargas: Carga[], ref: ReferenciaAmostragem | null): AndamentoTalhao {
+export function andamentoTalhao(
+  talhao: Talhao,
+  cargas: Carga[],
+  ref: ReferenciaAmostragem | null,
+  msColheita: MSColheitaTalhao | null = null,
+): AndamentoTalhao {
   const minhas = cargas.filter((c) => c.talhaoId === talhao.id);
   const pesadas = minhas.filter(cargaPesada);
   const tMV = pesadas.reduce((s, c) => s + liquidoKg(c)! / 1000, 0);
 
+  // MS entregue: MS dos caminhões amostrados (colheita); a amostragem de campo só na falta deles.
   let tMS: number | null = 0;
   for (const c of pesadas) {
-    const ms = c.msPct ?? ref?.msPct ?? null;
+    const ms = msDaCarga(c, msColheita, ref);
     if (ms == null) { tMS = null; break; }
     tMS += (liquidoKg(c)! / 1000) * (ms / 100);
   }
@@ -104,6 +156,7 @@ export function andamentoTalhao(talhao: Talhao, cargas: Carga[], ref: Referencia
 
   return {
     talhao,
+    msColheita,
     cargas: minhas,
     pendentes: minhas.length - pesadas.length,
     pesadas: pesadas.length,
@@ -173,19 +226,30 @@ export interface ResumoColheita {
   pendentes: number;
   diasAtivos: number;
   ritmoTdia: number | null;
+  /**
+   * MS da colheita (%): com cargas pesadas, MS entregue ÷ MV entregue (ponderada pelo peso);
+   * sem cargas, a média das amostras de caminhão. null sem amostragem de colheita com MS.
+   */
+  msColheitaPct: number | null;
+  /** Amostras de caminhão com MS. */
+  nAmostrasColheita: number;
 }
 
-/** Totais da colheita na fazenda (para o Painel). */
+/** Totais da colheita na fazenda (para o Painel). A MS vem dos caminhões amostrados (amostragem de colheita). */
 export function resumoColheita(
   talhoes: Talhao[],
   cargas: Carga[],
   coletas: Coleta[],
   porColeta: Map<string, Amostra[]>,
+  amostrasColheita: AmostraColheita[] = [],
 ): ResumoColheita {
+  const msPorTalhao = msColheitaPorTalhao(amostrasColheita);
   const comCarga = new Set(cargas.map((c) => c.talhaoId));
   const porTalhao = new Map<string, AndamentoTalhao>();
   for (const t of talhoes) {
-    if (comCarga.has(t.id)) porTalhao.set(t.id, andamentoTalhao(t, cargas, referenciaDoTalhao(t.id, coletas, porColeta)));
+    if (comCarga.has(t.id)) {
+      porTalhao.set(t.id, andamentoTalhao(t, cargas, referenciaDoTalhao(t.id, coletas, porColeta), msPorTalhao.get(t.id) ?? null));
+    }
   }
   let areaColhidaHa = 0;
   let semReferencia = 0;
@@ -207,7 +271,19 @@ export function resumoColheita(
     pendentes += a.pendentes;
   }
   const dias = new Set(cargas.filter(cargaPesada).map((c) => c.saidaEm.slice(0, 10)));
+  // Só caminhões amostrados entram na MS da colheita (a de campo fica no resumo de produtividade).
+  let somaMS = 0;
+  let nAmostrasColheita = 0;
+  for (const m of msPorTalhao.values()) {
+    somaMS += m.media * m.n;
+    nAmostrasColheita += m.n;
+  }
+  const tMVcomMSColheita = [...porTalhao.values()].filter((a) => a.msColheita && a.tMS != null).reduce((s, a) => s + a.tMV, 0);
+  const tMScomMSColheita = [...porTalhao.values()].filter((a) => a.msColheita && a.tMS != null).reduce((s, a) => s + (a.tMS ?? 0), 0);
+  const msColheitaPct = tMVcomMSColheita > 0 ? (tMScomMSColheita / tMVcomMSColheita) * 100 : nAmostrasColheita ? somaMS / nAmostrasColheita : null;
   return {
+    msColheitaPct,
+    nAmostrasColheita,
     porTalhao,
     areaColhidaHa,
     semReferencia,

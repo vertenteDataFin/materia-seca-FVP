@@ -6,6 +6,8 @@ import { areaAnelM2 } from './kml';
 import { rotuloOrigem } from './geo';
 import { hoje, lerParametros } from './util';
 import { nomeCurto } from './MapaTalhoes';
+import { colheitaPorTalhao, msColheita, pennState } from './amostragemColheita';
+import { liquidoKg } from './colheita';
 
 const VERDE = 'FF2F6B3A';
 const CV_LIMITE = 25;
@@ -116,7 +118,83 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
     ],
   };
 
-  return [planTalhoes, planColetas, planAmostras, planParametros];
+  // ---- Colheita (só entra quando há amostragem de colheita ou cargas) ----
+  const amostrasColheita = [...(d.amostrasColheita ?? [])].sort((a, b) => a.coletadaEm.localeCompare(b.coletadaEm));
+  const cargas = [...(d.cargas ?? [])].filter((c) => c.pesoBrutoKg != null).sort((a, b) => a.saidaEm.localeCompare(b.saidaEm));
+  const nomeTalhao = (id: string) => {
+    const t = talhaoPorId.get(id);
+    return t ? nomeCurto(t.nome) : '?';
+  };
+  const extras: Planilha[] = [];
+  if (amostrasColheita.length) {
+    extras.push({
+      nome: 'Amostras de colheita',
+      colunas: [
+        { titulo: 'Código', largura: 15 }, { titulo: 'Data e hora', largura: 16, formato: 'dd/mm/yyyy hh:mm' }, { titulo: 'Talhão', largura: 10 },
+        { titulo: 'Placa', largura: 10 }, { titulo: 'Motorista', largura: 18 }, { titulo: 'Silo', largura: 10 }, { titulo: 'Responsável', largura: 14 },
+        { titulo: 'Peneira 19 mm (g)', largura: 10, formato: '0' }, { titulo: 'Peneira 8 mm (g)', largura: 10, formato: '0' },
+        { titulo: 'Peneira 4 mm (g)', largura: 10, formato: '0' }, { titulo: 'Fundo (g)', largura: 10, formato: '0' },
+        { titulo: '19 mm (%)', largura: 8, formato: '0.0' }, { titulo: '8 mm (%)', largura: 8, formato: '0.0' }, { titulo: '4 mm (%)', largura: 8, formato: '0.0' },
+        { titulo: 'Fundo (%)', largura: 8, formato: '0.0' }, { titulo: 'Subamostra úmida (g)', largura: 10, formato: '0' }, { titulo: 'Subamostra seca (g)', largura: 10, formato: '0' },
+        { titulo: 'MS (%)', largura: 8, formato: '0.0' }, { titulo: 'Observações', largura: 28 },
+      ],
+      linhas: amostrasColheita.map((a) => {
+        const ps = pennState(a);
+        return [
+          a.codigo ?? '', dataHoraLocal(a.coletadaEm), nomeTalhao(a.talhaoId), a.placa, a.motorista ?? '', a.silo, a.responsavel ?? '',
+          n(a.peneira19G), n(a.peneira8G), n(a.peneira4G), n(a.fundoG),
+          ps ? ps.pct[0] : null, ps ? ps.pct[1] : null, ps ? ps.pct[2] : null, ps ? ps.pct[3] : null,
+          n(a.pesoUmidoG), n(a.pesoSecoG), n(msColheita(a)), a.observacoes ?? '',
+        ];
+      }),
+    });
+  }
+  if (cargas.length) {
+    extras.push({
+      nome: 'Cargas',
+      colunas: [
+        { titulo: 'Romaneio', largura: 11 }, { titulo: 'Data e hora', largura: 16, formato: 'dd/mm/yyyy hh:mm' }, { titulo: 'Talhão', largura: 10 },
+        { titulo: 'Placa', largura: 10 }, { titulo: 'Motorista', largura: 18 }, { titulo: 'Silo', largura: 10 },
+        { titulo: 'Bruto (kg)', largura: 11, formato: '#,##0' }, { titulo: 'Tara (kg)', largura: 11, formato: '#,##0' }, { titulo: 'Líquido (kg)', largura: 11, formato: '#,##0' },
+        { titulo: 'MS informada na carga (%)', largura: 11, formato: '0.0' },
+      ],
+      linhas: cargas.map((c) => [
+        c.romaneio ?? '', dataHoraLocal(c.saidaEm), nomeTalhao(c.talhaoId), c.placa ?? '', c.motorista ?? '', c.silo ?? '',
+        n(c.pesoBrutoKg), n(c.taraKg), n(liquidoKg(c)), n(c.msPct),
+      ]),
+    });
+  }
+  const porTalhaoColheita = colheitaPorTalhao(d);
+  if (porTalhaoColheita.length) {
+    extras.push({
+      nome: 'Colheita por talhão',
+      colunas: [
+        { titulo: 'Talhão', largura: 10 }, { titulo: 'Amostras de caminhão', largura: 10 }, { titulo: 'MS colheita (%)', largura: 10, formato: '0.0' },
+        { titulo: 'Penn State 19 mm (%)', largura: 10, formato: '0.0' }, { titulo: 'Penn State 8 mm (%)', largura: 10, formato: '0.0' },
+        { titulo: 'Penn State 4 mm (%)', largura: 10, formato: '0.0' }, { titulo: 'Penn State fundo (%)', largura: 10, formato: '0.0' },
+        { titulo: 'Cargas', largura: 8 }, { titulo: 'MV entregue (t)', largura: 11, formato: '#,##0.0' }, { titulo: 'MS entregue (t)', largura: 11, formato: '#,##0.0' },
+        { titulo: 'Área colhida (ha)', largura: 11, formato: '0.0' }, { titulo: 'Colhido (%)', largura: 9, formato: '0' }, { titulo: 'Situação', largura: 14 },
+      ],
+      linhas: porTalhaoColheita.map((l) => [
+        nomeCurto(l.talhao.nome), l.nAmostras, n(l.msColheita),
+        l.pennMedio ? l.pennMedio[0] : null, l.pennMedio ? l.pennMedio[1] : null, l.pennMedio ? l.pennMedio[2] : null, l.pennMedio ? l.pennMedio[3] : null,
+        l.cargas, l.cargas ? l.tMV : null, n(l.tMS), n(l.areaColhidaHa), n(l.progresso),
+        l.finalizada ? 'finalizada' : l.cargas ? 'em colheita' : 'só amostragem',
+      ]),
+    });
+  }
+
+  return [planTalhoes, planColetas, planAmostras, ...extras, planParametros];
+}
+
+/** "2026-11-17T08:30" → Date local (para a célula de data e hora). */
+function dataHoraLocal(iso: string): Date | null {
+  const [data, hora = '00:00'] = iso.split('T');
+  const dia = dataLocal(data);
+  if (!dia) return null;
+  const [h, m] = hora.split(':').map(Number);
+  dia.setHours(h || 0, m || 0);
+  return dia;
 }
 
 /** Gera o .xlsx (ExcelJS carregado sob demanda) e dispara o download. */

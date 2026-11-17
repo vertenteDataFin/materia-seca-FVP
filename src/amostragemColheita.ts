@@ -1,6 +1,8 @@
 import { teorMS } from './calc';
 import { nomeCurto } from './MapaTalhoes';
-import type { AmostraColheita } from './tipos';
+import { amostrasPorColeta } from './dados';
+import { msColheitaPorTalhao, progressoColheita, resumoColheita } from './colheita';
+import { compararNomes, type AmostraColheita, type Dados, type Talhao } from './tipos';
 
 /** Peneiras do Penn State (4 peneiras), da mais grossa para o fundo. */
 export const PENEIRAS = [
@@ -56,6 +58,61 @@ export function proximoCodigoColheita(
     return Number.isInteger(n) && n > m ? n : m;
   }, 0);
   return `${prefixo}${maior + 1}`;
+}
+
+/** Linha de colheita de um talhão (relatórios): amostragem dos caminhões + cargas da balança. */
+export interface ColheitaTalhao {
+  talhao: Talhao;
+  /** Amostras de caminhão (todas) e quantas já têm MS. */
+  nAmostras: number;
+  nComMS: number;
+  /** MS média dos caminhões (%). */
+  msColheita: number | null;
+  /** Penn State médio das amostras completas (% por peneira: 19, 8, 4 mm e fundo). */
+  pennMedio: PennState['pct'] | null;
+  cargas: number;
+  tMV: number;
+  tMS: number | null;
+  areaColhidaHa: number | null;
+  /** % colhida (finalizada = 100). */
+  progresso: number | null;
+  finalizada: boolean;
+}
+
+/**
+ * Colheita por talhão (talhões com carga ou com amostra de caminhão), com a MS dos caminhões na produção,
+ * igual ao Painel e à página Colheita.
+ */
+export function colheitaPorTalhao(d: Pick<Dados, 'talhoes' | 'cargas' | 'coletas' | 'amostras' | 'amostrasColheita'>): ColheitaTalhao[] {
+  const amostrasColheita = d.amostrasColheita ?? [];
+  const resumo = resumoColheita(d.talhoes, d.cargas ?? [], d.coletas, amostrasPorColeta(d.amostras), amostrasColheita);
+  const msPorTalhao = msColheitaPorTalhao(amostrasColheita);
+  const comAmostra = new Set(amostrasColheita.map((a) => a.talhaoId));
+  return [...d.talhoes]
+    .filter((t) => resumo.porTalhao.has(t.id) || comAmostra.has(t.id))
+    .sort((a, b) => compararNomes(a.nome, b.nome))
+    .map((t) => {
+      const doTalhao = amostrasColheita.filter((a) => a.talhaoId === t.id);
+      const penns = doTalhao.map(pennState).filter((p): p is PennState => p != null);
+      const pennMedio = penns.length
+        ? ([0, 1, 2, 3].map((i) => penns.reduce((s, p) => s + p.pct[i], 0) / penns.length) as PennState['pct'])
+        : null;
+      const a = resumo.porTalhao.get(t.id);
+      const ms = msPorTalhao.get(t.id);
+      return {
+        talhao: t,
+        nAmostras: doTalhao.length,
+        nComMS: ms?.n ?? 0,
+        msColheita: ms?.media ?? null,
+        pennMedio,
+        cargas: a?.pesadas ?? 0,
+        tMV: a?.tMV ?? 0,
+        tMS: a?.tMS ?? null,
+        areaColhidaHa: a ? (a.finalizada ? t.areaHa : a.areaColhidaHa) : null,
+        progresso: a ? progressoColheita(a) : null,
+        finalizada: !!t.colheitaFinalizadaEm,
+      };
+    });
 }
 
 /** Amostra ainda sem o peso seco: fica em "Aguardando MS". */

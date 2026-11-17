@@ -1,7 +1,17 @@
 import { describe, expect, it } from 'vitest';
 import { amostrasPorColeta } from './dados';
-import { andamentoTalhao, cargaPesada, liquidoKg, referenciaDoTalhao, sugestoes, tarasPorPlaca } from './colheita';
-import type { Amostra, Carga, Coleta, Talhao } from './tipos';
+import {
+  andamentoTalhao,
+  cargaPesada,
+  liquidoKg,
+  msColheitaPorTalhao,
+  msDaCarga,
+  referenciaDoTalhao,
+  resumoColheita,
+  sugestoes,
+  tarasPorPlaca,
+} from './colheita';
+import type { Amostra, AmostraColheita, Carga, Coleta, Talhao } from './tipos';
 
 const talhao: Talhao = { id: 't1', nome: 'Talhão 18 - PD', areaHa: 100, capim: 'Miyagi' };
 // 2 pontos: 3 e 5 kg/m² → 40 t MV/ha; MS 25% → 10 t MS/ha
@@ -74,6 +84,45 @@ describe('colheita', () => {
     const a = andamentoTalhao(talhao, [carga('k1', '2026-11-14T07:00', 35000, 15000, { msPct: 50 })], ref);
     expect(a.tMS).toBeCloseTo(10);
     expect(a.areaColhidaHa).toBeCloseTo(1);
+  });
+
+  it('MS da produção vem dos caminhões: do mesmo dia, senão média do talhão; a de campo só na falta deles', () => {
+    const ref = referenciaDoTalhao('t1', coletas, amostrasPorColeta(amostras)); // campo: 25% MS, 10 t MS/ha
+    const ac = (id: string, coletadaEm: string, seco: number | null, talhaoId = 't1'): AmostraColheita => ({
+      id, talhaoId, coletadaEm, placa: 'CPG0247', silo: 'Silo 1',
+      peneira19G: null, peneira8G: null, peneira4G: null, fundoG: null, pesoUmidoG: seco == null ? null : 100, pesoSecoG: seco,
+    });
+    const msCol = msColheitaPorTalhao([
+      ac('a', '2026-11-14T08:00', 30), ac('b', '2026-11-14T10:00', 34), // dia 14: média 32%
+      ac('c', '2026-11-15T08:00', 38), // dia 15: 38%
+      ac('d', '2026-11-15T09:00', null), // sem seco: não conta
+      ac('e', '2026-11-14T08:00', 50, 't2'), // outro talhão
+    ]).get('t1')!;
+    expect(msCol.n).toBe(3);
+    expect(msCol.media).toBeCloseTo(34);
+    expect(msDaCarga({ saidaEm: '2026-11-14T07:00' }, msCol, ref)).toBeCloseTo(32);
+    expect(msDaCarga({ saidaEm: '2026-11-16T07:00' }, msCol, ref)).toBeCloseTo(34); // dia sem caminhão amostrado
+    expect(msDaCarga({ saidaEm: '2026-11-16T07:00' }, null, ref)).toBeCloseTo(25); // sem amostragem de colheita
+    expect(msDaCarga({ saidaEm: '2026-11-14T07:00', msPct: 40 }, msCol, ref)).toBe(40); // informada na carga
+    // 25 t no dia 14 (32%) + 30 t no dia 15 (38%) = 8 + 11,4 = 19,4 t MS; área = 19,4 ÷ 10 t MS/ha (campo)
+    const a = andamentoTalhao(talhao, [carga('k1', '2026-11-14T07:00', 40000, 15000), carga('k2', '2026-11-15T07:00', 45000, 15000)], ref, msCol);
+    expect(a.tMS).toBeCloseTo(19.4);
+    expect(a.areaColhidaHa).toBeCloseTo(1.94);
+  });
+
+  it('resumo: MS da colheita ponderada pelo peso; sem cargas, média das amostras de caminhão', () => {
+    const ac = (id: string, seco: number): AmostraColheita => ({
+      id, talhaoId: 't1', coletadaEm: '2026-11-14T08:00', placa: 'X', silo: 'S',
+      peneira19G: null, peneira8G: null, peneira4G: null, fundoG: null, pesoUmidoG: 100, pesoSecoG: seco,
+    });
+    const porColeta = amostrasPorColeta(amostras);
+    const semCargas = resumoColheita([talhao], [], coletas, porColeta, [ac('a', 30), ac('b', 36)]);
+    expect(semCargas.msColheitaPct).toBeCloseTo(33);
+    expect(semCargas.nAmostrasColheita).toBe(2);
+    const comCargas = resumoColheita([talhao], [carga('k1', '2026-11-14T07:00', 40000, 15000)], coletas, porColeta, [ac('a', 30), ac('b', 36)]);
+    expect(comCargas.tMS).toBeCloseTo(25 * 0.33);
+    expect(comCargas.msColheitaPct).toBeCloseTo(33);
+    expect(resumoColheita([talhao], [carga('k1', '2026-11-14T07:00', 40000, 15000)], coletas, porColeta, []).msColheitaPct).toBeNull();
   });
 
   it('sem amostragem não estima área; finalizada não prevê término', () => {
