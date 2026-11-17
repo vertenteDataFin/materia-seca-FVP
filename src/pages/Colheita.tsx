@@ -279,7 +279,6 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
   const [bruto, setBruto] = useState('');
   const [tara, setTara] = useState('');
   const [alterarTara, setAlterarTara] = useState(false);
-  const [romaneio, setRomaneio] = useState('');
   const [erro, setErro] = useState('');
   const usaTaraDoCaminhao = taraDoCaminhao != null && !alterarTara;
   const b = parseNum(bruto);
@@ -291,7 +290,8 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
     if (b == null) return setErro('Informe o peso bruto.');
     if (t == null) return setErro('Informe a tara do caminhão.');
     if (!(b > t)) return setErro('O peso bruto tem de ser maior que a tara.');
-    atualizarCarga(c.id, { pesoBrutoKg: b, taraKg: t, romaneio: romaneio.trim() || undefined, pesadoEm: new Date().toISOString() });
+    // O romaneio não é digitado: vem do relatório da balança.
+    atualizarCarga(c.id, { pesoBrutoKg: b, taraKg: t, pesadoEm: new Date().toISOString() });
   }
 
   return (
@@ -325,10 +325,6 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
               <input inputMode="decimal" value={tara} onChange={(e) => setTara(e.target.value)} />
             </label>
           )}
-          <label>
-            Romaneio
-            <input value={romaneio} onChange={(e) => setRomaneio(e.target.value)} />
-          </label>
           <div className="carga-liquido">
             <span className="mudo"><small>Líquido</small></span>
             <strong>{liquido != null ? `${fmt(liquido / 1000, 2)} t` : '—'}</strong>
