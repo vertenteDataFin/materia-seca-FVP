@@ -1,5 +1,6 @@
-import { dadosAtuais, repositorio } from './dados';
-import { chaveNome, lerKml, semAcento, sugerirCorrespondencias, type PoligonoKml } from './kml';
+import { amostrasPorColeta, dadosAtuais, repositorio } from './dados';
+import { chaveNome, lerKml, semAcento, siglaFazenda, sugerirCorrespondencias, type PoligonoKml } from './kml';
+import { dentroDoTalhao } from './geo';
 import type { Novo, Talhao } from './tipos';
 
 export const KML_FAZENDA_URL = `${import.meta.env.BASE_URL}talhoes-fazenda.kml`;
@@ -85,14 +86,34 @@ export function importarTalhoesFazenda(): Promise<ResultadoSincronizacao> {
   return emAndamento;
 }
 
+/**
+ * Talhões divididos em partes no KML (pedido da fazenda). O talhão que já existe vira a primeira parte
+ * (mantém coletas e histórico); as coletas com GPS cujos pontos caem na outra parte passam para ela.
+ */
+const DIVISOES: { talhao: string; sigla: string; partes: string[] }[] = [
+  // 18A: parte de cima, com as subdivisões; 18B: parte de baixo, sem subdivisões (2026-11-17)
+  { talhao: '18', sigla: 'PD', partes: ['18A', '18B'] },
+];
+
+const doLocal = (sigla: string, fazenda: string | undefined, nome: string) => siglaFazenda(fazenda ?? '', nome).toUpperCase() === sigla.toUpperCase();
+
 async function executar(): Promise<ResultadoSincronizacao> {
   const resp = await fetch(KML_FAZENDA_URL);
   if (!resp.ok) throw new Error('KML da fazenda não encontrado no app.');
   const polys = lerKml(await resp.text()).filter(entraNaImportacao);
   fundirDuplicados();
   const d = dadosAtuais();
-  const existentes = d.talhoes;
+  // Divisões: o talhão antigo passa a se chamar como a primeira parte, para casar com ela.
+  const divididos = new Map<string, { nome: string; div: (typeof DIVISOES)[number] }>();
+  for (const div of DIVISOES) {
+    const original = d.talhoes.find((t) => chaveNome(t.nome) === div.talhao && doLocal(div.sigla, t.fazenda, t.nome));
+    const jaDividido = d.talhoes.some((t) => div.partes.includes(chaveNome(t.nome)) && doLocal(div.sigla, t.fazenda, t.nome));
+    const primeira = polys.find((p) => chaveNome(p.nome) === div.partes[0] && doLocal(div.sigla, p.fazenda, p.nome));
+    if (original && !jaDividido && primeira) divididos.set(original.id, { nome: primeira.nomeApp, div });
+  }
+  const existentes = d.talhoes.map((t) => (divididos.has(t.id) ? { ...t, nome: divididos.get(t.id)!.nome } : t));
   const corresp = sugerirCorrespondencias(polys, existentes);
+  const idDoPoligono = new Map<number, string>();
   const ops: Parameters<ReturnType<typeof repositorio>['lote']>[0] = [];
   let criados = 0;
   let atualizados = 0;
@@ -103,17 +124,41 @@ async function executar(): Promise<ResultadoSincronizacao> {
     const id = corresp.get(i);
     if (id != null) {
       const atual = existentes.find((t) => t.id === id)!;
+      const dividido = divididos.has(id);
       // Renomeia para o padrão do app se o nome ainda for o do KML ou uma abreviação dele (ex.: "TL 18").
-      const nome = nomeEhDoKml(atual.nome, p) ? p.nomeApp : atual.nome;
+      const nome = dividido || nomeEhDoKml(atual.nome, p) ? p.nomeApp : atual.nome;
       // Capim e área: mantém o que o usuário escolheu; se ainda eram os do KML (ou vazios), acompanham o KML.
+      // Talhão que acabou de ser dividido: a área passa a ser a da parte.
       const capim = atual.capim && atual.capim !== atual.capimKml ? atual.capim : p.capim;
-      const areaHa = atual.areaHa > 0 && atual.areaHa !== atual.areaKmlHa ? atual.areaHa : areaKml;
+      const areaHa = !dividido && atual.areaHa > 0 && atual.areaHa !== atual.areaKmlHa ? atual.areaHa : areaKml;
       ops.push({ tipo: 'atualizar', colecao: 'talhoes', id, dados: { ...doKml, nome, capim, areaHa } as Record<string, unknown> });
+      idDoPoligono.set(i, id);
       atualizados++;
     } else {
       const novo: Novo<Talhao> = { nome: p.nomeApp, capim: p.capim, areaHa: areaKml, observacoes: '', ...doKml };
-      ops.push({ tipo: 'adicionar', colecao: 'talhoes', id: repositorio().novoId(), dados: novo as Record<string, unknown> });
+      const novoId = repositorio().novoId();
+      ops.push({ tipo: 'adicionar', colecao: 'talhoes', id: novoId, dados: novo as Record<string, unknown> });
+      idDoPoligono.set(i, novoId);
       criados++;
+    }
+  }
+
+  // Coletas do talhão dividido: vão para a parte onde está a maioria dos pontos com GPS.
+  // Coletas sem GPS ficam na primeira parte (o talhão antigo).
+  const porColeta = amostrasPorColeta(d.amostras);
+  for (const [idOriginal, { div }] of divididos) {
+    const partes = div.partes
+      .map((chave) => polys.findIndex((p) => chaveNome(p.nome) === chave && doLocal(div.sigla, p.fazenda, p.nome)))
+      .filter((i) => i >= 0 && idDoPoligono.has(i))
+      .map((i) => ({ id: idDoPoligono.get(i)!, aneis: polys[i].aneis }));
+    for (const c of d.coletas.filter((c) => c.talhaoId === idOriginal)) {
+      const pontos = (porColeta.get(c.id) ?? []).filter((a) => a.lat != null && a.lng != null);
+      if (!pontos.length) continue;
+      const votos = partes.map((parte) => ({ id: parte.id, n: pontos.filter((a) => dentroDoTalhao(a.lng!, a.lat!, parte.aneis)).length }));
+      const melhor = votos.sort((a, b) => b.n - a.n)[0];
+      if (melhor && melhor.n > 0 && melhor.id !== idOriginal) {
+        ops.push({ tipo: 'atualizar', colecao: 'coletas', id: c.id, dados: { talhaoId: melhor.id } });
+      }
     }
   }
   const casados = new Set(corresp.values());

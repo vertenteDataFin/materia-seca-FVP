@@ -15,7 +15,6 @@ import { usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 import { liberarSolicitacao, recusarSolicitacao, useSolicitacoes } from '../solicitacoes';
 import Historico from '../HistoricoCard';
-import VeiculosCard from '../VeiculosCard';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -140,7 +139,6 @@ export default function Config({ usuario }: { usuario?: User }) {
 
       {FIREBASE_ATIVO && usuario && <Conta usuario={usuario} />}
       {FIREBASE_ATIVO && usuario && <Historico meuEmail={usuario.email ?? ''} />}
-      <VeiculosCard />
 
       <div className="cartao grade-form">
         <h2>Parâmetros da estimativa</h2>

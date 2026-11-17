@@ -1444,8 +1444,8 @@
 			</Polygon>
 		</Placemark>
 		<Placemark id="5FD969E0C900002A">
-			<name>PD - TALHAO 18 — CAPIM MIYAGI</name>
-			<description><![CDATA[<b>PD - TALHAO 18</b><br/>Fazenda: Faz. Pedra<br/>Área: 118.00 ha<br/><br/><b>Atividade hoje: CAPIM MIYAGI</b><br/>Safra passada: CAPIM MIYAGI]]></description>
+			<name>PD - TALHAO 18 A — CAPIM MIYAGI</name>
+			<description><![CDATA[<b>PD - TALHAO 18 A</b><br/>Fazenda: Faz. Pedra<br/>Área: 70.60 ha<br/><br/><b>Atividade hoje: CAPIM MIYAGI</b><br/>Safra passada: CAPIM MIYAGI]]></description>
 			<styleUrl>#__managed_style_1C5B428A5E430AD9A127</styleUrl>
 			<MultiGeometry>
 				<Polygon>
@@ -1487,8 +1487,8 @@
 			</MultiGeometry>
 		</Placemark>
 		<Placemark id="057DB8DF4D42FBC32984">
-			<name>TL 18 MIYAGI</name>
-			<description><![CDATA[<div><div><b>PD - TALHAO 18</b><br></div><div><b></b><br></div><div>Fazenda: Faz. Pedra<br></div><div>Área: 95.00 ha<br></div><div><br></div><div><b>Atividade hoje: CAPIM MIYAGI</b><br></div><div>Safra passada: CAPIM MIYAGI<br></div></div><div><br></div>]]></description>
+			<name>PD - TALHAO 18 B — CAPIM MIYAGI</name>
+			<description><![CDATA[<div><div><b>PD - TALHAO 18 B</b><br></div><div><b></b><br></div><div>Fazenda: Faz. Pedra<br></div><div>Área: 37.20 ha<br></div><div><br></div><div><b>Atividade hoje: CAPIM MIYAGI</b><br></div><div>Safra passada: CAPIM MIYAGI<br></div></div><div><br></div>]]></description>
 			<LookAt>
 				<longitude>-52.59502018869593</longitude>
 				<latitude>-19.43222866145099</latitude>

@@ -14,6 +14,7 @@ import {
   type MSColheitaTalhao,
 } from '../colheita';
 import type { Carga } from '../tipos';
+import VeiculosCard from '../VeiculosCard';
 import { CampoNumero } from '../components';
 import { Icone } from '../Icone';
 import { usePermissoes } from '../permissoes';
@@ -142,6 +143,8 @@ export default function Colheita() {
           </div>
         )}
       </div>
+
+      <VeiculosCard />
     </>
   );
 }

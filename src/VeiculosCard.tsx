@@ -1,18 +1,13 @@
 import { useState, type FormEvent } from 'react';
 import { adicionarVeiculo, atualizarVeiculo, excluirVeiculo, useDados } from './dados';
 import { normalizarPlaca } from './colheita';
-import { proximoNumero, veiculoDaPlaca } from './veiculos';
+import { placaValida, proximoNumero, veiculoDaPlaca } from './veiculos';
 import { usePermissoes } from './permissoes';
 import { Icone } from './Icone';
 import type { Veiculo } from './tipos';
 
-/** Placa válida: 7 caracteres (antiga ABC1234 ou Mercosul ABC1D23). */
-function placaValida(p: string): boolean {
-  return /^[A-Z]{3}\d[A-Z0-9]\d{2}$/.test(p);
-}
-
 /**
- * Config → Veículos da colheita: motorista e placa de cada caminhão. Todos veem; só quem cadastra
+ * Colheita → Veículos da colheita: motorista e placa de cada caminhão. Todos veem; só quem cadastra
  * veículos (GESTORES_VEICULOS) inclui, edita e remove. A Colheita usa esta lista ao registrar a carga.
  */
 export default function VeiculosCard() {
@@ -56,8 +51,8 @@ export default function VeiculosCard() {
         <span className="mudo">{veiculos.length}</span>
       </div>
       <p className="dica">
-        Caminhões da silagem, com motorista e placa. Na Colheita, quem registra a carga escolhe o caminhão desta lista; a tara vem das
-        pesagens da placa.{!podeCadastrarVeiculos && ' Só a Maria Laura inclui ou altera veículos.'}
+        Caminhões da silagem, com motorista e placa. Na amostragem de colheita, o caminhão é escolhido desta lista (ou digitado, com o
+        motorista, se ainda não estiver nela).{!podeCadastrarVeiculos && ' Só a Maria Laura inclui ou altera veículos.'}
       </p>
 
       {!veiculos.length ? (

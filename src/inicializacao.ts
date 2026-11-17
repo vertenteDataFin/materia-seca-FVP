@@ -6,7 +6,8 @@ import type { Permissoes } from './permissoes';
 import { importarVeiculosIniciais } from './veiculos';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
-export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v9';
+// v10: Talhão 18 dividido em 18A e 18B (2026-11-17).
+export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v10';
 // Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
 export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v6';
 // Relação de veículos da silagem (planilha): entra uma vez por aparelho, só para quem cadastra veículos.
@@ -48,7 +49,7 @@ export async function inicializarDados(p: Permissoes): Promise<string[]> {
     try {
       const n = importarVeiculosIniciais();
       localStorage.setItem(CHAVE_VEICULOS, '1');
-      if (n) msgs.push(`${n} veículo(s) da relação de veículos da silagem cadastrado(s) (Config → Veículos da colheita).`);
+      if (n) msgs.push(`${n} veículo(s) da relação de veículos da silagem cadastrado(s) (Colheita → Veículos da colheita).`);
     } catch (e) {
       console.error('Falha ao carregar veículos iniciais', e);
     }

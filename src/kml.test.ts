@@ -91,12 +91,12 @@ describe('KML embutido no app (public/talhoes-fazenda.kml)', () => {
   const polys = lerKml(readFileSync('public/talhoes-fazenda.kml', 'utf8')).filter((p) => p.capim);
   const por = (nomeApp: string) => polys.find((p) => p.nomeApp === nomeApp)!;
 
-  it('lê 16 talhões com capim, com nomes distintos no padrão do app', () => {
+  it('lê 17 talhões com capim, com nomes distintos no padrão do app', () => {
     expect(polys.map((p) => p.nomeApp).sort(compararNomes)).toEqual([
       'Pivô 1 - Conf', 'Pivô 2 - Conf',
       'Talhão 13A - PD', 'Talhão 13B - PD',
       'Talhão 17A Miyagi - PD', 'Talhão 17A Mombaça - PD', 'Talhão 17B Miyagi - PD', 'Talhão 17B Mombaça - PD',
-      'Talhão 17C - PD', 'Talhão 17D - PD', 'Talhão 17E - PD', 'Talhão 18 - PD',
+      'Talhão 17C - PD', 'Talhão 17D - PD', 'Talhão 17E - PD', 'Talhão 18A - PD', 'Talhão 18B - PD',
       'Talhão 20 - Conf', 'Talhão 21 - Conf', 'Talhão 23 - Conf', 'Talhão C3 - Conf',
     ]);
   });
@@ -111,11 +111,14 @@ describe('KML embutido no app (public/talhoes-fazenda.kml)', () => {
   it('polígono sem descrição herda a fazenda do vizinho; partes do mesmo capim se juntam', () => {
     expect(por('Talhão 13B - PD').fazenda).toBe('Pedra');
     expect(por('Talhão 17B Mombaça - PD').fazenda).toBe('Pedra');
-    const t18 = por('Talhão 18 - PD');
-    expect(t18.aneis).toHaveLength(5); // 4 do "PD - TALHAO 18" + "TL 18 MIYAGI"
-    expect(t18.areaCalculadaHa).toBeCloseTo(109, 0);
-    expect(t18.areaDeclaradaHa).toBe(118);
-    expect(areaDoKml(t18)).toBe(118);
+    // Talhão 18 dividido (2026-11-17): 18A = parte de cima, com as subdivisões; 18B = parte de baixo
+    const t18a = por('Talhão 18A - PD');
+    expect(t18a.aneis).toHaveLength(4);
+    expect(areaDoKml(t18a)).toBe(70.6);
+    const t18b = por('Talhão 18B - PD');
+    expect(t18b.aneis).toHaveLength(1);
+    expect(t18b.fazenda).toBe('Pedra');
+    expect(areaDoKml(t18b)).toBe(37.2);
     expect(areaDoKml(por('Talhão 17A Miyagi - PD'))).toBeCloseTo(45.1, 1); // declarada (73,3) ficou velha
     expect(areaDoKml(por('Talhão 17C - PD'))).toBe(43);
   });

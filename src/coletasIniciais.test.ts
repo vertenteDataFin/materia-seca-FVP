@@ -15,7 +15,7 @@ describe('importarColetasIniciais', () => {
     definirRepositorio(repo);
     repo.adicionar('talhoes', { nome: 'Talhão 23 - Conf', capim: 'Mombaça', areaHa: 49.9, observacoes: '' });
     repo.adicionar('talhoes', { nome: 'Talhão 21 - Conf', capim: 'Mombaça', areaHa: 73, observacoes: '' });
-    repo.adicionar('talhoes', { nome: 'Talhão 18 - PD', capim: 'Miyagi', areaHa: 118, observacoes: '' });
+    repo.adicionar('talhoes', { nome: 'Talhão 18A - PD', capim: 'Miyagi', areaHa: 70.6, observacoes: '' });
   });
 
   it('cria as 3 coletas com 10 amostras e reproduz a ficha', () => {
@@ -77,7 +77,7 @@ describe('importarColetasIniciais', () => {
     const t18 = repo.obter()!.talhoes.find((t) => t.nome.includes('18'))!;
     repo.remover('talhoes', t18.id);
     for (const c of repo.obter()!.coletas) repo.remover('coletas', c.id);
-    expect(importarColetasIniciais()).toEqual({ criadas: 2, existentes: 0, completadas: 0, repostas: 0, semTalhao: ['TL 18'] });
+    expect(importarColetasIniciais()).toEqual({ criadas: 2, existentes: 0, completadas: 0, repostas: 0, semTalhao: ['TL 18A'] });
   });
 
   it('repõe um ponto da ficha excluído por engano, na numeração original', () => {

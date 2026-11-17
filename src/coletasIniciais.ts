@@ -12,7 +12,8 @@ export const COLETAS_INICIAIS: {
 }[] = [
   { talhao: 'TL 23', data: '2026-11-06', amostras: [[3.6, 100, 22], [4.1, 100, 24]] },
   { talhao: 'TL 21', data: '2026-11-06', amostras: [[1.2, 100, 22], [3.0, 100, 20]] },
-  { talhao: 'TL 18', data: '2026-11-07', amostras: [[2.02, 100, 22], [1.0, 100, 26], [2.3, 100, 24], [1.0, 100, 26], [2.0, 100, 22], [1.68, 100, 22]] },
+  // talhão 18 dividido em 2026-11-17: a coleta (sem GPS) ficou no 18A, o talhão antigo
+  { talhao: 'TL 18A', data: '2026-11-07', amostras: [[2.02, 100, 22], [1.0, 100, 26], [2.3, 100, 24], [1.0, 100, 26], [2.0, 100, 22], [1.68, 100, 22]] },
 ];
 
 export const OBS_COLETA_INICIAL = 'Lançada da ficha de campo (sem GPS)';

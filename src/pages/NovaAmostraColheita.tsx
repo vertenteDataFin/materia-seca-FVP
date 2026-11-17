@@ -1,8 +1,9 @@
 import { useMemo, useState, type FormEvent } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { adicionarAmostraColheita, useDados } from '../dados';
+import { adicionarAmostraColheita, adicionarVeiculo, useDados } from '../dados';
 import { agoraLocal, normalizarPlaca } from '../colheita';
-import { veiculoDaPlaca } from '../veiculos';
+import { placaValida, proximoNumero, veiculoDaPlaca } from '../veiculos';
+import { usePermissoes } from '../permissoes';
 import { PENEIRAS, pennState, proximoCodigoColheita, type CampoPeneira } from '../amostragemColheita';
 import { fmt, parseNum } from '../util';
 
@@ -37,6 +38,9 @@ export default function NovaAmostraColheita() {
   const [coletadaEm, setColetadaEm] = useState(agoraLocal());
   const [veiculoId, setVeiculoId] = useState('');
   const [placa, setPlaca] = useState('');
+  const [motorista, setMotorista] = useState('');
+  const [salvarNaLista, setSalvarNaLista] = useState(true);
+  const { podeCadastrarVeiculos } = usePermissoes();
   const [silo, setSilo] = useState('');
   const [responsavel, setResponsavel] = useState(lembrar(CHAVE_RESPONSAVEL));
   const [pesos, setPesos] = useState<Record<CampoPeneira, string>>({ peneira19G: '', peneira8G: '', peneira4G: '', fundoG: '' });
@@ -72,12 +76,18 @@ export default function NovaAmostraColheita() {
     for (const pen of PENEIRAS) {
       if (pesos[pen.campo].trim() && (numeros[pen.campo] == null || numeros[pen.campo]! < 0)) return setErro(`Peso inválido na peneira ${pen.rotulo}.`);
     }
+    // Motorista: o do cadastro do caminhão; se o caminhão não está na lista, o digitado.
+    const nomeMotorista = v?.motorista ?? motorista.trim().replace(/\s+/g, ' ');
+    // Caminhão novo: quem cadastra veículos pode já incluí-lo na lista.
+    if (!v && podeCadastrarVeiculos && salvarNaLista && nomeMotorista && placaValida(p)) {
+      adicionarVeiculo({ numero: proximoNumero(veiculos), motorista: nomeMotorista, placa: p });
+    }
     const id = adicionarAmostraColheita({
       codigo,
       talhaoId,
       coletadaEm,
       placa: p,
-      ...(v ? { motorista: v.motorista } : {}),
+      ...(nomeMotorista ? { motorista: nomeMotorista } : {}),
       silo: silo.trim(),
       ...(responsavel.trim() ? { responsavel: responsavel.trim() } : {}),
       ...numeros,
@@ -119,15 +129,27 @@ export default function NovaAmostraColheita() {
               {veiculos.map((v) => (
                 <option key={v.id} value={v.id}>{v.placa} · {v.motorista}</option>
               ))}
-              <option value={OUTRO}>Outro (digitar a placa)</option>
+              <option value={OUTRO}>Outro (digitar placa e motorista)</option>
             </select>
           </label>
         )}
         {digitarPlaca && (
-          <label>
-            Placa do caminhão
-            <input value={placa} onChange={(e) => setPlaca(e.target.value.toUpperCase())} placeholder="Ex.: ABC1D23" required />
-          </label>
+          <>
+            <label>
+              Placa do caminhão
+              <input value={placa} onChange={(e) => setPlaca(e.target.value.toUpperCase())} placeholder="Ex.: ABC1D23" required />
+            </label>
+            <label>
+              Motorista
+              <input value={motorista} onChange={(e) => setMotorista(e.target.value)} placeholder="Nome do motorista" autoComplete="off" />
+            </label>
+            {podeCadastrarVeiculos && (
+              <label className="largo opcao-check">
+                <input type="checkbox" checked={salvarNaLista} onChange={(e) => setSalvarNaLista(e.target.checked)} />
+                Incluir este caminhão na lista de veículos (com placa e motorista)
+              </label>
+            )}
+          </>
         )}
         <label>
           Silo de destino

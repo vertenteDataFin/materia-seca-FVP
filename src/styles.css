@@ -462,6 +462,8 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   .lab-cabecalho { flex-wrap: wrap; }
 }
 /* ---- Amostragem de colheita (caminhões) ---- */
+.grade-form label.opcao-check { flex-direction: row; align-items: center; gap: 0.5rem; font-weight: normal; }
+.grade-form label.opcao-check input { width: auto; min-height: 0; }
 .lab-cabecalho.estatico { cursor: default; }
 .lab-cabecalho.estatico .mi { color: var(--verde); }
 .lab-linha.destaque { outline: 2px solid var(--verde); }
