@@ -1,31 +1,19 @@
 import { useMemo, useState, type FormEvent } from 'react';
-import { adicionarCarga, amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDados } from '../dados';
-import { agoraLocal, andamentoTalhao, cargaPesada, fmtSaida, liquidoKg, normalizarPlaca, referenciaDoTalhao, sugestoes, tarasPorPlaca, type AndamentoTalhao } from '../colheita';
-import type { Carga, Talhao, Veiculo } from '../tipos';
-import { veiculoDaPlaca } from '../veiculos';
+import { amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDados } from '../dados';
+import { agoraLocal, andamentoTalhao, cargaPesada, fmtSaida, liquidoKg, normalizarPlaca, referenciaDoTalhao, tarasPorPlaca, type AndamentoTalhao } from '../colheita';
+import type { Carga } from '../tipos';
 import { CampoNumero } from '../components';
 import { Icone } from '../Icone';
 import { usePermissoes } from '../permissoes';
 import { fmt, fmtData, hoje, parseNum } from '../util';
 
-const CHAVE_ULTIMO_TALHAO = 'silagem-ms:colheita-talhao';
-
-function lembrado(): string {
-  try {
-    return localStorage.getItem(CHAVE_ULTIMO_TALHAO) ?? '';
-  } catch {
-    return '';
-  }
-}
-
 /**
- * Colheita: cargas saindo do campo (aguardando pesagem) no topo, andamento por talhão e as cargas pesadas.
+ * Colheita: andamento por talhão e as cargas pesadas, que entram pelo relatório da balança.
  * A área colhida de cada talhão vem do peso das cargas ÷ estimativa da última amostragem (em MS).
  */
 export default function Colheita() {
   const dados = useDados();
   const { podePesar, podeExcluir } = usePermissoes();
-  const [mostrarForm, setMostrarForm] = useState(false);
   const [editando, setEditando] = useState<string | null>(null);
   const [mostrarFinalizados, setMostrarFinalizados] = useState(false);
 
@@ -44,8 +32,6 @@ export default function Colheita() {
       andamentos,
       pendentes: dados.cargas.filter((c) => !cargaPesada(c)).sort((a, b) => a.saidaEm.localeCompare(b.saidaEm)),
       pesadas: dados.cargas.filter(cargaPesada),
-      placas: sugestoes(dados.cargas, 'placa'),
-      silos: sugestoes(dados.cargas, 'silo'),
       taras: tarasPorPlaca(dados.cargas),
     };
   }, [dados]);
@@ -60,55 +46,36 @@ export default function Colheita() {
 
   return (
     <>
-      <div className="titulo-linha">
-        <h1>Colheita</h1>
-        {!mostrarForm && (
-          <button className="primario" onClick={() => setMostrarForm(true)}>
-            <Icone nome="caminhao" /> Carga saindo do campo
-          </button>
-        )}
-      </div>
+      <h1>Colheita</h1>
       <p className="dica">
-        No campo, registre cada caminhão que sai do talhão (talhão e caminhão, sem peso). Na balança, o balanceiro ou o administrador lança o
-        peso bruto, a tara vem da placa do caminhão, e a carga é encerrada. A área colhida de cada
+        As cargas da colheita entram pelo <strong>relatório da balança</strong> (pesagens completas, com romaneio). A área colhida de cada
         talhão é estimada pela matéria seca entregue e pela última amostragem do talhão.
       </p>
 
-      {mostrarForm && (
-        <NovaCarga
-          talhoes={dados.talhoes}
-          veiculos={dados.veiculos}
-          placas={calc.placas}
-          silos={calc.silos}
-          aoFechar={() => setMostrarForm(false)}
-        />
-      )}
-
-      <div className="cartao">
-        <div className="cabecalho-cartao">
-          <h2>Aguardando pesagem</h2>
-          <span className={`selo ${calc.pendentes.length ? 'selo-alto' : 'selo-ideal'}`}>
-            {calc.pendentes.length} carga{calc.pendentes.length === 1 ? '' : 's'}
-          </span>
-        </div>
-        {!podePesar && calc.pendentes.length > 0 && <p className="dica">O peso da balança é lançado pelo balanceiro ou por um administrador.</p>}
-        {!calc.pendentes.length ? (
-          <p className="vazio">Nenhuma carga aguardando pesagem.</p>
-        ) : (
+      {/* Só cargas antigas, registradas no campo antes de a colheita passar a vir do relatório da balança. */}
+      {calc.pendentes.length > 0 && (
+        <div className="cartao">
+          <div className="cabecalho-cartao">
+            <h2>Aguardando pesagem</h2>
+            <span className="selo selo-alto">
+              {calc.pendentes.length} carga{calc.pendentes.length === 1 ? '' : 's'}
+            </span>
+          </div>
+          <p className="dica">Cargas registradas no campo antes da mudança. Lance o peso ou exclua.</p>
           <div className="lista-cargas">
             {calc.pendentes.map((c) => (
               <CargaPendente key={c.id} c={c} nomeTalhao={nome(c.talhaoId)} podePesar={podePesar} podeExcluir={podeExcluir} taraDoCaminhao={taraDaPlaca(c.placa)} />
             ))}
           </div>
-        )}
-      </div>
+        </div>
+      )}
 
       <div className="cartao">
         <div className="cabecalho-cartao">
           <h2>Andamento por talhão</h2>
         </div>
         {!emColheita.length ? (
-          <p className="vazio">Nenhum talhão em colheita. O talhão aparece aqui quando sai a primeira carga.</p>
+          <p className="vazio">Nenhum talhão em colheita. O talhão aparece aqui quando o relatório da balança trouxer a primeira carga dele.</p>
         ) : (
           emColheita.map((a) => <CartaoAndamento key={a.talhao.id} a={a} />)
         )}
@@ -159,115 +126,6 @@ export default function Colheita() {
         )}
       </div>
     </>
-  );
-}
-
-const OUTRO = '__outro';
-
-function NovaCarga({
-  talhoes,
-  veiculos,
-  placas,
-  silos,
-  aoFechar,
-}: {
-  talhoes: Talhao[];
-  veiculos: Veiculo[];
-  placas: string[];
-  silos: string[];
-  aoFechar: () => void;
-}) {
-  const [talhaoId, setTalhaoId] = useState(() => (talhoes.some((t) => t.id === lembrado()) ? lembrado() : ''));
-  const [saidaEm, setSaidaEm] = useState(agoraLocal());
-  // Com veículos cadastrados, escolhe-se o caminhão da lista; "outro" (ou lista vazia) libera a placa digitada.
-  const [veiculoId, setVeiculoId] = useState('');
-  const [placa, setPlaca] = useState('');
-  const [silo, setSilo] = useState('');
-  const [erro, setErro] = useState('');
-  const [ok, setOk] = useState('');
-  const digitar = !veiculos.length || veiculoId === OUTRO;
-
-  function salvar(e: FormEvent) {
-    e.preventDefault();
-    setOk('');
-    if (!talhaoId) return setErro('Escolha o talhão de onde a carga saiu.');
-    const v = digitar ? veiculoDaPlaca(veiculos, placa) : veiculos.find((x) => x.id === veiculoId);
-    if (!digitar && !v) return setErro('Escolha o caminhão.');
-    const p = v?.placa ?? normalizarPlaca(placa);
-    if (!p) return setErro('Informe a placa do caminhão (a tara na balança vem por ela).');
-    // A carga sai do campo sempre sem peso: o peso é lançado na balança, pelo balanceiro ou administrador.
-    adicionarCarga({
-      talhaoId,
-      saidaEm,
-      placa: p,
-      ...(v ? { motorista: v.motorista } : {}),
-      silo: silo.trim() || undefined,
-      pesoBrutoKg: null,
-      taraKg: null,
-      pesadoEm: null,
-    });
-    try {
-      localStorage.setItem(CHAVE_ULTIMO_TALHAO, talhaoId);
-    } catch {
-      /* sem armazenamento: só não lembra o talhão */
-    }
-    setErro('');
-    setOk(`Carga ${p}${v ? ` (${v.motorista})` : ''} registrada, aguardando pesagem.`);
-    // pronto para a próxima carga do mesmo talhão
-    setSaidaEm(agoraLocal());
-    setVeiculoId('');
-    setPlaca('');
-  }
-
-  const emUso = talhoes.filter((t) => !t.colheitaFinalizadaEm);
-  return (
-    <form className="cartao grade-form" onSubmit={salvar}>
-      <h2>Carga saindo do campo</h2>
-      <label>
-        Talhão
-        <select value={talhaoId} onChange={(e) => setTalhaoId(e.target.value)}>
-          <option value="">Escolha…</option>
-          {emUso.map((t) => (
-            <option key={t.id} value={t.id}>{t.nome}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        Saída do campo
-        <input type="datetime-local" value={saidaEm} onChange={(e) => setSaidaEm(e.target.value)} />
-      </label>
-      {veiculos.length > 0 && (
-        <label>
-          Caminhão
-          <select value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} required>
-            <option value="">Escolha…</option>
-            {veiculos.map((v) => (
-              <option key={v.id} value={v.id}>{v.placa} · {v.motorista}</option>
-            ))}
-            <option value={OUTRO}>Outro (digitar a placa)</option>
-          </select>
-        </label>
-      )}
-      {digitar && (
-        <label>
-          Placa do caminhão
-          <input list="placas" value={placa} onChange={(e) => setPlaca(e.target.value.toUpperCase())} placeholder="Ex.: ABC1D23" required />
-          <datalist id="placas">{placas.map((p) => <option key={p} value={p} />)}</datalist>
-        </label>
-      )}
-      <label>
-        Silo (opcional)
-        <input list="silos" value={silo} onChange={(e) => setSilo(e.target.value)} placeholder="Ex.: Silo 1" />
-        <datalist id="silos">{silos.map((s) => <option key={s} value={s} />)}</datalist>
-      </label>
-      <p className="dica largo">O peso é lançado na balança, em "Aguardando pesagem".</p>
-      {erro && <p className="erro largo">{erro}</p>}
-      {ok && <p className="ok largo">{ok}</p>}
-      <div className="acoes largo">
-        <button type="submit" className="primario">Registrar carga</button>
-        <button type="button" onClick={aoFechar}>Fechar</button>
-      </div>
-    </form>
   );
 }
 
