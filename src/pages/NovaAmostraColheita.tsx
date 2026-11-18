@@ -128,7 +128,7 @@ export default function NovaAmostraColheita() {
             <select value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} required>
               <option value="">Escolha…</option>
               {veiculos.map((v) => (
-                <option key={v.id} value={v.id}>{v.placa} · {v.motorista}</option>
+                <option key={v.id} value={v.id}>{v.numero != null ? `${v.numero} – ` : ''}{v.placa} · {v.motorista}</option>
               ))}
               <option value={OUTRO}>Outro (digitar placa e motorista)</option>
             </select>
