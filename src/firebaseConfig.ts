@@ -40,3 +40,10 @@ export const GESTORES_VEICULOS: string[] = ['marialauragcardoso@gmail.com'];
 export function ehGestorVeiculos(email: string | null | undefined): boolean {
   return !!email && GESTORES_VEICULOS.includes(email.trim().toLowerCase());
 }
+
+/** Quem importa o relatório da balança na página Colheita. */
+export const IMPORTADORES_BALANCA: string[] = ['marialauragcardoso@gmail.com'];
+
+export function ehImportadorBalanca(email: string | null | undefined): boolean {
+  return !!email && IMPORTADORES_BALANCA.includes(email.trim().toLowerCase());
+}

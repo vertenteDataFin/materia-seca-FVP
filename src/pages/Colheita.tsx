@@ -27,7 +27,7 @@ import { fmt, fmtData, hoje, parseNum } from '../util';
  */
 export default function Colheita() {
   const dados = useDados();
-  const { podePesar, podeExcluir } = usePermissoes();
+  const { podePesar, podeExcluir, podeImportarBalanca } = usePermissoes();
   const [editando, setEditando] = useState<string | null>(null);
   const [mostrarFinalizados, setMostrarFinalizados] = useState(false);
   const [importando, setImportando] = useState(false);
@@ -67,7 +67,7 @@ export default function Colheita() {
     <>
       <div className="titulo-linha">
         <h1>Colheita</h1>
-        {podePesar && !importando && (
+        {podeImportarBalanca && !importando && (
           <button type="button" className="primario" onClick={() => setImportando(true)}>
             <Icone nome="balanca" /> Importar relatório da balança
           </button>
@@ -76,10 +76,10 @@ export default function Colheita() {
       <p className="dica">
         As cargas da colheita entram pelo <strong>relatório da balança</strong> (pesagens completas, com romaneio). A área colhida de cada
         talhão é estimada pela matéria seca entregue e pela última amostragem do talhão.
-        {!podePesar && ' O relatório é importado pelo balanceiro ou por um administrador.'}
+        {!podeImportarBalanca && ' O relatório da balança é importado pela Maria Laura.'}
       </p>
 
-      {importando && <ImportarBalanca aoFechar={() => setImportando(false)} />}
+      {importando && podeImportarBalanca && <ImportarBalanca aoFechar={() => setImportando(false)} />}
 
       {/* Só cargas antigas, registradas no campo antes de a colheita passar a vir do relatório da balança. */}
       {calc.pendentes.length > 0 && (
