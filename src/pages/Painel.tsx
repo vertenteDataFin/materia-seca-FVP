@@ -13,7 +13,7 @@ import { seriesMS } from '../evolucaoMS';
 import GraficoMS from '../GraficoMS';
 import { progressoColheita, resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
 
-type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'mvKgM2' | 'tMVha' | 'msPct' | 'tMSha' | 'colheita';
+type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'tMVha' | 'msPct' | 'tMSha' | 'colheita';
 
 /** Campos do filtro que cada coluna limpa (botão "Limpar" no filtro do título). */
 const LIMPAR_FILTRO: Partial<Record<Coluna, Partial<{ busca: string; capim: string; data: string; semaforo: '' }>>> = {
@@ -25,7 +25,7 @@ const LIMPAR_FILTRO: Partial<Record<Coluna, Partial<{ busca: string; capim: stri
 
 const ROTULO_COLUNA: Record<Coluna, string> = {
   nome: 'talhão', capim: 'capim', data: 'última coleta', area: 'área (ha)', amostras: 'amostras',
-  mvKgM2: 'MV (kg/m²)', tMVha: 'MV (t/ha)', msPct: 'MS (%)', tMSha: 'MS (t/ha)', colheita: 'colheita (%)',
+  tMVha: 'MV (t/ha)', msPct: 'MS (%)', tMSha: 'MS (t/ha)', colheita: 'colheita (%)',
 };
 
 interface Linha {
@@ -371,7 +371,6 @@ export default function Painel() {
                 {cab('data', 'Última coleta', 'oculta-cel', campoData, !!filtro.data)}
                 {cab('area', 'Área (ha)', 'n')}
                 {cab('amostras', 'Amostras', 'n')}
-                {cab('mvKgM2', 'MV (kg/m²)', 'n')}
                 {cab('tMVha', 'MV (t/ha)', 'n')}
                 {cab('msPct', 'MS (%)', 'n', campoMS, !!filtro.semaforo)}
                 {cab('tMSha', 'MS (t/ha)', 'n')}
@@ -381,7 +380,7 @@ export default function Painel() {
             <tbody>
               {!filtradas.length && (
                 <tr>
-                  <td colSpan={10} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
+                  <td colSpan={9} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
                 </tr>
               )}
               {filtradas.map(({ t, c, r, a }) => (
@@ -401,7 +400,6 @@ export default function Painel() {
                   <td className="oculta-cel">{c ? <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link> : <span className="mudo">sem coleta</span>}</td>
                   <td className="n oculta-cel">{fmt(t.areaHa, 1)}</td>
                   <td className="n oculta-cel">{r ? r.nPontos : '—'}</td>
-                  <td className="n oculta-cel">{fmt(r?.mvKgM2, 2)}</td>
                   <td className="n" data-rotulo="MV t/ha">{fmt(r?.tMVha)}</td>
                   <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
                   <td className="n" data-rotulo="MS t/ha">{fmt(r?.tMSha)}</td>
