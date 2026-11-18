@@ -11,7 +11,8 @@ export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v10';
 // Coletas já feitas em campo (fichas de 06–07/11/2026) entram uma vez por aparelho; não duplicam.
 export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v6';
 // Relação de veículos da silagem (planilha): entra uma vez por aparelho, só para quem cadastra veículos.
-export const CHAVE_VEICULOS = 'silagem-ms:veiculos-iniciais-v1';
+// v2 (18/11/2026): planilha com 6 caminhões; só os que faltam entram.
+export const CHAVE_VEICULOS = 'silagem-ms:veiculos-iniciais-v2';
 
 /**
  * Depois que a fonte de dados confirmou o estado (servidor ou disco): migra o banco antigo do aparelho,
