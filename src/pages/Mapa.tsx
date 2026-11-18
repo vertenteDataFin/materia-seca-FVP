@@ -8,15 +8,42 @@ import { fmt } from '../util';
 import { useParametros } from '../parametros';
 import MapaTalhoes from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe } from '../semaforo';
+import { progressoColheita, resumoColheita, type AndamentoTalhao } from '../colheita';
+import { Icone } from '../Icone';
 
 /**
  * Mapa dos talhões. Pela navegação, tocar no talhão abre as informações dele (página Talhões).
  * Vindo de "Nova coleta → Pelo mapa" (?nova=coleta), tocar no talhão abre o menu para iniciar a coleta.
  */
+/** Cores do mapa de colheita: azul mais forte conforme avança; finalizada em azul-escuro. */
+const COR_COLHEITA = {
+  semCarga: '#9aa0a6',
+  semEstimativa: '#b07cc6',
+  faixas: [
+    { ate: 25, cor: '#9ecae1', rotulo: 'até 25%' },
+    { ate: 50, cor: '#6baed6', rotulo: '25–50%' },
+    { ate: 75, cor: '#3182bd', rotulo: '50–75%' },
+    { ate: 100, cor: '#08519c', rotulo: '75–99%' },
+  ],
+  finalizada: '#0b2a5e',
+};
+
+function corDaColheita(a: AndamentoTalhao | undefined): { cor: string; tracejado: boolean; rotuloExtra: string } {
+  if (!a) return { cor: COR_COLHEITA.semCarga, tracejado: true, rotuloExtra: 'sem colheita' };
+  if (a.finalizada) return { cor: COR_COLHEITA.finalizada, tracejado: false, rotuloExtra: 'finalizada ✓' };
+  const pct = progressoColheita(a);
+  if (pct == null) return { cor: COR_COLHEITA.semEstimativa, tracejado: true, rotuloExtra: 'em colheita' };
+  const faixa = COR_COLHEITA.faixas.find((f) => pct < f.ate) ?? COR_COLHEITA.faixas[COR_COLHEITA.faixas.length - 1];
+  return { cor: faixa.cor, tracejado: false, rotuloExtra: `${Math.round(pct)}% colhido` };
+}
+
 export default function Mapa() {
   const navigate = useNavigate();
-  const [params] = useSearchParams();
+  const [params, setParams] = useSearchParams();
   const paraColeta = params.get('nova') === 'coleta';
+  // Mapa de amostragem (MS) ou de colheita (% colhido); fica na URL para o voltar do navegador manter a escolha.
+  const visao: 'amostragem' | 'colheita' = !paraColeta && params.get('visao') === 'colheita' ? 'colheita' : 'amostragem';
+  const trocarVisao = (v: 'amostragem' | 'colheita') => setParams(v === 'colheita' ? { visao: 'colheita' } : {}, { replace: true });
   const parametros = useParametros();
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const dados = useDados();
@@ -30,6 +57,12 @@ export default function Mapa() {
     }
     return m;
   }, [dados]);
+
+  // Andamento da colheita por talhão (mesmo cálculo do Painel e da página Colheita)
+  const colheita = useMemo(
+    () => (dados ? resumoColheita(dados.talhoes, dados.cargas, dados.coletas, amostrasPorColeta(dados.amostras), dados.amostrasColheita) : null),
+    [dados],
+  );
 
   if (!dados) return null;
   const selecionado = paraColeta ? (dados.talhoes.find((t) => t.id === selecionadoId) ?? null) : null;
@@ -54,7 +87,20 @@ export default function Mapa() {
 
   return (
     <div className="pagina-mapa">
-      <h1>{paraColeta ? 'Nova coleta — escolha o talhão' : 'Mapa'}</h1>
+      <div className="titulo-linha">
+        <h1>{paraColeta ? 'Nova coleta — escolha o talhão' : visao === 'colheita' ? 'Mapa da colheita' : 'Mapa da amostragem'}</h1>
+        {!paraColeta && (
+          <div className={`seletor-mapa${visao === 'colheita' ? ' na-direita' : ''}`} role="radiogroup" aria-label="Qual mapa">
+            <span className="seletor-mapa-trilho" aria-hidden="true" />
+            <button type="button" role="radio" aria-checked={visao === 'amostragem'} onClick={() => trocarVisao('amostragem')}>
+              <Icone nome="lab" /> Amostragem
+            </button>
+            <button type="button" role="radio" aria-checked={visao === 'colheita'} onClick={() => trocarVisao('colheita')}>
+              <Icone nome="colheita" /> Colheita
+            </button>
+          </div>
+        )}
+      </div>
       <div className="cartao">
         <MapaTalhoes
           talhoes={dados.talhoes}
@@ -63,6 +109,7 @@ export default function Mapa() {
           altura="min(70vh, 640px)"
           className="mapa-principal"
           estilo={(t) => {
+            if (visao === 'colheita') return corDaColheita(colheita?.porTalhao.get(t.id));
             const u = ultimaPorTalhao.get(t.id);
             const s = u ? statusMS(u.msPct, parametros) : null;
             return {
@@ -73,8 +120,23 @@ export default function Mapa() {
           }}
         />
         <p className="dica oculta-cel">
-          {paraColeta ? 'Toque no talhão para iniciar a coleta.' : 'Toque no talhão para ver as informações dele (área, capim e coletas).'}
+          {paraColeta ? 'Toque no talhão para iniciar a coleta.' : 'Toque no talhão para ver as informações dele (área, capim, coletas e colheita).'}
         </p>
+        {visao === 'colheita' ? (
+          <p className="dica legenda-mapa legenda-colheita">
+            {COR_COLHEITA.faixas.map((f) => (
+              <span key={f.rotulo} className="selo" style={{ background: f.cor, color: f.ate <= 50 ? '#0b2a5e' : '#fff' }}>{f.rotulo}</span>
+            ))}{' '}
+            <span className="selo" style={{ background: COR_COLHEITA.finalizada, color: '#fff' }}>finalizada</span>{' '}
+            <span className="selo" style={{ background: COR_COLHEITA.semEstimativa, color: '#fff' }}>em colheita, sem amostragem</span>{' '}
+            <span className="selo" style={{ background: COR_COLHEITA.semCarga, color: '#fff' }}>sem colheita</span>
+            {colheita && colheita.porTalhao.size > 0 && (
+              <span className="resumo-mapa-colheita">
+                {' '}· {fmt(colheita.areaColhidaHa, 1)} ha colhidos em {colheita.emColheita + colheita.finalizados} talhão(ões)
+              </span>
+            )}
+          </p>
+        ) : (
         <p className="dica legenda-mapa">
           <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>
             <span className="rotulo-longo">verde: pronto para ensilar (MS {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)} %)</span>
@@ -89,6 +151,7 @@ export default function Mapa() {
             <span className="rotulo-curto">fora do ponto</span>
           </span>
         </p>
+        )}
       </div>
     </div>
   );

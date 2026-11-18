@@ -478,6 +478,22 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   .lab-linha > .n:last-child { grid-column: 1 / -1; text-align: left; }
   .lab-cabecalho { flex-wrap: wrap; }
 }
+/* ---- Mapa: seletor deslizante Amostragem | Colheita ---- */
+.seletor-mapa { position: relative; display: inline-grid; grid-template-columns: 1fr 1fr; padding: 3px; border-radius: 999px; background: var(--fundo); border: 1px solid var(--borda); }
+.seletor-mapa-trilho { position: absolute; top: 3px; bottom: 3px; left: 3px; width: calc(50% - 3px); border-radius: 999px; background: var(--verde); transition: transform 0.25s ease; }
+.seletor-mapa.na-direita .seletor-mapa-trilho { transform: translateX(100%); background: #08519c; }
+.seletor-mapa button {
+  position: relative; z-index: 1; display: inline-flex; align-items: center; justify-content: center; gap: 0.35rem;
+  background: none; border: 0; border-radius: 999px; padding: 0.4rem 0.9rem; min-height: 0; font-weight: 600; color: var(--texto); cursor: pointer; transition: color 0.25s;
+}
+.seletor-mapa button[aria-checked='true'] { color: #fff; }
+.seletor-mapa button:hover { background: none; }
+.seletor-mapa button:focus-visible { outline: 2px solid var(--verde); outline-offset: 2px; }
+.legenda-mapa .resumo-mapa-colheita { white-space: nowrap; }
+.legenda-mapa.legenda-colheita { display: flex; flex-wrap: wrap; gap: 0.3rem; overflow: visible; white-space: normal; }
+@media (max-width: 700px) {
+  .seletor-mapa button { padding: 0.35rem 0.6rem; font-size: 0.85rem; }
+}
 /* ---- Importação do relatório da balança ---- */
 .importar-balanca h2 { display: flex; align-items: center; gap: 0.4rem; }
 .importar-balanca h2 .mi { color: var(--verde); }
