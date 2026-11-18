@@ -384,9 +384,6 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   /* colheita: mais uma coluna à direita, % em cima e barrinha embaixo */
   .tabela-cartoes.painel-lista tr:has(td.col-colheita) { grid-template-columns: minmax(0, 1fr) auto auto auto auto; gap: 0 0.55rem; }
   .tabela-cartoes.painel-lista td.col-colheita { min-width: 0; }
-  .tabela-cartoes.painel-lista td.col-colheita .progresso-mini { flex-direction: column-reverse; align-items: flex-end; gap: 0.15rem; }
-  .tabela-cartoes.painel-lista td.col-colheita .progresso-texto { font-size: inherit; }
-  .tabela-cartoes.painel-lista td.col-colheita .barra-progresso { width: 3.2rem; min-width: 0; flex: none; height: 0.35rem; }
   .tabela-cartoes.painel-lista td.col-colheita > .mudo { color: inherit; }
 }
 
@@ -532,11 +529,10 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .novo-veiculo { margin-top: 1rem; padding-top: 0.8rem; border-top: 1px solid var(--borda); }
 .novo-veiculo h3 { margin: 0; font-size: 1rem; }
 
-/* Painel: progresso da colheita numa coluna do resumo por talhão */
-td.col-colheita { min-width: 8.5rem; }
-.progresso-mini { display: flex; align-items: center; gap: 0.45rem; color: inherit; text-decoration: none; }
-.progresso-mini .barra-progresso { flex: 1; min-width: 3.5rem; height: 0.55rem; margin: 0; }
-.progresso-mini .progresso-texto { font-size: 0.85rem; font-variant-numeric: tabular-nums; white-space: nowrap; }
+/* Painel: % colhido numa coluna do resumo por talhão (só o número, sem barra) */
+.progresso-mini { color: inherit; text-decoration: none; }
+.progresso-mini:hover { text-decoration: underline; }
+.progresso-mini .progresso-texto { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .progresso-mini.finalizado .progresso-texto { color: var(--verde); font-weight: 600; }
 .andamento-area { margin: 0 0 0.5rem; font-size: 0.95rem; }
 .andamento-numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
@@ -635,14 +631,14 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
 th.ordenavel { padding: 0; position: relative; }
 th.ordenavel .cab-col { display: flex; align-items: center; }
 th.ordenavel.n .cab-col { justify-content: flex-end; }
-th.ordenavel button.ordenar-col { all: unset; cursor: pointer; display: block; flex: 1; box-sizing: border-box; padding: 0.45rem 0.5rem; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; white-space: nowrap; min-height: 0; }
+th.ordenavel button.ordenar-col { all: unset; cursor: pointer; display: block; flex: 1; box-sizing: border-box; padding: 0.45rem 0.35rem; font: inherit; color: inherit; text-transform: inherit; letter-spacing: inherit; white-space: nowrap; min-height: 0; }
 th.ordenavel.com-filtro button.ordenar-col { flex: 0 1 auto; padding-right: 0.1rem; }
 th.ordenavel.n button.ordenar-col { text-align: right; }
 th.ordenavel button.ordenar-col:hover, th.ordenavel.ativa button.ordenar-col { color: var(--verde); }
 /* Filtro no título da coluna: ícone ao lado das setas; abre o campo numa caixinha logo abaixo */
 th.ordenavel button.filtro-col {
   all: unset; cursor: pointer; display: inline-flex; align-items: center; justify-content: center; flex: none;
-  width: 1.5rem; height: 1.5rem; margin-right: 0.25rem; border-radius: 6px; color: var(--mudo); opacity: 0.6; font-size: 1rem;
+  width: 1.35rem; height: 1.35rem; margin-right: 0.15rem; border-radius: 6px; color: var(--mudo); opacity: 0.6; font-size: 1rem;
 }
 th.ordenavel button.filtro-col:hover, th.ordenavel button.filtro-col[aria-expanded='true'] { opacity: 1; background: var(--fundo); color: var(--texto); }
 th.ordenavel button.filtro-col.ativo { opacity: 1; background: var(--verde-claro); color: var(--verde); }

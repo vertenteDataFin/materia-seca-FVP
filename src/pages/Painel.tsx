@@ -61,7 +61,7 @@ export function comparadorColuna(col: Coluna, asc: boolean) {
   };
 }
 
-/** Barrinha da colheita na tabela: % colhida, "finalizada" ou "—" se não começou. */
+/** Colheita na tabela: só o % colhido ("100% ✓" finalizada, "—" se não começou). */
 function ProgressoColheita({ a }: { a?: AndamentoTalhao }) {
   if (!a) return <span className="mudo">—</span>;
   const pct = progressoColheita(a);
@@ -74,7 +74,6 @@ function ProgressoColheita({ a }: { a?: AndamentoTalhao }) {
       : 'Em colheita, sem amostragem para estimar a área';
   return (
     <Link to="/colheita" className={`progresso-mini${a.finalizada ? ' finalizado' : ''}`} title={titulo}>
-      <span className="barra-progresso" aria-hidden="true"><span style={{ width: `${pct ?? 0}%` }} /></span>
       <span className="progresso-texto">{texto}</span>
     </Link>
   );
@@ -349,7 +348,7 @@ export default function Painel() {
                 {cab('tMVha', 'MV (t/ha)', 'n')}
                 {cab('msPct', 'MS (%)', 'n', campoMS, !!filtro.semaforo)}
                 {cab('tMSha', 'MS (t/ha)', 'n')}
-                {cab('colheita', 'Colheita', 'col-colheita')}
+                {cab('colheita', 'Colheita', 'n col-colheita')}
               </tr>
             </thead>
             <tbody>
