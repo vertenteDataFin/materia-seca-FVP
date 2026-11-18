@@ -14,6 +14,7 @@ import {
 import { msColheita, pennState } from '../amostragemColheita';
 import { fmt } from '../util';
 import type { Talhao } from '../tipos';
+import { peFdnDaAmostra, rotuloPeFdn, textoPeFdn, useConfigFdn } from '../fdn';
 
 const MAX_CARGAS = 10;
 
@@ -23,6 +24,7 @@ const MAX_CARGAS = 10;
  */
 export default function ColheitaTalhao({ talhao: t }: { talhao: Talhao }) {
   const dados = useDados();
+  const cfgFdn = useConfigFdn();
   const info = useMemo(() => {
     if (!dados) return null;
     const cargas = dados.cargas.filter((c) => c.talhaoId === t.id);
@@ -92,6 +94,7 @@ export default function ColheitaTalhao({ talhao: t }: { talhao: Talhao }) {
                   <th className="oculta-cel">Silo</th>
                   <th className="n">MS %</th>
                   <th className="n oculta-cel">Penn State % <small className="mudo">(19·8·4·F)</small></th>
+                  <th className="n">{rotuloPeFdn(cfgFdn.pef).replace('peFDN', 'peFDN %')}</th>
                 </tr>
               </thead>
               <tbody>
@@ -113,6 +116,7 @@ export default function ColheitaTalhao({ talhao: t }: { talhao: Talhao }) {
                       <td className="oculta-cel">{x.silo}</td>
                       <td className="n" data-rotulo="MS %">{ms == null ? <span className="mudo">aguardando</span> : fmt(ms)}</td>
                       <td className="n oculta-cel" data-rotulo="Penn State %">{ps ? ps.pct.map((p) => fmt(p, 0)).join(' · ') : '—'}</td>
+                      <td className="n" data-rotulo="peFDN %">{textoPeFdn(peFdnDaAmostra(x, t.capim, cfgFdn), cfgFdn.pef) ?? <span className="mudo">—</span>}</td>
                     </tr>
                   );
                 })}

@@ -53,15 +53,20 @@ describe('relatório da balança', () => {
   it.skipIf(!existsSync(ARQUIVO))('lê o relatório real de 18/11/2026', async () => {
     const b = readFileSync(ARQUIVO);
     const linhas = await lerXlsxBalanca(b.buffer.slice(b.byteOffset, b.byteOffset + b.byteLength) as ArrayBuffer);
-    expect(linhas.map((l) => l.romaneio)).toEqual(['3299', '3300', '3301', '3302', '3303', '3304']);
-    const completas = linhas.filter((l) => l.completa);
-    expect(completas.map((l) => [l.romaneio, l.placa, l.liquidoKg, l.pesadoEm])).toEqual([
-      ['3299', 'CPG0247', 5840, '2026-11-17T18:19'],
-      ['3300', 'IBY9G34', 9000, '2026-11-17T19:21'],
-      ['3301', 'CRY4H95', 8760, '2026-11-17T18:22'],
-      ['3302', 'BXF7877', 6620, '2026-11-17T19:22'],
+    // o arquivo de exemplo cresce com novos romaneios: confere os conhecidos, não a contagem exata
+    const por = new Map(linhas.map((l) => [l.romaneio, l]));
+    const conhecidas = ['3299', '3300', '3301', '3302'].map((r) => por.get(r)!);
+    expect(conhecidas.map((l) => [l.romaneio, l.placa, l.liquidoKg, l.pesadoEm, l.completa])).toEqual([
+      ['3299', 'CPG0247', 5840, '2026-11-17T18:19', true],
+      ['3300', 'IBY9G34', 9000, '2026-11-17T19:21', true],
+      ['3301', 'CRY4H95', 8760, '2026-11-17T18:22', true],
+      ['3302', 'BXF7877', 6620, '2026-11-17T19:22', true],
     ]);
-    expect(completas.every((l) => l.silo === 'Trincheira 01' && l.textoTalhao === 'CAU TALHÃO 02')).toBe(true);
-    expect(linhas.find((l) => l.romaneio === '3302')!.motoristaRelatorio).toBe('Fernando Alonso');
+    expect(conhecidas.every((l) => l.silo === 'Trincheira 01' && l.textoTalhao === 'CAU TALHÃO 02')).toBe(true);
+    expect(por.get('3302')!.motoristaRelatorio).toBe('Fernando Alonso');
+    // linha sem peso cheio (caminhão ainda não voltou) não fica completa
+    expect(por.get('3304')!.completa).toBe(false);
+    // completas sempre com líquido positivo
+    expect(linhas.filter((l) => l.completa).every((l) => (l.liquidoKg ?? 0) > 0)).toBe(true);
   });
 });

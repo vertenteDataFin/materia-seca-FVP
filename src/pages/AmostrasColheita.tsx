@@ -7,6 +7,7 @@ import { CampoNumero } from '../components';
 import { usePermissoes } from '../permissoes';
 import { fmt } from '../util';
 import type { AmostraColheita } from '../tipos';
+import { faltaPeFdn, peFdnDaAmostra, rotuloPeFdn, textoPeFdn, useConfigFdn } from '../fdn';
 
 const LIMITE = 80;
 
@@ -17,9 +18,11 @@ const LIMITE = 80;
 export default function AmostrasColheitaCard({ destaque }: { destaque: string | null }) {
   const dados = useDados();
   const { podeExcluir } = usePermissoes();
+  const cfgFdn = useConfigFdn();
   const [aberta, setAberta] = useState<string | null>(null);
   if (!dados || !dados.amostrasColheita.length) return null;
   const nomes = new Map(dados.talhoes.map((t) => [t.id, t.nome]));
+  const capins = new Map(dados.talhoes.map((t) => [t.id, t.capim]));
   const lista = dados.amostrasColheita.slice(0, LIMITE);
 
   return (
@@ -28,7 +31,10 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
         <h2>Amostragem de colheita</h2>
         <span className="mudo">{dados.amostrasColheita.length}</span>
       </div>
-      <p className="dica">Amostras dos caminhões. Penn State: % retida nas peneiras de 19, 8 e 4 mm e no fundo. Toque numa amostra para corrigir.</p>
+      <p className="dica">
+        Amostras dos caminhões. Penn State: % retida nas peneiras de 19, 8 e 4 mm e no fundo. peFDN = FDN × fator do Penn State (FDN do laboratório
+        ou de referência do capim, em Configurações). Toque numa amostra para corrigir ou informar a FDN do laboratório.
+      </p>
       <div className="rolagem">
         <table className="tabela-cartoes tabela-amostras-colheita">
           <thead>
@@ -38,6 +44,7 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
               <th className="oculta-cel">Silo</th>
               <th className="n">MS %</th>
               <th className="n col-penn">Penn State % <small className="mudo">(19 · 8 · 4 · F)</small></th>
+              <th className="n">{rotuloPeFdn(cfgFdn.pef)} <small className="mudo">(% MS)</small></th>
             </tr>
           </thead>
           <tbody>
@@ -45,6 +52,8 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
               const ms = msColheita(a);
               const ps = pennState(a);
               const talhao = nomes.get(a.talhaoId) ?? 'talhão removido';
+              const peR = peFdnDaAmostra(a, capins.get(a.talhaoId) ?? '', cfgFdn);
+              const pe = { r: peR, texto: textoPeFdn(peR, cfgFdn.pef) };
               const alternar = () => setAberta(aberta === a.id ? null : a.id);
               return (
                 <Fragment key={a.id}>
@@ -65,11 +74,15 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
                     <td className="n col-penn" data-rotulo="Penn State % (19·8·4·F)">
                       {ps ? ps.pct.map((p) => fmt(p, 0)).join(' · ') : <span className="mudo">—</span>}
                     </td>
+                    <td className="n peFdn-celula" data-rotulo={rotuloPeFdn(cfgFdn.pef)}>
+                      {pe.texto ?? <span className="mudo">—</span>}
+                      {pe.texto && pe.r.fonte === 'laboratorio' && <small className="mudo">FDN lab</small>}
+                    </td>
                   </tr>
                   {aberta === a.id && (
                     <tr className="linha-edicao-amostra">
-                      <td colSpan={5}>
-                        <EdicaoAmostra a={a} talhao={talhao} podeExcluir={podeExcluir} />
+                      <td colSpan={6}>
+                        <EdicaoAmostra a={a} talhao={talhao} podeExcluir={podeExcluir} capim={capins.get(a.talhaoId) ?? ''} />
                       </td>
                     </tr>
                   )}
@@ -84,8 +97,11 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
   );
 }
 
-function EdicaoAmostra({ a, talhao, podeExcluir }: { a: AmostraColheita; talhao: string; podeExcluir: boolean }) {
+function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; talhao: string; podeExcluir: boolean; capim: string }) {
   const ps = pennState(a);
+  const cfgFdn = useConfigFdn();
+  const pe = peFdnDaAmostra(a, capim, cfgFdn);
+  const pct = (v: number | null) => (v == null ? '—' : `${fmt(v * 100, 1)}%`);
   return (
     <div className="edicao-amostra-colheita">
       <p className="mudo">
@@ -109,7 +125,26 @@ function EdicaoAmostra({ a, talhao, podeExcluir }: { a: AmostraColheita; talhao:
           <CampoNumero valor={a.pesoSecoG} ariaLabel="Peso seco" placeholder="seco (g)" aoSalvar={(v) => atualizarAmostraColheita(a.id, lancarSeco(a, v))} />
           <small className="mudo">MS {fmt(msColheita(a))} %</small>
         </label>
+        <label>
+          FDN do laboratório (% MS)
+          <CampoNumero valor={a.fdnPct ?? null} ariaLabel="FDN do laboratório" placeholder="da referência" aoSalvar={(v) => atualizarAmostraColheita(a.id, { fdnPct: v })} />
+          <small className="mudo">{a.fdnPct != null ? 'laboratório' : pe.fdnPct != null ? `referência ${capim}: ${fmt(pe.fdnPct, 1)}%` : 'sem referência do capim'}</small>
+        </label>
       </div>
+      <p className="resumo-pefdn">
+        <strong>FDN efetiva:</strong>{' '}
+        {pe.peFdn4 == null ? (
+          <span className="mudo">não calculada: {faltaPeFdn(pe)}{faltaPeFdn(pe) === 'falta a FDN' ? ' (informe acima ou cadastre a FDN do capim em Configurações)' : ''}.</span>
+        ) : (
+          <>
+            FDN {fmt(pe.fdnPct, 1)}% ({pe.fonte === 'laboratorio' ? 'laboratório' : `referência ${capim}`}) ·{' '}
+            {cfgFdn.pef !== '4' && <>pef &gt; 8 mm {pct(pe.pef8)} → <strong>peFDN {fmt(pe.peFdn8, 1)}%</strong></>}
+            {cfgFdn.pef === 'ambos' && ' · '}
+            {cfgFdn.pef !== '8' && <>pef &gt; 4 mm {pct(pe.pef4)} → <strong>peFDN {fmt(pe.peFdn4, 1)}%</strong></>}
+            <span className="mudo"> da MS</span>
+          </>
+        )}
+      </p>
       {podeExcluir && (
         <div className="acoes">
           <button

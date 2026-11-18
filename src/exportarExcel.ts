@@ -8,6 +8,7 @@ import { hoje, lerParametros } from './util';
 import { nomeComSigla } from './MapaTalhoes';
 import { colheitaPorTalhao, msColheita, pennState } from './amostragemColheita';
 import { liquidoKg } from './colheita';
+import { configFdnAtual, peFdnDaAmostra, type ConfigFdn } from './fdn';
 
 const VERDE = 'FF2F6B3A';
 const CV_LIMITE = 25;
@@ -34,7 +35,7 @@ function situacao(msPct: number | null, cvPct: number | null, p: Parametros): st
 }
 
 /** Monta as planilhas (dados puros) — separado da escrita para ser testável. */
-export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerParametros()): Planilha[] {
+export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerParametros(), cfgFdn: ConfigFdn = configFdnAtual()): Planilha[] {
   const talhoes = [...d.talhoes].sort((a, b) => a.nome.localeCompare(b.nome, 'pt-BR', { numeric: true }));
   const coletas = [...d.coletas].sort((a, b) => a.data.localeCompare(b.data) || (a.criadoEm ?? '').localeCompare(b.criadoEm ?? '') || a.id.localeCompare(b.id));
   const talhaoPorId = new Map<string, Talhao>(talhoes.map((t) => [t.id, t]));
@@ -136,15 +137,23 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
         { titulo: 'Peneira 4 mm (g)', largura: 10, formato: '0' }, { titulo: 'Fundo (g)', largura: 10, formato: '0' },
         { titulo: '19 mm (%)', largura: 8, formato: '0.0' }, { titulo: '8 mm (%)', largura: 8, formato: '0.0' }, { titulo: '4 mm (%)', largura: 8, formato: '0.0' },
         { titulo: 'Fundo (%)', largura: 8, formato: '0.0' }, { titulo: 'Subamostra úmida (g)', largura: 10, formato: '0' }, { titulo: 'Subamostra seca (g)', largura: 10, formato: '0' },
-        { titulo: 'MS (%)', largura: 8, formato: '0.0' }, { titulo: 'Observações', largura: 28 },
+        { titulo: 'MS (%)', largura: 8, formato: '0.0' },
+        { titulo: 'FDN usada (% MS)', largura: 10, formato: '0.0' }, { titulo: 'Origem da FDN', largura: 14 },
+        { titulo: 'pef > 8 mm', largura: 8, formato: '0.00' }, { titulo: 'pef > 4 mm', largura: 8, formato: '0.00' },
+        { titulo: 'peFDN > 8 mm (% MS)', largura: 10, formato: '0.0' }, { titulo: 'peFDN > 4 mm (% MS)', largura: 10, formato: '0.0' },
+        { titulo: 'Observações', largura: 28 },
       ],
       linhas: amostrasColheita.map((a) => {
         const ps = pennState(a);
+        const pe = peFdnDaAmostra(a, talhaoPorId.get(a.talhaoId)?.capim ?? '', cfgFdn);
         return [
           a.codigo ?? '', dataHoraLocal(a.coletadaEm), nomeTalhao(a.talhaoId), a.placa, a.motorista ?? '', a.silo, a.responsavel ?? '',
           n(a.peneira19G), n(a.peneira8G), n(a.peneira4G), n(a.fundoG),
           ps ? ps.pct[0] : null, ps ? ps.pct[1] : null, ps ? ps.pct[2] : null, ps ? ps.pct[3] : null,
-          n(a.pesoUmidoG), n(a.pesoSecoG), n(msColheita(a)), a.observacoes ?? '',
+          n(a.pesoUmidoG), n(a.pesoSecoG), n(msColheita(a)),
+          n(pe.fdnPct), pe.fonte === 'laboratorio' ? 'laboratório' : pe.fonte === 'capim' ? 'referência do capim' : '',
+          n(pe.pef8), n(pe.pef4), n(pe.peFdn8), n(pe.peFdn4),
+          a.observacoes ?? '',
         ];
       }),
     });

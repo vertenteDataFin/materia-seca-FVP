@@ -50,7 +50,7 @@ const ROTULO_CAMPO: Record<string, string> = {
   saidaEm: 'saída', placa: 'placa', silo: 'silo', pesoBrutoKg: 'peso bruto (kg)', taraKg: 'tara (kg)', pesadoEm: 'pesagem',
   romaneio: 'romaneio', msPct: 'MS da carga (%)', colheitaFinalizadaEm: 'colheita finalizada',
   motorista: 'motorista', numero: 'nº de cadastro',
-  coletadaEm: 'amostrada em', peneira19G: 'peneira 19 mm (g)', peneira8G: 'peneira 8 mm (g)', peneira4G: 'peneira 4 mm (g)', fundoG: 'fundo (g)',
+  coletadaEm: 'amostrada em', fdnPct: 'FDN laboratório (%)', peneira19G: 'peneira 19 mm (g)', peneira8G: 'peneira 8 mm (g)', peneira4G: 'peneira 4 mm (g)', fundoG: 'fundo (g)',
 };
 
 /** Ordem das coleções nas descrições e na restauração (pais antes dos filhos). */

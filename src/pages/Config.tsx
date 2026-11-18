@@ -15,6 +15,7 @@ import { usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 import { liberarSolicitacao, recusarSolicitacao, useSolicitacoes } from '../solicitacoes';
 import Historico from '../HistoricoCard';
+import FdnCard from '../FdnCard';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
@@ -162,6 +163,8 @@ export default function Config({ usuario }: { usuario?: User }) {
           </div>
         )}
       </div>
+
+      <FdnCard email={usuario?.email ?? ''} />
 
       <div className="cartao">
         <h2>Dados e backup</h2>

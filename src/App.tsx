@@ -7,6 +7,7 @@ import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 import { inicializarDados } from './inicializacao';
 import { papelDe, useMembros } from './membros';
 import { assinarParametrosNuvem } from './parametros';
+import { assinarConfigFdnNuvem } from './fdn';
 import { PERMISSOES_LOCAL, PermissoesContext, permissoesDoPapel, type Permissoes } from './permissoes';
 import { RepositorioLocal, type Repositorio } from './repositorio';
 import { RepositorioFirestore } from './repositorioFirestore';
@@ -91,9 +92,11 @@ function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
     repo.iniciar();
     setIniciado(true);
     const pararParametros = assinarParametrosNuvem(obterFirebase().firestore, FAZENDA_ID);
+    const pararFdn = assinarConfigFdnNuvem(obterFirebase().firestore, FAZENDA_ID);
     return () => {
       repo.parar();
       pararParametros();
+      pararFdn();
     };
   }, [repo, liberado]);
 

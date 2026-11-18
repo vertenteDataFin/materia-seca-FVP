@@ -117,6 +117,8 @@ export interface AmostraColheita {
   /** MS: subamostra úmida (g, padrão 100) e peso seco (g). */
   pesoUmidoG: number | null;
   pesoSecoG: number | null;
+  /** FDN da análise de laboratório (% da MS); sem ela, vale a FDN de referência do capim. */
+  fdnPct?: number | null;
   observacoes?: string;
   criadoEm?: string;
 }
