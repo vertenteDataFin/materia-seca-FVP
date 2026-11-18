@@ -124,9 +124,11 @@ describe('KML embutido no app (public/talhoes-fazenda.kml)', () => {
   });
 });
 
-const ARQUIVO = 'info/Pedra_Atividades.kml';
+// Arquivo de referência fora do repositório (pasta info/ local): sem ele, os testes são pulados.
+const ARQUIVO = 'info/arquivos-kml/Pedra_Atividades.kml';
 describe.skipIf(!existsSync(ARQUIVO))('arquivo real da fazenda', () => {
-  const polys = lerKml(readFileSync(ARQUIVO, 'utf8'));
+  // lido só se o arquivo existe (o corpo do describe roda mesmo quando ele é pulado)
+  const polys = existsSync(ARQUIVO) ? lerKml(readFileSync(ARQUIVO, 'utf8')) : [];
 
   it('lê os 52 talhões e a área calculada bate com a declarada', () => {
     expect(polys).toHaveLength(52);

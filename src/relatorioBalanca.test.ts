@@ -48,6 +48,7 @@ describe('relatório da balança', () => {
     expect(() => lerLinhasBalanca([['A', 'B'], [1, 2]])).toThrow(/NR_ROMANEIO/);
   });
 
+  // arquivo de exemplo na pasta info/ local (fora do repositório): sem ele, o teste é pulado
   const ARQUIVO = 'info/balanca/printListagemCargasFR_grid_20261118.xlsx';
   it.skipIf(!existsSync(ARQUIVO))('lê o relatório real de 18/11/2026', async () => {
     const b = readFileSync(ARQUIVO);
