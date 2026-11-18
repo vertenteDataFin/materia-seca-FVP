@@ -6,6 +6,7 @@ import { placaValida, proximoNumero, veiculoDaPlaca } from '../veiculos';
 import { usePermissoes } from '../permissoes';
 import { PENEIRAS, pennState, proximoCodigoColheita, type CampoPeneira } from '../amostragemColheita';
 import { fmt, parseNum } from '../util';
+import { PctPeneira } from '../PennState';
 
 const CHAVE_TALHAO = 'silagem-ms:amostra-colheita-talhao';
 const CHAVE_RESPONSAVEL = 'silagem-ms:amostra-colheita-responsavel';
@@ -168,7 +169,7 @@ export default function NovaAmostraColheita() {
               <label key={pen.campo}>
                 {pen.rotulo}
                 <input inputMode="decimal" value={pesos[pen.campo]} onChange={(e) => setPesos({ ...pesos, [pen.campo]: e.target.value })} />
-                <small className="mudo pct-peneira">{ps ? `${fmt(ps.pct[i], 1)}%` : '—'}</small>
+                <PctPeneira i={i} pct={ps ? ps.pct[i] : null} />
               </label>
             ))}
           </div>

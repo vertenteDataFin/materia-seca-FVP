@@ -140,7 +140,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
         { titulo: 'MS (%)', largura: 8, formato: '0.0' },
         { titulo: 'FDN usada (% MS)', largura: 10, formato: '0.0' }, { titulo: 'Origem da FDN', largura: 14 },
         { titulo: 'pef > 8 mm', largura: 8, formato: '0.00' }, { titulo: 'pef > 4 mm', largura: 8, formato: '0.00' },
-        { titulo: 'peFDN > 8 mm (% MS)', largura: 10, formato: '0.0' }, { titulo: 'peFDN > 4 mm (% MS)', largura: 10, formato: '0.0' },
+        { titulo: 'FDNfe > 8 mm (% MS)', largura: 10, formato: '0.0' }, { titulo: 'FDNfe > 4 mm (% MS)', largura: 10, formato: '0.0' },
         { titulo: 'Observações', largura: 28 },
       ],
       linhas: amostrasColheita.map((a) => {
@@ -151,7 +151,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
           n(a.peneira19G), n(a.peneira8G), n(a.peneira4G), n(a.fundoG),
           ps ? ps.pct[0] : null, ps ? ps.pct[1] : null, ps ? ps.pct[2] : null, ps ? ps.pct[3] : null,
           n(a.pesoUmidoG), n(a.pesoSecoG), n(msColheita(a)),
-          n(pe.fdnPct), pe.fonte === 'laboratorio' ? 'laboratório' : pe.fonte === 'capim' ? 'referência do capim' : '',
+          n(pe.fdnPct), pe.fonte === 'laboratorio' ? 'laboratório' : pe.fonte === 'capim' ? 'referência do capim' : pe.fonte === 'padrao' ? 'padrão' : '',
           n(pe.pef8), n(pe.pef4), n(pe.peFdn8), n(pe.peFdn4),
           a.observacoes ?? '',
         ];
