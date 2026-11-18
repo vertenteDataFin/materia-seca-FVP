@@ -11,7 +11,7 @@ import { nomeComSigla } from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 import { seriesMS } from '../evolucaoMS';
 import GraficoMS from '../GraficoMS';
-import { progressoColheita, resumoColheita, type AndamentoTalhao } from '../colheita';
+import { progressoColheita, resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
 
 type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'mvKgM2' | 'tMVha' | 'msPct' | 'tMSha' | 'colheita';
 
@@ -64,17 +64,10 @@ export function comparadorColuna(col: Coluna, asc: boolean) {
 /** Colheita na tabela: só o % colhido ("100% ✓" finalizada, "—" se não começou). */
 function ProgressoColheita({ a }: { a?: AndamentoTalhao }) {
   if (!a) return <span className="mudo">—</span>;
-  const pct = progressoColheita(a);
   // texto curto para caber na coluna do celular; o detalhe vai no title
-  const texto = a.finalizada ? '100% ✓' : pct == null ? '—' : `${fmt(pct, 0)}%`;
-  const titulo = a.finalizada
-    ? 'Colheita finalizada'
-    : a.areaColhidaHa != null
-      ? `${fmt(a.areaColhidaHa, 1)} de ${fmt(a.talhao.areaHa, 1)} ha colhidos`
-      : 'Em colheita, sem amostragem para estimar a área';
   return (
-    <Link to="/colheita" className={`progresso-mini${a.finalizada ? ' finalizado' : ''}`} title={titulo}>
-      <span className="progresso-texto">{texto}</span>
+    <Link to="/colheita" className={`progresso-mini${a.finalizada ? ' finalizado' : ''}`} title={tituloProgresso(a)}>
+      <span className="progresso-texto">{textoProgresso(a)}</span>
     </Link>
   );
 }

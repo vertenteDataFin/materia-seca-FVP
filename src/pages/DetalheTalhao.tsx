@@ -10,6 +10,7 @@ import { fmt, fmtData } from '../util';
 import { useParametros } from '../parametros';
 import { usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
+import ColheitaTalhao from './ColheitaTalhao';
 
 function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; confere?: boolean | null }) {
   return (
@@ -221,6 +222,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar, embutido 
           </table>
         </div>
       )}
+      <ColheitaTalhao talhao={t} />
       {t.observacoes && <p className="dica">Obs.: {t.observacoes}</p>}
     </div>
   );

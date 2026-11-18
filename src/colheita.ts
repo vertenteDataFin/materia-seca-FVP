@@ -212,6 +212,19 @@ export function progressoColheita(a: AndamentoTalhao): number | null {
   return a.pctColhida == null ? null : Math.min(100, a.pctColhida);
 }
 
+/** Texto curto do % colhido: "6%", "100% ✓" (finalizada) ou "—" (sem como estimar). */
+export function textoProgresso(a: AndamentoTalhao): string {
+  const pct = progressoColheita(a);
+  return a.finalizada ? '100% ✓' : pct == null ? '—' : `${Math.round(pct)}%`;
+}
+
+/** Explicação do % colhido (dica ao passar o mouse). */
+export function tituloProgresso(a: AndamentoTalhao): string {
+  if (a.finalizada) return 'Colheita finalizada';
+  if (a.areaColhidaHa != null) return `${a.areaColhidaHa.toFixed(1).replace('.', ',')} de ${a.talhao.areaHa.toFixed(1).replace('.', ',')} ha colhidos`;
+  return 'Em colheita, sem amostragem para estimar a área';
+}
+
 export interface ResumoColheita {
   /** Andamento de cada talhão que já teve carga. */
   porTalhao: Map<string, AndamentoTalhao>;

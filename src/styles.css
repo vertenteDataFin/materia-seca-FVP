@@ -237,6 +237,19 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
 .detalhe-embutido .tabela-cartoes.lista-compacta th { border-bottom: none; padding-top: 0; padding-bottom: 0.15rem; }
 .detalhe-embutido .tabela-cartoes.lista-compacta td { border-bottom: 1px dotted var(--mudo); }
 .detalhe-embutido .tabela-cartoes.lista-compacta tbody tr:last-child td { border-bottom: none; }
+/* Colheita no detalhe do talhão (abaixo das coletas) */
+.titulo-secao-talhao { margin: 0; font-size: 0.95rem; display: flex; align-items: center; gap: 0.4rem; flex-wrap: wrap; }
+.titulo-secao-talhao .selo { font-size: 0.72rem; }
+.detalhe-embutido > h3.titulo-secao-talhao, .colheita-talhao { margin-top: 0.7rem; padding-top: 0.6rem; border-top: 1px solid var(--verde); }
+.colheita-talhao .cabecalho-cartao { margin-bottom: 0.4rem; }
+.colheita-talhao .andamento-numeros { grid-template-columns: repeat(6, minmax(0, 1fr)); }
+.colheita-talhao .andamento-numeros > div { background: #fff; }
+.colheita-talhao .andamento-numeros small { display: block; color: var(--mudo); font-weight: normal; }
+.colheita-talhao .sem-quebra { white-space: nowrap; }
+.colheita-talhao h4 { margin: 0.7rem 0 0.2rem; font-size: 0.85rem; color: var(--mudo); text-transform: uppercase; letter-spacing: 0.03em; }
+@media (max-width: 700px) {
+  .colheita-talhao .andamento-numeros { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 /* o menu "⋯" do detalhe não pode ficar cortado pela rolagem horizontal da tabela */
 .rolagem:has(tr.linha-detalhe) { overflow: visible; }
 /* Legenda do mapa: texto completo no computador, curto no celular */

@@ -1,6 +1,7 @@
-import { Fragment, useEffect, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { adicionarTalhao, atualizarTalhao, excluirTalhao, useDados } from '../dados';
+import { adicionarTalhao, amostrasPorColeta, atualizarTalhao, excluirTalhao, useDados } from '../dados';
+import { resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
 import type { Talhao } from '../tipos';
 import { CAPINS_COMUNS, fmt, numParaTexto, parseNum } from '../util';
 import { usePermissoes } from '../permissoes';
@@ -22,6 +23,11 @@ export default function Talhoes() {
   const [mostrarForm, setMostrarForm] = useState(false);
   const [erro, setErro] = useState('');
   const carregado = dados != null;
+  // Andamento da colheita de cada talhão (MS dos caminhões, cargas da balança), para a coluna Colheita.
+  const colheita = useMemo(
+    () => (dados ? resumoColheita(dados.talhoes, dados.cargas, dados.coletas, amostrasPorColeta(dados.amostras), dados.amostrasColheita).porTalhao : new Map<string, AndamentoTalhao>()),
+    [dados],
+  );
 
   // Vindo do mapa (?talhao=id): rola até o card, que já abre com o detalhe embaixo
   useEffect(() => {
@@ -150,6 +156,7 @@ export default function Talhoes() {
                   <th className="n">Área (ha)</th>
                   <th>Capim</th>
                   <th className="n">Coletas</th>
+                  <th className="n">Colheita</th>
                   <th>Contorno</th>
                   <th>Obs.</th>
                   <th />
@@ -169,6 +176,15 @@ export default function Talhoes() {
                     <td className="n" data-rotulo="Área (ha)">{t.areaHa > 0 ? fmt(t.areaHa, 2) : <span className="selo selo-alto">informar</span>}</td>
                     <td data-rotulo="Capim">{t.capim || '—'}{diverge(t) && <span className="selo selo-alto" style={{ marginLeft: '0.4rem' }}>KML≠foto</span>}</td>
                     <td className="n" data-rotulo="Coletas">{nColetas.get(t.id) ?? 0}</td>
+                    <td className="n" data-rotulo="Colheita">
+                      {colheita.get(t.id) ? (
+                        <span className={colheita.get(t.id)!.finalizada ? 'progresso-mini finalizado' : 'progresso-mini'} title={tituloProgresso(colheita.get(t.id)!)}>
+                          <span className="progresso-texto">{textoProgresso(colheita.get(t.id)!)}</span>
+                        </span>
+                      ) : (
+                        <span className="mudo">—</span>
+                      )}
+                    </td>
                     <td className="oculta-cel">{t.geometria?.length ? <span className="selo selo-ideal">KML</span> : <span className="mudo">—</span>}</td>
                     <td className="obs largo-cel">{t.observacoes}</td>
                     <td className="acoes-linha acoes-icones">
@@ -182,7 +198,7 @@ export default function Talhoes() {
                   </tr>
                   {aberto && (
                     <tr className="linha-detalhe">
-                      <td colSpan={8}>
+                      <td colSpan={9}>
                         <DetalheTalhao talhao={t} aoFechar={() => setMostrarRegistros(false)} aoEditar={editar} embutido />
                       </td>
                     </tr>
