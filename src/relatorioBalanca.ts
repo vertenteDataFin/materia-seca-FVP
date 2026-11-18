@@ -5,7 +5,7 @@ import type { Talhao } from './tipos';
 /**
  * Relatório da balança ("Listagem de cargas", exportado em .xlsx): uma linha por romaneio.
  * PESO_TOTAL = caminhão cheio, PESO_TARA = vazio, PESO_LIQUIDO = carga. A observação (OBS) traz o
- * destino e a origem: "TRINCHEIRA 01-CAU TALHÃO 02" → silo "Trincheira 01", talhão "CAU TALHÃO 02".
+ * destino e a origem: "TRINCHEIRA 01-CAU TALHÃO 02" → silo "Trincheira 1", talhão "CAU TALHÃO 02".
  */
 export interface LinhaBalanca {
   /** Nº do romaneio (NR_ROMANEIO): identifica a carga e evita importar duas vezes. */
@@ -20,7 +20,7 @@ export interface LinhaBalanca {
   taraKg: number | null;
   liquidoKg: number | null;
   obs: string;
-  /** Silo de destino lido da OBS ("Trincheira 01"); '' se não houver. */
+  /** Silo de destino lido da OBS ("Trincheira 1"); '' se não houver. */
   silo: string;
   /** Trecho da OBS que identifica o talhão ("CAU TALHÃO 02"); '' se não houver. */
   textoTalhao: string;
@@ -54,13 +54,13 @@ function dataHora(data: Celula, hora: Celula): string | null {
   return m ? `${d}T${p2(Number(m[1]))}:${m[2]}` : `${d}T00:00`;
 }
 
-/** "TRINCHEIRA 01-CAU TALHÃO 02" → { silo: "Trincheira 01", talhao: "CAU TALHÃO 02" }. */
+/** "TRINCHEIRA 01-CAU TALHÃO 02" → { silo: "Trincheira 1", talhao: "CAU TALHÃO 02" }. */
 export function lerObs(obs: string): { silo: string; textoTalhao: string } {
   const o = obs.trim();
   const silo = o.match(/TRINCHEIRA\s*0*(\d+)/i);
   const tl = o.match(/([A-Z]{1,5})?\s*-?\s*(TALH[AÃ]O|TL)\s*([0-9]+\s*[A-Z]?)\b/i);
   return {
-    silo: silo ? `Trincheira ${silo[1].padStart(2, '0')}` : '',
+    silo: silo ? `Trincheira ${silo[1]}` : '',
     textoTalhao: tl ? `${tl[1] ? `${tl[1].toUpperCase()} ` : ''}TALHÃO ${tl[3].replace(/\s+/g, '').toUpperCase()}` : '',
   };
 }

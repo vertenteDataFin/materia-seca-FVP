@@ -14,9 +14,9 @@ const talhoes: Talhao[] = [
 
 describe('relatório da balança', () => {
   it('lê silo e talhão da observação', () => {
-    expect(lerObs('TRINCHEIRA 01-CAU TALHÃO 02')).toEqual({ silo: 'Trincheira 01', textoTalhao: 'CAU TALHÃO 02' });
-    expect(lerObs('MOT 1-TRINCHEIRA 01-CAU TALHÃO 02')).toEqual({ silo: 'Trincheira 01', textoTalhao: 'CAU TALHÃO 02' });
-    expect(lerObs('TRINCHEIRA 3 - PD TALHAO 18 B')).toEqual({ silo: 'Trincheira 03', textoTalhao: 'PD TALHÃO 18B' });
+    expect(lerObs('TRINCHEIRA 01-CAU TALHÃO 02')).toEqual({ silo: 'Trincheira 1', textoTalhao: 'CAU TALHÃO 02' });
+    expect(lerObs('MOT 1-TRINCHEIRA 01-CAU TALHÃO 02')).toEqual({ silo: 'Trincheira 1', textoTalhao: 'CAU TALHÃO 02' });
+    expect(lerObs('TRINCHEIRA 3 - PD TALHAO 18 B')).toEqual({ silo: 'Trincheira 3', textoTalhao: 'PD TALHÃO 18B' });
     expect(lerObs('')).toEqual({ silo: '', textoTalhao: '' });
   });
 
@@ -43,7 +43,7 @@ describe('relatório da balança', () => {
       [3299, 'CPG0247', 15920, 10080, 5840, 'TRINCHEIRA 01-CAU TALHÃO 02', utc(2026, 11, 17), utc(1899, 12, 30, 18, 19), 'VITOR ALONSO', 'VITOR ALONSO'],
       [3304, 'CRY-4H95', null, 9620, 0, '', null, null, 'CLAUDINEI MARQUES ', 'SEM MOTORISTA'],
     ]);
-    expect(linhas[0]).toMatchObject({ romaneio: '3299', placa: 'CPG0247', totalKg: 15920, taraKg: 10080, liquidoKg: 5840, pesadoEm: '2026-11-17T18:19', silo: 'Trincheira 01', textoTalhao: 'CAU TALHÃO 02', motoristaRelatorio: 'Vitor Alonso', completa: true });
+    expect(linhas[0]).toMatchObject({ romaneio: '3299', placa: 'CPG0247', totalKg: 15920, taraKg: 10080, liquidoKg: 5840, pesadoEm: '2026-11-17T18:19', silo: 'Trincheira 1', textoTalhao: 'CAU TALHÃO 02', motoristaRelatorio: 'Vitor Alonso', completa: true });
     expect(linhas[1]).toMatchObject({ romaneio: '3304', placa: 'CRY4H95', completa: false, motoristaRelatorio: 'Claudinei Marques' });
     expect(() => lerLinhasBalanca([['A', 'B'], [1, 2]])).toThrow(/NR_ROMANEIO/);
   });
@@ -62,7 +62,7 @@ describe('relatório da balança', () => {
       ['3301', 'CRY4H95', 8760, '2026-11-17T18:22', true],
       ['3302', 'BXF7877', 6620, '2026-11-17T19:22', true],
     ]);
-    expect(conhecidas.every((l) => l.silo === 'Trincheira 01' && l.textoTalhao === 'CAU TALHÃO 02')).toBe(true);
+    expect(conhecidas.every((l) => l.silo === 'Trincheira 1' && l.textoTalhao === 'CAU TALHÃO 02')).toBe(true);
     expect(por.get('3302')!.motoristaRelatorio).toBe('Fernando Alonso');
     // linha sem peso cheio (caminhão ainda não voltou) nunca fica completa — o arquivo muda, então vale para todas
     expect(linhas.filter((l) => l.totalKg == null).every((l) => !l.completa)).toBe(true);

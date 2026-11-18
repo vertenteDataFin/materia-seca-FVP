@@ -1,4 +1,5 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useState, type FormEvent } from 'react';
+import { SILOS } from '../silos';
 import { Link, useNavigate } from 'react-router-dom';
 import { adicionarAmostraColheita, adicionarVeiculo, useDados } from '../dados';
 import { agoraLocal, normalizarPlaca } from '../colheita';
@@ -48,16 +49,6 @@ export default function NovaAmostraColheita() {
   const [observacoes, setObservacoes] = useState('');
   const [erro, setErro] = useState('');
 
-  const silos = useMemo(() => {
-    if (!dados) return [];
-    const n = new Map<string, number>();
-    for (const s of [...dados.amostrasColheita.map((a) => a.silo), ...dados.cargas.map((c) => c.silo)]) {
-      const v = s?.trim();
-      if (v) n.set(v, (n.get(v) ?? 0) + 1);
-    }
-    return [...n.entries()].sort((a, b) => b[1] - a[1] || a[0].localeCompare(b[0], 'pt-BR')).map(([v]) => v);
-  }, [dados]);
-
   if (!dados) return null;
   const veiculos = dados.veiculos;
   const digitarPlaca = !veiculos.length || veiculoId === OUTRO;
@@ -73,7 +64,7 @@ export default function NovaAmostraColheita() {
     if (!digitarPlaca && !v) return setErro('Escolha o caminhão.');
     const p = v?.placa ?? normalizarPlaca(placa);
     if (!p) return setErro('Informe a placa do caminhão.');
-    if (!silo.trim()) return setErro('Informe o silo para onde vai o caminhão.');
+    if (!silo.trim()) return setErro('Escolha o silo para onde vai o caminhão.');
     for (const pen of PENEIRAS) {
       if (pesos[pen.campo].trim() && (numeros[pen.campo] == null || numeros[pen.campo]! < 0)) return setErro(`Peso inválido na peneira ${pen.rotulo}.`);
     }
@@ -154,8 +145,10 @@ export default function NovaAmostraColheita() {
         )}
         <label>
           Silo de destino
-          <input list="silos-amostra" value={silo} onChange={(e) => setSilo(e.target.value)} placeholder="Ex.: Silo 1" required />
-          <datalist id="silos-amostra">{silos.map((s) => <option key={s} value={s} />)}</datalist>
+          <select value={silo} onChange={(e) => setSilo(e.target.value)} required>
+            <option value="">Escolha…</option>
+            {SILOS.map((s) => <option key={s} value={s}>{s}</option>)}
+          </select>
         </label>
         <label>
           Responsável (opcional)

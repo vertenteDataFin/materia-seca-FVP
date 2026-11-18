@@ -1,5 +1,6 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { Repositorio } from './repositorio';
+import { nomeSilo } from './silos';
 import { compararNomes, completarDados, type Amostra, type AmostraColheita, type Carga, type Coleta, type Dados, type Novo, type Talhao, type Veiculo } from './tipos';
 
 let atual: Repositorio | null = null;
@@ -42,9 +43,14 @@ export function useDados(): Dados | undefined {
       coletas: bruto.coletas,
       amostras: [...bruto.amostras].sort((a, b) => a.coletaId.localeCompare(b.coletaId) || a.ponto - b.ponto),
       // mais recente primeiro
-      cargas: [...(bruto.cargas ?? [])].sort((a, b) => b.saidaEm.localeCompare(a.saidaEm) || b.id.localeCompare(a.id)),
+      // silo com nome padronizado ("Trincheira 01" da balança → "Trincheira 1")
+      cargas: (bruto.cargas ?? [])
+        .map((c) => (c.silo && c.silo !== nomeSilo(c.silo) ? { ...c, silo: nomeSilo(c.silo) } : c))
+        .sort((a, b) => b.saidaEm.localeCompare(a.saidaEm) || b.id.localeCompare(a.id)),
       // mais recente primeiro
-      amostrasColheita: [...(bruto.amostrasColheita ?? [])].sort((a, b) => b.coletadaEm.localeCompare(a.coletadaEm) || b.id.localeCompare(a.id)),
+      amostrasColheita: (bruto.amostrasColheita ?? [])
+        .map((a) => (a.silo !== nomeSilo(a.silo) ? { ...a, silo: nomeSilo(a.silo) } : a))
+        .sort((a, b) => b.coletadaEm.localeCompare(a.coletadaEm) || b.id.localeCompare(a.id)),
       // pelo nº de cadastro; sem número, no fim por motorista
       veiculos: [...(bruto.veiculos ?? [])].sort(
         (a, b) => (a.numero ?? Infinity) - (b.numero ?? Infinity) || a.motorista.localeCompare(b.motorista, 'pt-BR'),
