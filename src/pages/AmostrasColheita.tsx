@@ -110,7 +110,7 @@ function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; 
     setGerando(true);
     try {
       const blob = await gerarImagemAmostra({ amostra: a, talhao, capim, pe, pef: cfgFdn.pef });
-      const nome = `amostra-${(a.codigo ?? a.placa).replace(/[^\w-]+/g, '_')}.png`;
+      const nome = `coleta-${(a.codigo ?? a.placa).replace(/[^\w-]+/g, '_')}.png`;
       await compartilharOuBaixarImagem(blob, nome, `Amostra ${a.codigo ?? a.placa}`);
     } catch (e) {
       alert(`Não deu para gerar a imagem: ${(e as Error).message}`);
@@ -169,7 +169,7 @@ function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; 
       </p>
       <div className="acoes">
         <button type="button" className="primario" disabled={gerando} onClick={exportarImagem}>
-          {gerando ? 'Gerando imagem…' : 'Exportar imagem da amostra'}
+          {gerando ? 'Gerando print…' : 'Compartilhar print da coleta'}
         </button>
         {podeExcluir && (
           <button

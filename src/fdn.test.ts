@@ -18,12 +18,14 @@ describe('FDN efetiva', () => {
     expect(Math.round(peFdnDaAmostra({ peneira19G: 50, peneira8G: 294, peneira4G: 42, fundoG: 22 }, '', CONFIG_FDN_PADRAO).peFdn4!)).toBe(67);
   });
 
-  it('faixas ideais do Penn State da planilha: 3–8 · 45–65 · 30–40 · < 5', () => {
-    // linha 5: 6,96 · 77,85 · 8,86 · 6,33 % → só a de 19 mm dentro
+  it('faixas ideais do Penn State: 19 mm < 12 · 8 mm 35–55 · 4 mm 35–40 · fundo < 10', () => {
+    // 6,96 · 77,85 · 8,86 · 6,33 % → 19 mm e fundo dentro
     const pct = [6.96, 77.85, 8.86, 6.33];
-    expect(pct.map((p, i) => dentroDaFaixa(i, p))).toEqual([true, false, false, false]);
-    expect([3, 45, 30, 4.99].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, true, true, true]);
-    expect([8.01, 65.01, 40.01, 5].map((p, i) => dentroDaFaixa(i, p))).toEqual([false, false, false, false]);
+    expect(pct.map((p, i) => dentroDaFaixa(i, p))).toEqual([true, false, false, true]);
+    expect([0, 35, 35, 9.99].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, true, true, true]);
+    expect([11.99, 55, 40, 0].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, true, true, true]);
+    expect([12, 55.01, 40.01, 10].map((p, i) => dentroDaFaixa(i, p))).toEqual([false, false, false, false]);
+    expect([5, 34.99, 34.99, 5].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, false, false, true]);
   });
 
   it('pef do Penn State: > 8 mm = 19 + 8; > 4 mm = tudo menos o fundo', () => {

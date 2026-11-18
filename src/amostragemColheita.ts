@@ -15,14 +15,14 @@ export const PENEIRAS = [
 export type CampoPeneira = (typeof PENEIRAS)[number]['campo'];
 
 /**
- * Faixas ideais do Penn State (% retida), as mesmas da planilha "COLHEITA SILAGEM SILO 01":
- * >19 mm 3–8% · 8–19 mm 45–65% · 4–8 mm 30–40% · fundo < 5%. Na ordem de PENEIRAS.
+ * Faixas ideais do Penn State (% retida), definidas pela fazenda em 2026-11-18:
+ * 19 mm < 12% · 8 mm 35–55% · 4 mm 35–40% · fundo < 10%. Na ordem de PENEIRAS.
  */
 export const FAIXAS_IDEAIS_PENN: { min: number | null; max: number; rotulo: string }[] = [
-  { min: 3, max: 8, rotulo: '3–8%' },
-  { min: 45, max: 65, rotulo: '45–65%' },
-  { min: 30, max: 40, rotulo: '30–40%' },
-  { min: null, max: 5, rotulo: '< 5%' },
+  { min: null, max: 12, rotulo: '< 12%' },
+  { min: 35, max: 55, rotulo: '35–55%' },
+  { min: 35, max: 40, rotulo: '35–40%' },
+  { min: null, max: 10, rotulo: '< 10%' },
 ];
 
 /** A % da peneira (índice em PENEIRAS) está dentro da faixa ideal? */

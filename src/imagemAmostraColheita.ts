@@ -30,7 +30,7 @@ const COR = {
   mudo: '#66706a',
   borda: '#d9dfd5',
 };
-const ROTULOS_PENEIRA = ['> 19 mm', '8–19 mm', '4–8 mm', 'Fundo (< 4 mm)'];
+const ROTULOS_PENEIRA = ['P 19 mm', 'P 8 mm', 'P 4 mm', 'Fundo'];
 
 const num = (v: number | null | undefined, casas = 1) => (v == null || !Number.isFinite(v) ? '—' : v.toFixed(casas).replace('.', ','));
 
@@ -66,7 +66,7 @@ function desenhar(ctx: CanvasRenderingContext2D, d: DadosImagemAmostra): number 
 
   // Cabeçalho
   retangulo(ctx, 0, 0, LARGURA, 170, 0, COR.verde);
-  texto(ctx, 'AMOSTRAGEM DE COLHEITA', MARGEM, 58, 26, '#cfe6cc', 600);
+  texto(ctx, 'COLETA DE COLHEITA', MARGEM, 58, 26, '#cfe6cc', 600);
   texto(ctx, a.codigo ?? a.placa, MARGEM, 128, 60, '#ffffff', 700);
   texto(ctx, 'Silagem MS', LARGURA - MARGEM, 58, 26, '#cfe6cc', 600, 'right');
   texto(ctx, fmtSaida(a.coletadaEm), LARGURA - MARGEM, 128, 32, '#ffffff', 600, 'right');
@@ -120,9 +120,9 @@ function desenhar(ctx: CanvasRenderingContext2D, d: DadosImagemAmostra): number 
     const cx = x + wc / 2;
     texto(ctx, ROTULOS_PENEIRA[i], cx, y + 48, 28, COR.texto, 600, 'center', wc - 20);
     texto(ctx, pct == null ? '—' : `${num(pct)}%`, cx, y + 130, 62, cor, 800, 'center', wc - 16);
-    texto(ctx, `ideal ${FAIXAS_IDEAIS_PENN[i].rotulo}`, cx, y + 176, 24, COR.mudo, 400, 'center', wc - 16);
+    texto(ctx, `ideal ${FAIXAS_IDEAIS_PENN[i].rotulo}`, cx, y + 182, 26, COR.mudo, 600, 'center', wc - 16);
     const g = a[p.campo];
-    texto(ctx, `${g == null ? '—' : num(g, 0)} g${pct == null ? '' : ok ? ' · dentro' : ' · fora'}`, cx, y + 216, 24, cor, 600, 'center', wc - 16);
+    texto(ctx, `${g == null ? '—' : num(g, 0)} g`, cx, y + 222, 24, COR.mudo, 400, 'center', wc - 16);
   });
   y += hc + 64;
 
@@ -152,21 +152,13 @@ function desenhar(ctx: CanvasRenderingContext2D, d: DadosImagemAmostra): number 
     texto(ctx, v.valor, cx, y + 132, d.pef === 'ambos' && v.destaque ? 50 : 64, v.destaque ? '#ffffff' : COR.texto, 800, 'center', w3 - 20);
     texto(ctx, v.sub, cx, y + 180, 24, v.destaque ? '#cfe6cc' : COR.mudo, 400, 'center', w3 - 20);
   });
-  y += h3 + 30;
+  y += h3 + 60;
 
-  // Fator de efetividade física usado
-  const linhasPef: string[] = [];
-  if (d.pef !== '4') linhasPef.push(`pef > 8 mm = ${num(pef8)}%  (> 19 + 8–19 mm)`);
-  if (d.pef !== '8') linhasPef.push(`pef > 4 mm = ${num(pef4)}%  (> 19 + 8–19 + 4–8 mm)`);
-  const hPef = 70 + linhasPef.length * 44;
-  retangulo(ctx, MARGEM, y, interno, hPef, 18, COR.cartao, COR.borda, 2);
-  texto(ctx, `Fator de efetividade física considerado: ${d.pef === 'ambos' ? 'os dois' : `pef > ${d.pef} mm`}`, MARGEM + 28, y + 50, 28, COR.texto, 700, 'left', interno - 56);
-  linhasPef.forEach((l, i) => texto(ctx, l, MARGEM + 28, y + 96 + i * 44, 28, COR.texto, 400, 'left', interno - 56));
-  y += hPef + 44;
-  texto(ctx, 'FDNfe = FDN × pef (fração do Penn State retida acima da peneira).', MARGEM, y, 24, COR.mudo, 400, 'left', interno);
-  y += 36;
-  const agora = new Date();
-  texto(ctx, `Gerado em ${agora.toLocaleDateString('pt-BR')} ${agora.toLocaleTimeString('pt-BR', { hour: '2-digit', minute: '2-digit' })} · Silagem MS`, MARGEM, y, 22, COR.mudo, 400, 'left', interno);
+  // Fator de efetividade física usado (uma linha)
+  const partesPef: string[] = [];
+  if (d.pef !== '4') partesPef.push(`pef > 8 mm = ${num(pef8)}%`);
+  if (d.pef !== '8') partesPef.push(`pef > 4 mm = ${num(pef4)}%`);
+  texto(ctx, `Fator de efetividade física considerado: ${partesPef.join(' · ')}`, MARGEM, y, 28, COR.texto, 600, 'left', interno);
   return y + MARGEM;
 }
 
