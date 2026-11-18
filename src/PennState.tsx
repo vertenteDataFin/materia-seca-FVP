@@ -1,9 +1,11 @@
-import { dentroDaFaixa, FAIXAS_IDEAIS_PENN, PENEIRAS } from './amostragemColheita';
+import { classePenn, FAIXAS_IDEAIS_PENN, PENEIRAS } from './amostragemColheita';
 import { fmt } from './util';
 
+const metaTexto = (i: number) => (FAIXAS_IDEAIS_PENN[i] ? `meta ${FAIXAS_IDEAIS_PENN[i]!.rotulo}` : 'sem meta');
+
 /**
- * Percentuais do Penn State (19 · 8 · 4 · fundo), cada um verde se estiver na faixa ideal e vermelho se estiver fora,
- * com a faixa no "title" (passar o mouse).
+ * Percentuais do Penn State (19 · 8 · 4 · fundo): verde dentro da meta, vermelho fora, neutro nas peneiras sem meta,
+ * com a meta no "title" (passar o mouse).
  */
 export function PercentuaisPenn({ pct }: { pct: [number, number, number, number] }) {
   return (
@@ -11,10 +13,7 @@ export function PercentuaisPenn({ pct }: { pct: [number, number, number, number]
       {pct.map((p, i) => (
         <span key={i}>
           {i > 0 && <span className="mudo"> · </span>}
-          <span
-            className={dentroDaFaixa(i, p) ? 'penn-ok' : 'penn-fora'}
-            title={`${PENEIRAS[i].rotulo}: ${fmt(p, 1)}% (ideal ${FAIXAS_IDEAIS_PENN[i].rotulo})`}
-          >
+          <span className={classePenn(i, p)} title={`${PENEIRAS[i].rotulo}: ${fmt(p, 1)}% (${metaTexto(i)})`}>
             {fmt(p, 1)}
           </span>
         </span>
@@ -23,22 +22,22 @@ export function PercentuaisPenn({ pct }: { pct: [number, number, number, number]
   );
 }
 
-/** Legenda das faixas ideais (mesmas da planilha da fazenda). */
+/** Legenda das metas (só as peneiras que têm meta). */
 export function LegendaPenn() {
+  const metas = PENEIRAS.map((p, i) => (FAIXAS_IDEAIS_PENN[i] ? `${p.rotulo === 'Fundo' ? 'fundo' : p.rotulo} ${FAIXAS_IDEAIS_PENN[i]!.rotulo}` : null)).filter(Boolean);
   return (
     <span className="legenda-penn">
-      Ideal: {PENEIRAS.map((p, i) => `${p.rotulo === 'Fundo' ? 'fundo' : p.rotulo === '19 mm' ? '>19 mm' : p.rotulo === '8 mm' ? '8–19 mm' : '4–8 mm'} ${FAIXAS_IDEAIS_PENN[i].rotulo}`).join(' · ')}.{' '}
-      <span className="penn-ok">verde</span> = dentro, <span className="penn-fora">vermelho</span> = fora.
+      Meta: {metas.join(' · ')} (8 e 4 mm sem meta). <span className="penn-ok">verde</span> = dentro, <span className="penn-fora">vermelho</span> = fora.
     </span>
   );
 }
 
-/** "10,0% (ideal 3–8%)" com a cor da faixa, para o detalhe da amostra e o formulário. */
+/** "10,0% (meta < 12%)" com a cor da meta, para o detalhe da amostra e o formulário. */
 export function PctPeneira({ i, pct }: { i: number; pct: number | null }) {
   if (pct == null) return <small className="mudo pct-peneira">—</small>;
   return (
-    <small className={`pct-peneira ${dentroDaFaixa(i, pct) ? 'penn-ok' : 'penn-fora'}`}>
-      {fmt(pct, 1)}% <span className="mudo">(ideal {FAIXAS_IDEAIS_PENN[i].rotulo})</span>
+    <small className={`pct-peneira ${classePenn(i, pct)}`}>
+      {fmt(pct, 1)}% <span className="mudo">({metaTexto(i)})</span>
     </small>
   );
 }

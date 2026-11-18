@@ -490,6 +490,7 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
 /* Penn State: % dentro (verde) ou fora (vermelho) da faixa ideal */
 .penn-ok { color: var(--verde); font-weight: 700; }
 .penn-fora { color: #c0392b; font-weight: 700; }
+.penn-sem-meta { font-weight: 700; }
 .penn-pct { white-space: nowrap; font-variant-numeric: tabular-nums; }
 .legenda-penn { display: block; margin-top: 0.2rem; }
 th.th-fdnfe { text-transform: none; }

@@ -15,20 +15,27 @@ export const PENEIRAS = [
 export type CampoPeneira = (typeof PENEIRAS)[number]['campo'];
 
 /**
- * Faixas ideais do Penn State (% retida), definidas pela fazenda em 2026-11-18:
- * 19 mm < 12% · 8 mm 35–55% · 4 mm 35–40% · fundo < 10%. Na ordem de PENEIRAS.
+ * Metas do Penn State (% retida), definidas pela fazenda em 2026-11-18:
+ * 19 mm < 12% · fundo < 10%; 8 mm e 4 mm sem meta (null). Na ordem de PENEIRAS.
  */
-export const FAIXAS_IDEAIS_PENN: { min: number | null; max: number; rotulo: string }[] = [
+export const FAIXAS_IDEAIS_PENN: ({ min: number | null; max: number; rotulo: string } | null)[] = [
   { min: null, max: 12, rotulo: '< 12%' },
-  { min: 35, max: 55, rotulo: '35–55%' },
-  { min: 35, max: 40, rotulo: '35–40%' },
+  null,
+  null,
   { min: null, max: 10, rotulo: '< 10%' },
 ];
 
-/** A % da peneira (índice em PENEIRAS) está dentro da faixa ideal? */
-export function dentroDaFaixa(i: number, pct: number): boolean {
+/** A % da peneira (índice em PENEIRAS) está dentro da meta? null = peneira sem meta. */
+export function dentroDaFaixa(i: number, pct: number): boolean | null {
   const f = FAIXAS_IDEAIS_PENN[i];
+  if (!f) return null;
   return (f.min == null || pct >= f.min - 1e-9) && (f.min == null ? pct < f.max : pct <= f.max + 1e-9);
+}
+
+/** Classe CSS da % da peneira: verde dentro da meta, vermelho fora, neutra sem meta. */
+export function classePenn(i: number, pct: number): string {
+  const ok = dentroDaFaixa(i, pct);
+  return ok == null ? 'penn-sem-meta' : ok ? 'penn-ok' : 'penn-fora';
 }
 
 export interface PennState {

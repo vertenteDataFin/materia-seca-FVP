@@ -114,13 +114,16 @@ function desenhar(ctx: CanvasRenderingContext2D, d: DadosImagemAmostra): number 
   PENEIRAS.forEach((p, i) => {
     const x = MARGEM + i * (wc + gap);
     const pct = ps ? ps.pct[i] : null;
-    const ok = pct != null && dentroDaFaixa(i, pct);
-    const cor = pct == null ? COR.mudo : ok ? COR.verde : COR.vermelho;
-    retangulo(ctx, x, y, wc, hc, 18, pct == null ? COR.cartao : ok ? COR.verdeClaro : COR.vermelhoClaro, cor, 3);
+    // sem meta (8 e 4 mm): card neutro, número em destaque na cor do texto
+    const ok = pct == null ? null : dentroDaFaixa(i, pct);
+    const cor = pct == null ? COR.mudo : ok == null ? COR.texto : ok ? COR.verde : COR.vermelho;
+    const fundo = ok == null ? COR.cartao : ok ? COR.verdeClaro : COR.vermelhoClaro;
+    retangulo(ctx, x, y, wc, hc, 18, fundo, ok == null ? COR.borda : cor, ok == null ? 2 : 3);
     const cx = x + wc / 2;
     texto(ctx, ROTULOS_PENEIRA[i], cx, y + 48, 28, COR.texto, 600, 'center', wc - 20);
     texto(ctx, pct == null ? '—' : `${num(pct)}%`, cx, y + 130, 62, cor, 800, 'center', wc - 16);
-    texto(ctx, `ideal ${FAIXAS_IDEAIS_PENN[i].rotulo}`, cx, y + 182, 26, COR.mudo, 600, 'center', wc - 16);
+    const meta = FAIXAS_IDEAIS_PENN[i];
+    texto(ctx, meta ? `meta ${meta.rotulo}` : 'sem meta', cx, y + 182, 26, COR.mudo, 600, 'center', wc - 16);
     const g = a[p.campo];
     texto(ctx, `${g == null ? '—' : num(g, 0)} g`, cx, y + 222, 24, COR.mudo, 400, 'center', wc - 16);
   });
