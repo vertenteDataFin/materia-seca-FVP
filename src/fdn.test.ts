@@ -18,11 +18,11 @@ describe('FDN efetiva', () => {
     expect(Math.round(peFdnDaAmostra({ peneira19G: 50, peneira8G: 294, peneira4G: 42, fundoG: 22 }, '', CONFIG_FDN_PADRAO).peFdn4!)).toBe(67);
   });
 
-  it('metas do Penn State: 19 mm < 12 · fundo < 10; 8 e 4 mm sem meta', () => {
-    expect([6.96, 77.85, 8.86, 6.33].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, null, null, true]);
-    expect([11.99, 0, 100, 9.99].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, null, null, true]);
-    expect([12, 50, 50, 10].map((p, i) => dentroDaFaixa(i, p))).toEqual([false, null, null, false]);
-    expect([12, 50, 50, 10].map((p, i) => classePenn(i, p))).toEqual(['penn-fora', 'penn-sem-meta', 'penn-sem-meta', 'penn-fora']);
+  it('metas do Penn State: 19 mm < 12 · 4 mm ≥ 20 · fundo < 10; 8 mm sem meta', () => {
+    expect([6.96, 77.85, 8.86, 6.33].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, null, false, true]);
+    expect([11.99, 0, 20, 9.99].map((p, i) => dentroDaFaixa(i, p))).toEqual([true, null, true, true]);
+    expect([12, 50, 19.99, 10].map((p, i) => dentroDaFaixa(i, p))).toEqual([false, null, false, false]);
+    expect([5, 50, 100, 5].map((p, i) => classePenn(i, p))).toEqual(['penn-ok', 'penn-sem-meta', 'penn-ok', 'penn-ok']);
   });
 
   it('pef do Penn State: > 8 mm = 19 + 8; > 4 mm = tudo menos o fundo', () => {

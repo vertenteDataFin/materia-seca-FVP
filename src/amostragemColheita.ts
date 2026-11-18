@@ -16,12 +16,12 @@ export type CampoPeneira = (typeof PENEIRAS)[number]['campo'];
 
 /**
  * Metas do Penn State (% retida), definidas pela fazenda em 2026-11-18:
- * 19 mm < 12% · fundo < 10%; 8 mm e 4 mm sem meta (null). Na ordem de PENEIRAS.
+ * 19 mm < 12% · 4 mm ≥ 20% · fundo < 10%; 8 mm sem meta (null). Na ordem de PENEIRAS.
  */
-export const FAIXAS_IDEAIS_PENN: ({ min: number | null; max: number; rotulo: string } | null)[] = [
+export const FAIXAS_IDEAIS_PENN: ({ min: number | null; max: number | null; rotulo: string } | null)[] = [
   { min: null, max: 12, rotulo: '< 12%' },
   null,
-  null,
+  { min: 20, max: null, rotulo: '≥ 20%' },
   { min: null, max: 10, rotulo: '< 10%' },
 ];
 
@@ -29,7 +29,10 @@ export const FAIXAS_IDEAIS_PENN: ({ min: number | null; max: number; rotulo: str
 export function dentroDaFaixa(i: number, pct: number): boolean | null {
   const f = FAIXAS_IDEAIS_PENN[i];
   if (!f) return null;
-  return (f.min == null || pct >= f.min - 1e-9) && (f.min == null ? pct < f.max : pct <= f.max + 1e-9);
+  const acimaDoMin = f.min == null || pct >= f.min - 1e-9;
+  // só máximo: estritamente abaixo ("< 12%"); faixa com mínimo e máximo: inclusiva
+  const abaixoDoMax = f.max == null || (f.min == null ? pct < f.max : pct <= f.max + 1e-9);
+  return acimaDoMin && abaixoDoMax;
 }
 
 /** Classe CSS da % da peneira: verde dentro da meta, vermelho fora, neutra sem meta. */

@@ -27,7 +27,7 @@ export function LegendaPenn() {
   const metas = PENEIRAS.map((p, i) => (FAIXAS_IDEAIS_PENN[i] ? `${p.rotulo === 'Fundo' ? 'fundo' : p.rotulo} ${FAIXAS_IDEAIS_PENN[i]!.rotulo}` : null)).filter(Boolean);
   return (
     <span className="legenda-penn">
-      Meta: {metas.join(' · ')} (8 e 4 mm sem meta). <span className="penn-ok">verde</span> = dentro, <span className="penn-fora">vermelho</span> = fora.
+      Meta: {metas.join(' · ')} (8 mm sem meta). <span className="penn-ok">verde</span> = dentro, <span className="penn-fora">vermelho</span> = fora.
     </span>
   );
 }

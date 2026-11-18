@@ -64,8 +64,8 @@ describe('relatório da balança', () => {
     ]);
     expect(conhecidas.every((l) => l.silo === 'Trincheira 01' && l.textoTalhao === 'CAU TALHÃO 02')).toBe(true);
     expect(por.get('3302')!.motoristaRelatorio).toBe('Fernando Alonso');
-    // linha sem peso cheio (caminhão ainda não voltou) não fica completa
-    expect(por.get('3304')!.completa).toBe(false);
+    // linha sem peso cheio (caminhão ainda não voltou) nunca fica completa — o arquivo muda, então vale para todas
+    expect(linhas.filter((l) => l.totalKg == null).every((l) => !l.completa)).toBe(true);
     // completas sempre com líquido positivo
     expect(linhas.filter((l) => l.completa).every((l) => (l.liquidoKg ?? 0) > 0)).toBe(true);
   });
