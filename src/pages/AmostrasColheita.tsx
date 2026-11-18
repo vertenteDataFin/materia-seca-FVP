@@ -9,6 +9,7 @@ import { fmt } from '../util';
 import type { AmostraColheita } from '../tipos';
 import { faltaPeFdn, peFdnDaAmostra, rotuloPeFdn, textoFonteFdn, textoPeFdn, useConfigFdn } from '../fdn';
 import { LegendaPenn, PctPeneira, PercentuaisPenn } from '../PennState';
+import { compartilharOuBaixarImagem, gerarImagemAmostra } from '../imagemAmostraColheita';
 
 const LIMITE = 80;
 
@@ -104,6 +105,19 @@ function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; 
   const cfgFdn = useConfigFdn();
   const pe = peFdnDaAmostra(a, capim, cfgFdn);
   const pct = (v: number | null) => (v == null ? '—' : `${fmt(v * 100, 1)}%`);
+  const [gerando, setGerando] = useState(false);
+  async function exportarImagem() {
+    setGerando(true);
+    try {
+      const blob = await gerarImagemAmostra({ amostra: a, talhao, capim, pe, pef: cfgFdn.pef });
+      const nome = `amostra-${(a.codigo ?? a.placa).replace(/[^\w-]+/g, '_')}.png`;
+      await compartilharOuBaixarImagem(blob, nome, `Amostra ${a.codigo ?? a.placa}`);
+    } catch (e) {
+      alert(`Não deu para gerar a imagem: ${(e as Error).message}`);
+    } finally {
+      setGerando(false);
+    }
+  }
   return (
     <div className="edicao-amostra-colheita">
       <p className="mudo">
@@ -153,8 +167,11 @@ function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; 
           </>
         )}
       </p>
-      {podeExcluir && (
-        <div className="acoes">
+      <div className="acoes">
+        <button type="button" className="primario" disabled={gerando} onClick={exportarImagem}>
+          {gerando ? 'Gerando imagem…' : 'Exportar imagem da amostra'}
+        </button>
+        {podeExcluir && (
           <button
             type="button"
             className="perigo"
@@ -162,8 +179,8 @@ function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; 
           >
             Excluir amostra
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
