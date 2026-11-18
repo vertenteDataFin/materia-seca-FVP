@@ -104,6 +104,13 @@ input.num { width: 6.5rem; text-align: right; font-variant-numeric: tabular-nums
 .grade-kpi .kpi-ha { display: contents; }
 .grade-kpi .kpi-ha .indicador { background: var(--verde-claro); border-left: 4px solid var(--verde); }
 .grade-kpi .kpi-ha .indicador-valor { color: var(--verde); font-size: 1.6rem; }
+/* Resumo de produtividade: bloco medido (área amostrada) x bloco estimado (área total) */
+h3.bloco-kpi { display: flex; flex-wrap: wrap; align-items: baseline; gap: 0.3rem 0.6rem; margin: 0.9rem 0 0.5rem; font-size: 1rem; }
+h3.bloco-kpi:first-of-type { margin-top: 0.2rem; }
+h3.bloco-kpi .selo { font-size: 0.72rem; }
+h3.bloco-kpi small { font-weight: normal; font-size: 0.82rem; }
+.grade-kpi.kpi-estimativa .indicador { background: #fff; border: 1px dashed #d9b866; }
+.grade-kpi.kpi-estimativa .indicador-valor { color: #6b5200; }
 @media (max-width: 700px) {
   .indicadores.grade-kpi { gap: 0.4rem; }
   .grade-kpi .indicador { padding: 0.45rem 0.5rem; min-width: 0; }

@@ -132,6 +132,15 @@ export default function Painel() {
   const mvTHa = porHa(mvTotal, areaComMV);
   const msTHa = porHa(msTotal, areaComMS);
   const silagemTHa = porHa(silagemTotal, areaComMV);
+  // Área total (estimativa): talhões amostrados pelo valor medido; os sem coleta pelo t/ha médio da área amostrada.
+  const areaSemMV = Math.max(0, areaTotal - areaComMV);
+  const areaSemMS = Math.max(0, areaTotal - areaComMS);
+  const talhoesSemColeta = linhas.filter((l) => l.e?.tMVtotal == null).length;
+  const mvTotalFazenda = mvTHa == null ? null : mvTotal + mvTHa * areaSemMV;
+  const msTotalFazenda = msTHa == null ? null : msTotal + msTHa * areaSemMS;
+  const silagemTotalFazenda = silagemTHa == null ? null : silagemTotal + silagemTHa * areaSemMV;
+  const volumeFazenda = silagemTHa == null ? null : volumeTotal + (silagemTHa * areaSemMV * 1000) / parametros.densidadeKgM3;
+  const pctAmostrada = areaTotal > 0 ? (areaComMV / areaTotal) * 100 : null;
   const pctColhidoFazenda = areaTotal > 0 ? (colheita.areaColhidaHa / areaTotal) * 100 : null;
   const contagem: Record<Semaforo, number> = { verde: 0, amarelo: 0, vermelho: 0 };
   for (const l of linhas) contagem[semaforoDe(statusMS(l.r?.msPct ?? null, parametros))]++;
@@ -239,7 +248,14 @@ export default function Painel() {
       <h1>Painel de produção</h1>
       <div className="cartao">
         <h2>Resumo de produtividade</h2>
-        {/* Grade 3×3: 1ª linha produtividade por hectare (destaque); 2ª e 3ª, totais estimados */}
+
+        {/* 1) Só o que foi medido: talhões com coleta */}
+        <h3 className="bloco-kpi">
+          Área amostrada <span className="selo selo-ideal">medida</span>
+          <small className="mudo">
+            {fmt(areaComMV, 2)} ha de {fmt(areaTotal, 2)} ha{pctAmostrada != null ? ` (${fmt(pctAmostrada, 0)}% da área)` : ''}
+          </small>
+        </h3>
         <div className="indicadores grade-kpi">
           <div className="kpi-ha"><Indicador rotulo="Massa verde" valor={fmt(mvTHa, 1)} unidade="t/ha" /></div>
           <div className="kpi-ha"><Indicador rotulo="Matéria seca" valor={fmt(msTHa, 1)} unidade="t MS/ha" /></div>
@@ -247,14 +263,32 @@ export default function Painel() {
           <Indicador rotulo="Massa verde total" valor={fmt(mvTotal)} unidade="t" />
           <Indicador rotulo="Matéria seca total" valor={fmt(msTotal)} unidade="t" />
           <Indicador rotulo="Silagem total" valor={fmt(silagemTotal)} unidade="t" />
-          <Indicador rotulo="Área total" valor={fmt(areaTotal, 2)} unidade="ha" />
+          <Indicador rotulo="Área amostrada" valor={fmt(areaComMV, 2)} unidade="ha" />
           <Indicador rotulo="MS média" valor={fmt(msPonderada)} unidade="%" />
           <Indicador rotulo="Volume de silo" valor={fmt(volumeTotal, 0)} unidade="m³" />
         </div>
+
+        {/* 2) Fazenda inteira: o medido + extrapolação para os talhões sem coleta */}
+        <h3 className="bloco-kpi">
+          Área total <span className="selo selo-alto">estimativa</span>
+          <small className="mudo">
+            {fmt(areaTotal, 2)} ha · {fmt(areaSemMV, 2)} ha sem coleta ({talhoesSemColeta} {talhoesSemColeta === 1 ? 'talhão' : 'talhões'}) estimados pela média
+          </small>
+        </h3>
+        <div className="indicadores grade-kpi kpi-estimativa">
+          <Indicador rotulo="Massa verde total" valor={fmt(mvTotalFazenda)} unidade="t" />
+          <Indicador rotulo="Matéria seca total" valor={fmt(msTotalFazenda)} unidade="t" />
+          <Indicador rotulo="Silagem total" valor={fmt(silagemTotalFazenda)} unidade="t" />
+          <Indicador rotulo="Área total" valor={fmt(areaTotal, 2)} unidade="ha" />
+          <Indicador rotulo="Área sem coleta" valor={fmt(areaSemMV, 2)} unidade="ha" />
+          <Indicador rotulo="Volume de silo" valor={fmt(volumeFazenda, 0)} unidade="m³" />
+        </div>
+
         <p className="dica">
-          Por hectare: média ponderada pela área dos talhões com coleta ({fmt(areaComMV, 2)} de {fmt(areaTotal, 2)} ha). Silagem = massa verde menos as perdas.
-          Estimativas com base na coleta mais recente de cada talhão. Perdas: {fmt(parametros.perdasPct, 0)}% · Densidade:{' '}
-          {fmt(parametros.densidadeKgM3, 0)} kg/m³ · Faixa ideal de MS: {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}% (
+          <strong>Área amostrada:</strong> só talhões com coleta, pela coleta mais recente de cada um (t/ha = média ponderada pela área desses talhões).{' '}
+          <strong>Área total:</strong> os talhões amostrados pelo valor medido e os sem coleta pelo t/ha médio da área amostrada; é uma extrapolação,
+          tanto menos confiável quanto menor a área amostrada. Silagem = massa verde menos as perdas. Perdas: {fmt(parametros.perdasPct, 0)}% ·
+          Densidade: {fmt(parametros.densidadeKgM3, 0)} kg/m³ · Faixa ideal de MS: {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}% (
           <Link to="/config">alterar</Link>)
         </p>
       </div>
