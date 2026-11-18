@@ -1,5 +1,5 @@
-import { useState, type PointerEvent } from 'react';
-import { Link } from 'react-router-dom';
+import { useState, type MouseEvent, type PointerEvent } from 'react';
+import { Link, useNavigate } from 'react-router-dom';
 import type { Parametros } from './calc';
 import { diaDe, faixaDias, faixaMS, type PontoMS, type SerieMS } from './evolucaoMS';
 import { nomeComSigla } from './MapaTalhoes';
@@ -46,6 +46,7 @@ function dataCurta(iso: string): string {
 
 /** Um painel: a MS média de cada coleta de um talhão ao longo do tempo, com a faixa ideal ao fundo. */
 function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametros }) {
+  const navigate = useNavigate();
   const [ativo, setAtivo] = useState<PontoMS | null>(null);
   const pontos = serie.pontos;
   const medidos = pontos.filter((pt): pt is PontoMS & { msPct: number } => pt.msPct != null);
@@ -56,7 +57,8 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
   const yTicks: number[] = [];
   for (let v = esc.ms[0]; v <= esc.ms[1]; v += 10) yTicks.push(v);
 
-  function aoMover(e: PointerEvent<SVGSVGElement>) {
+  /** Ponto (coleta) mais perto do cursor/dedo na horizontal; null se longe de todos. */
+  function pontoPerto(e: PointerEvent<SVGSVGElement> | MouseEvent<SVGSVGElement>): PontoMS | null {
     const r = e.currentTarget.getBoundingClientRect();
     const xl = ((e.clientX - r.left) / r.width) * L;
     let melhor: PontoMS | null = null;
@@ -68,7 +70,17 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
         melhor = pt;
       }
     }
-    setAtivo(dist <= 14 ? melhor : null);
+    return dist <= 14 ? melhor : null;
+  }
+
+  function aoMover(e: PointerEvent<SVGSVGElement>) {
+    setAtivo(pontoPerto(e));
+  }
+
+  // Clique/toque no ponto abre a coleta com os resultados.
+  function aoClicar(e: MouseEvent<SVGSVGElement>) {
+    const pt = pontoPerto(e);
+    if (pt) navigate(`/coletas/${pt.coletaId}`);
   }
 
   const yFaixaTopo = esc.y(p.msMax);
@@ -91,6 +103,8 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
           onPointerMove={aoMover}
           onPointerDown={aoMover}
           onPointerLeave={() => setAtivo(null)}
+          onClick={aoClicar}
+          style={{ cursor: ativo ? 'pointer' : 'default' }}
         >
           <rect className="faixa-ideal" x={M.esq} y={yFaixaTopo} width={L - M.esq - M.dir} height={Math.max(0, yFaixaBase - yFaixaTopo)} />
           {yTicks.map((v) => (
@@ -153,7 +167,7 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
     <>
       <p className="dica">
         MS média de cada coleta, por talhão, ao longo do tempo. A faixa verde é o ponto de ensilar ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}%).
-        Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). Toque num ponto para ver a coleta.{' '}
+        Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). Toque num ponto para abrir a coleta e ver os resultados.{' '}
         <button type="button" className="link" onClick={() => setTabela(!tabela)}>{tabela ? 'ver gráfico' : 'ver tabela'}</button>
       </p>
       {tabela ? (
@@ -173,7 +187,7 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
                     const pt = s.pontos.find((x) => x.data === d);
                     return (
                       <td key={d} className="n" data-rotulo={dataCurta(d)}>
-                        {!pt ? '—' : pt.msPct == null ? <span className="mudo">a aferir</span> : `${fmt(pt.msPct)}%`}
+                        {!pt ? '—' : <Link to={`/coletas/${pt.coletaId}`}>{pt.msPct == null ? 'a aferir' : `${fmt(pt.msPct)}%`}</Link>}
                       </td>
                     );
                   })}
