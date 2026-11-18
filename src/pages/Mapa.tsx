@@ -1,7 +1,7 @@
 import { useMemo, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
-import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
-import type { Coleta } from '../tipos';
+import { amostrasPorColeta, useDados } from '../dados';
+import { compararColetasDesc, type Coleta } from '../tipos';
 import { resumoColeta, statusMS } from '../calc';
 import { MenuTalhao } from '../components';
 import { fmt } from '../util';
@@ -48,12 +48,16 @@ export default function Mapa() {
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const dados = useDados();
 
+  // Por talhão: a última coleta com MS aferida; se nenhuma tem MS ainda, a última coleta (MS pendente).
   const ultimaPorTalhao = useMemo(() => {
     const m = new Map<string, { c: Coleta; msPct: number | null }>();
     if (!dados) return m;
     const porColeta = amostrasPorColeta(dados.amostras);
-    for (const [talhaoId, c] of ultimaColetaPorTalhao(dados.coletas)) {
-      m.set(talhaoId, { c, msPct: resumoColeta(c, porColeta.get(c.id) ?? []).msPct });
+    for (const c of [...dados.coletas].sort(compararColetasDesc)) {
+      const atual = m.get(c.talhaoId);
+      if (atual?.msPct != null) continue; // já achou a mais recente com MS
+      const msPct = resumoColeta(c, porColeta.get(c.id) ?? []).msPct;
+      if (!atual || msPct != null) m.set(c.talhaoId, { c, msPct });
     }
     return m;
   }, [dados]);
@@ -75,7 +79,11 @@ export default function Mapa() {
         <div className="cartao">
           <MenuTalhao talhao={selecionado} aoRegistros={() => navigate(`/talhoes?talhao=${selecionado.id}`)} />
           <p className="dica" style={{ marginTop: '0.75rem' }}>
-            {u ? `Última coleta: ${new Date(u.c.data + 'T00:00').toLocaleDateString('pt-BR')}${u.msPct != null ? ` · MS ${fmt(u.msPct, 1)}%` : ''}` : 'Sem coleta registrada ainda.'}
+            {u
+              ? u.msPct != null
+                ? `Última coleta com MS: ${new Date(u.c.data + 'T00:00').toLocaleDateString('pt-BR')} · MS ${fmt(u.msPct, 1)}%`
+                : `Última coleta: ${new Date(u.c.data + 'T00:00').toLocaleDateString('pt-BR')} · MS pendente`
+              : 'Sem coleta registrada ainda.'}
           </p>
           <div className="acoes">
             <button onClick={() => setSelecionadoId(null)}>← Voltar ao mapa</button>
@@ -121,6 +129,7 @@ export default function Mapa() {
         />
         <p className="dica oculta-cel">
           {paraColeta ? 'Toque no talhão para iniciar a coleta.' : 'Toque no talhão para ver as informações dele (área, capim, coletas e colheita).'}
+          {visao === 'amostragem' && ' A cor e a MS de cada talhão são da última coleta com MS aferida.'}
         </p>
         {visao === 'colheita' ? (
           <p className="dica legenda-mapa legenda-colheita">
