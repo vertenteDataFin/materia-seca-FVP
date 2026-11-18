@@ -123,7 +123,14 @@ service cloud.firestore {
         && (podePesar(fid) || (request.resource.data.get('pesoBrutoKg', null) == null && request.resource.data.get('taraKg', null) == null));
       allow update: if ehMembro(fid)
         && (podePesar(fid) || !request.resource.data.diff(resource.data).affectedKeys().hasAny(camposPesagem()));
-      allow delete: if podeExcluir(fid);
+      // Carga pesada (com peso cheio): só quem está em excluidoresCargasPesadas(); sem peso: admin e membro.
+      allow delete: if podeExcluir(fid)
+        && (resource.data.get('pesoBrutoKg', null) == null || email() in excluidoresCargasPesadas());
+    }
+
+    // Quem exclui cargas já pesadas. Mantenha igual a EXCLUIDORES_CARGAS_PESADAS em src/firebaseConfig.ts.
+    function excluidoresCargasPesadas() {
+      return ['marialauragcardoso@gmail.com'];
     }
 
     // Quem cadastra veículos da colheita. Mantenha igual a GESTORES_VEICULOS em src/firebaseConfig.ts.

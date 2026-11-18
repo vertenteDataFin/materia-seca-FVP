@@ -54,6 +54,16 @@ export function ehImportadorBalanca(email: string | null | undefined): boolean {
  */
 export const FINALIZADORES_COLHEITA: string[] = ['marialauragcardoso@gmail.com'];
 
+/**
+ * Quem exclui cargas já pesadas (vindas da balança). Carga sem peso segue com a regra geral (admin e membro).
+ * Mantenha igual à lista excluidoresCargasPesadas() em firestore.rules.
+ */
+export const EXCLUIDORES_CARGAS_PESADAS: string[] = ['marialauragcardoso@gmail.com'];
+
+export function ehExcluidorCargasPesadas(email: string | null | undefined): boolean {
+  return !!email && EXCLUIDORES_CARGAS_PESADAS.includes(email.trim().toLowerCase());
+}
+
 export function ehFinalizadorColheita(email: string | null | undefined): boolean {
   return !!email && FINALIZADORES_COLHEITA.includes(email.trim().toLowerCase());
 }

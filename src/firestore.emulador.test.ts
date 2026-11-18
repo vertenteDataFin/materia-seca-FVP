@@ -133,7 +133,13 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: 41000, taraKg: 15000, romaneio: '101' }));
     await assertSucceeds(setDoc(carga(bal, 'k4'), { talhaoId: 't1', saidaEm: '2026-11-14T11:00', pesoBrutoKg: 41000, taraKg: 15000, romaneio: '102' }));
     await assertFails(setDoc(carga(tec, 'k5'), { talhaoId: 't1', saidaEm: '2026-11-14T12:00', pesoBrutoKg: 41000, taraKg: 15000 }));
-    await assertSucceeds(deleteDoc(carga(tec)));
+    // carga pesada: só o e-mail em excluidoresCargasPesadas() exclui (nem membro, nem a outra administradora)
+    await assertFails(deleteDoc(carga(tec)));
+    await assertFails(deleteDoc(carga(outroAdmin, 'k3')));
+    await assertSucceeds(deleteDoc(carga(admin)));
+    // carga sem peso: membro segue excluindo
+    await assertSucceeds(setDoc(carga(op, 'k6'), { talhaoId: 't1', saidaEm: '2026-11-14T13:00', pesoBrutoKg: null, taraKg: null }));
+    await assertSucceeds(deleteDoc(carga(tec, 'k6')));
   });
 
   it('veículos: todos leem; só o gestor de veículos cadastra, edita e remove', async () => {

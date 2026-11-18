@@ -27,7 +27,7 @@ import { fmt, fmtData, hoje, parseNum } from '../util';
  */
 export default function Colheita() {
   const dados = useDados();
-  const { podePesar, podeExcluir, podeImportarBalanca } = usePermissoes();
+  const { podePesar, podeExcluir, podeImportarBalanca, podeExcluirCargasPesadas } = usePermissoes();
   const [editando, setEditando] = useState<string | null>(null);
   const [mostrarFinalizados, setMostrarFinalizados] = useState(false);
   const [importando, setImportando] = useState(false);
@@ -146,7 +146,7 @@ export default function Colheita() {
                     aberta={editando === c.id}
                     alternar={() => setEditando(editando === c.id ? null : c.id)}
                     podePesar={podePesar}
-                    podeExcluir={podeExcluir}
+                    podeExcluir={podeExcluirCargasPesadas}
                     msAuto={msAutomatica(c, andamentoDe.get(c.talhaoId), calc.msPorTalhao.get(c.talhaoId))}
                   />
                 ))}

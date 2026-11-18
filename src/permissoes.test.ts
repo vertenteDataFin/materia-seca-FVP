@@ -11,6 +11,13 @@ describe('permissões', () => {
     expect(permissoesDoPapel('admin').podeImportarBalanca).toBe(false);
   });
 
+  it('excluir carga pesada: só o e-mail autorizado', () => {
+    expect(permissoesDoPapel('admin', 'marialauragcardoso@gmail.com').podeExcluirCargasPesadas).toBe(true);
+    expect(permissoesDoPapel('admin', 'maria.mesquita@fazendavertente.com.br').podeExcluirCargasPesadas).toBe(false);
+    expect(permissoesDoPapel('membro', 'tec@fazenda.com.br').podeExcluirCargasPesadas).toBe(false);
+    expect(permissoesDoPapel('balanceiro', 'marialauragcardoso@gmail.com').podeExcluirCargasPesadas).toBe(false);
+  });
+
   it('finalizar a colheita do talhão: só o e-mail autorizado', () => {
     expect(permissoesDoPapel('admin', 'marialauragcardoso@gmail.com').podeFinalizarColheita).toBe(true);
     expect(permissoesDoPapel('admin', 'maria.mesquita@fazendavertente.com.br').podeFinalizarColheita).toBe(false);

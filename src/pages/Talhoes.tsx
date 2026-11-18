@@ -1,7 +1,7 @@
 import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
 import { adicionarTalhao, amostrasPorColeta, atualizarTalhao, excluirTalhao, useDados } from '../dados';
-import { resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
+import { cargaPesada, resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
 import type { Talhao } from '../tipos';
 import { CAPINS_COMUNS, fmt, numParaTexto, parseNum } from '../util';
 import { usePermissoes } from '../permissoes';
@@ -13,7 +13,7 @@ const vazio = { nome: '', fazenda: '', area: '', capim: '', observacoes: '' };
 
 export default function Talhoes() {
   const dados = useDados();
-  const { podeEditarTalhoes, podeExcluir } = usePermissoes();
+  const { podeEditarTalhoes, podeExcluir, podeExcluirCargasPesadas } = usePermissoes();
   const [form, setForm] = useState(vazio);
   const [editandoId, setEditandoId] = useState<string | null>(null);
   const [params] = useSearchParams();
@@ -77,7 +77,12 @@ export default function Talhoes() {
 
   function excluir(t: Talhao) {
     const n = dados?.coletas.filter((c) => c.talhaoId === t.id).length ?? 0;
-    const aviso = n ? `\n\nIsso também excluirá ${n} coleta(s) e suas amostras.` : '';
+    // excluir o talhão apaga as cargas dele; carga pesada só quem pode excluí-la (regras do Firestore)
+    const pesadas = dados?.cargas.filter((c) => c.talhaoId === t.id && cargaPesada(c)).length ?? 0;
+    if (pesadas && !podeExcluirCargasPesadas) {
+      return alert(`O talhão "${t.nome}" tem ${pesadas} carga(s) pesada(s) da balança. Só a Maria Laura pode excluí-lo.`);
+    }
+    const aviso = n || pesadas ? `\n\nIsso também excluirá ${n} coleta(s) e suas amostras${pesadas ? ` e ${pesadas} carga(s) pesada(s)` : ''}.` : '';
     if (confirm(`Excluir o talhão "${t.nome}"?${aviso}`)) excluirTalhao(t.id);
   }
 
