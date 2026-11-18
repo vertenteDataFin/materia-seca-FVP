@@ -542,6 +542,7 @@ th.th-fdnfe { text-transform: none; }
 .tabela-amostras-colheita td.col-penn, .tabela-amostras-colheita th.col-penn { white-space: nowrap; font-variant-numeric: tabular-nums; }
 tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .edicao-amostra-colheita .acoes { margin-top: 0.5rem; }
+.edicao-amostra-colheita > p:first-child { margin-top: 0; }
 @media (max-width: 700px) {
   .escolha-coleta { grid-template-columns: 1fr; }
   .peneiras { grid-template-columns: 1fr 1fr; }

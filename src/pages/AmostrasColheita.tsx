@@ -128,9 +128,15 @@ function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; 
           <small className="mudo">MS {fmt(msColheita(a))} %</small>
         </label>
         <label>
-          FDN do laboratório (% MS)
-          <CampoNumero valor={a.fdnPct ?? null} ariaLabel="FDN do laboratório" placeholder="da referência" aoSalvar={(v) => atualizarAmostraColheita(a.id, { fdnPct: v })} />
-          <small className="mudo">{a.fdnPct != null ? 'laboratório' : pe.fdnPct != null ? `${textoFonteFdn(pe, capim)}: ${fmt(pe.fdnPct, 1)}%` : 'sem FDN de referência'}</small>
+          FDN lab. (% MS)
+          {/* Em branco vale a FDN de referência, que aparece em cinza dentro do campo */}
+          <CampoNumero
+            valor={a.fdnPct ?? null}
+            ariaLabel="FDN do laboratório"
+            placeholder={a.fdnPct == null && pe.fdnPct != null ? fmt(pe.fdnPct, 1) : '—'}
+            aoSalvar={(v) => atualizarAmostraColheita(a.id, { fdnPct: v })}
+          />
+          <small className="mudo">{a.fdnPct != null ? 'do laboratório' : pe.fdnPct != null ? `em branco: ${textoFonteFdn(pe, capim)}` : 'sem FDN de referência'}</small>
         </label>
       </div>
       <p className="resumo-pefdn">
