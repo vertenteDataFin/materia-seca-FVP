@@ -34,8 +34,6 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
         <span className="mudo">{dados.amostrasColheita.length}</span>
       </div>
       <p className="dica">
-        Amostras dos caminhões. Penn State: % retida nas peneiras &gt;19, 8–19 e 4–8 mm e no fundo. FDNfe = (&gt;19 + 8–19 + 4–8 mm) ÷ total × FDN
-        (laboratório, se informada; senão a referência em Configurações). Toque numa amostra para corrigir ou informar a FDN do laboratório.
         <LegendaPenn />
       </p>
       <div className="rolagem">
