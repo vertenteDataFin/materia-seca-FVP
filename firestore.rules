@@ -79,13 +79,25 @@ service cloud.firestore {
       allow write: if ehAdmin(fid);
     }
 
-    // Cadastro de talhões: operador só lê.
+    // Quem finaliza/reabre a colheita do talhão. Mantenha igual a FINALIZADORES_COLHEITA em src/firebaseConfig.ts.
+    function finalizadoresColheita() {
+      return ['marialauragcardoso@gmail.com'];
+    }
+
+    function podeFinalizarColheita(fid) {
+      return ehMembro(fid) && email() in finalizadoresColheita();
+    }
+
+    // Cadastro de talhões: operador só lê. "Colheita finalizada" só quem está em finalizadoresColheita().
     match /fazendas/{fid}/talhoes/{id} {
       allow read: if ehMembro(fid);
-      allow write: if podeExcluir(fid);
-      // Marcar/desmarcar "colheita finalizada": qualquer membro (só esse campo).
-      allow update: if ehMembro(fid)
-        && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['colheitaFinalizadaEm']);
+      allow create: if podeExcluir(fid)
+        && (podeFinalizarColheita(fid) || request.resource.data.get('colheitaFinalizadaEm', null) == null);
+      allow delete: if podeExcluir(fid);
+      allow update: if (podeExcluir(fid)
+          && (podeFinalizarColheita(fid) || !request.resource.data.diff(resource.data).affectedKeys().hasAny(['colheitaFinalizadaEm'])))
+        || (podeFinalizarColheita(fid)
+          && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['colheitaFinalizadaEm']));
     }
 
     // Quem lê o histórico de alterações e desfaz exclusões/edições. Mantenha igual a AUDITORES em src/firebaseConfig.ts.

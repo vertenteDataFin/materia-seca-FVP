@@ -10,4 +10,11 @@ describe('permissões', () => {
     expect(permissoesDoPapel('operador', 'marialauragcardoso@gmail.com').podeImportarBalanca).toBe(false);
     expect(permissoesDoPapel('admin').podeImportarBalanca).toBe(false);
   });
+
+  it('finalizar a colheita do talhão: só o e-mail autorizado', () => {
+    expect(permissoesDoPapel('admin', 'marialauragcardoso@gmail.com').podeFinalizarColheita).toBe(true);
+    expect(permissoesDoPapel('admin', 'maria.mesquita@fazendavertente.com.br').podeFinalizarColheita).toBe(false);
+    expect(permissoesDoPapel('balanceiro', 'balanca@fazenda.com.br').podeFinalizarColheita).toBe(false);
+    expect(permissoesDoPapel('membro', 'tec@fazenda.com.br').podeFinalizarColheita).toBe(false);
+  });
 });

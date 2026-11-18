@@ -228,6 +228,7 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
 }
 
 function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
+  const { podeFinalizarColheita } = usePermissoes();
   const pct = a.pctColhida;
   const barra = pct == null ? 0 : Math.min(100, pct);
   const desvio = a.finalizada && a.tMVhaReal != null && a.ref ? (a.tMVhaReal / a.ref.tMVha - 1) * 100 : null;
@@ -283,15 +284,17 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
           'Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.'
         )}
       </p>
-      <div className="acoes">
-        {a.finalizada ? (
-          <button type="button" onClick={() => atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: null })}>Reabrir colheita</button>
-        ) : (
-          <button type="button" onClick={() => confirm(`Marcar a colheita de ${a.talhao.nome} como finalizada?`) && atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: hoje() })}>
-            <Icone nome="ok" /> Finalizar colheita do talhão
-          </button>
-        )}
-      </div>
+      {podeFinalizarColheita && (
+        <div className="acoes">
+          {a.finalizada ? (
+            <button type="button" onClick={() => atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: null })}>Reabrir colheita</button>
+          ) : (
+            <button type="button" onClick={() => confirm(`Marcar a colheita de ${a.talhao.nome} como finalizada?`) && atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: hoje() })}>
+              <Icone nome="ok" /> Finalizar colheita do talhão
+            </button>
+          )}
+        </div>
+      )}
     </div>
   );
 }

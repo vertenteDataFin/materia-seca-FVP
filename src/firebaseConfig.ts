@@ -47,3 +47,13 @@ export const IMPORTADORES_BALANCA: string[] = ['marialauragcardoso@gmail.com'];
 export function ehImportadorBalanca(email: string | null | undefined): boolean {
   return !!email && IMPORTADORES_BALANCA.includes(email.trim().toLowerCase());
 }
+
+/**
+ * Quem finaliza (e reabre) a colheita de um talhão.
+ * Mantenha igual à lista finalizadoresColheita() em firestore.rules.
+ */
+export const FINALIZADORES_COLHEITA: string[] = ['marialauragcardoso@gmail.com'];
+
+export function ehFinalizadorColheita(email: string | null | undefined): boolean {
+  return !!email && FINALIZADORES_COLHEITA.includes(email.trim().toLowerCase());
+}

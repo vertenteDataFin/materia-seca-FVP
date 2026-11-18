@@ -548,6 +548,10 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
   /* edição da amostra: o cartão inteiro, não uma célula da grade */
   .tabela-cartoes tr.linha-edicao-amostra { display: block; padding: 0.7rem; background: var(--verde-claro); }
   .tabela-cartoes tr.linha-edicao-amostra > td { display: block; width: auto; padding: 0; background: none; }
+  /* lista de amostras de caminhão: MS e FDNfe lado a lado; o Penn State (4 números) numa linha própria embaixo */
+  .tabela-cartoes.tabela-amostras-colheita tr:not(.linha-edicao-amostra) { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .tabela-cartoes.tabela-amostras-colheita td.col-penn { grid-column: 1 / -1; order: 1; }
+  .tabela-cartoes.tabela-amostras-colheita .nome-talhao .so-cel { display: inline; }
 }
 /* ---- Amostragem: fila do laboratório no topo ---- */
 .cartao.fila-ms { border-color: #f0d9a0; }

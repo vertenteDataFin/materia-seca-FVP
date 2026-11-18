@@ -115,12 +115,20 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(setDoc(carga(op, 'k2'), { talhaoId: 't1', saidaEm: '2026-11-14T08:00', pesoBrutoKg: 40000, taraKg: 15000 }));
     // membro (não balanceiro) também não pesa
     await assertFails(updateDoc(carga(tec), { pesoBrutoKg: 40000, taraKg: 15000 }));
-    // balanceiro pesa, mas não exclui nem edita talhões (só marca colheita finalizada)
+    // balanceiro pesa, mas não exclui nem edita talhões
     await assertSucceeds(updateDoc(carga(bal), { pesoBrutoKg: 40000, taraKg: 15000, pesadoEm: '2026-11-14T09:00:00Z' }));
     await assertFails(deleteDoc(carga(bal)));
     await assertFails(updateDoc(talhao(bal), { capim: 'Mombaça' }));
-    await assertSucceeds(updateDoc(talhao(op), { colheitaFinalizadaEm: '2026-11-20' }));
-    await assertFails(updateDoc(talhao(op), { colheitaFinalizadaEm: null, areaHa: 1 }));
+    // colheita finalizada: só o e-mail em finalizadoresColheita() marca e desmarca
+    const outroAdmin = env.authenticatedContext('m', senha('maria.mesquita@fazendavertente.com.br', false)).firestore();
+    await assertFails(updateDoc(talhao(op), { colheitaFinalizadaEm: '2026-11-20' }));
+    await assertFails(updateDoc(talhao(bal), { colheitaFinalizadaEm: '2026-11-20' }));
+    await assertFails(updateDoc(talhao(tec), { colheitaFinalizadaEm: '2026-11-20' }));
+    await assertFails(updateDoc(talhao(outroAdmin), { colheitaFinalizadaEm: '2026-11-20' }));
+    await assertSucceeds(updateDoc(talhao(tec), { capim: 'Mombaça' })); // membro segue editando o cadastro
+    await assertSucceeds(updateDoc(talhao(admin), { colheitaFinalizadaEm: '2026-11-20' }));
+    await assertFails(updateDoc(talhao(tec), { colheitaFinalizadaEm: null }));
+    await assertSucceeds(updateDoc(talhao(admin), { colheitaFinalizadaEm: null }));
     // carga do relatório da balança já entra pesada: administrador e balanceiro criam com peso; membro exclui
     await assertSucceeds(setDoc(carga(admin, 'k3'), { talhaoId: 't1', saidaEm: '2026-11-14T10:00', pesoBrutoKg: 41000, taraKg: 15000, romaneio: '101' }));
     await assertSucceeds(setDoc(carga(bal, 'k4'), { talhaoId: 't1', saidaEm: '2026-11-14T11:00', pesoBrutoKg: 41000, taraKg: 15000, romaneio: '102' }));

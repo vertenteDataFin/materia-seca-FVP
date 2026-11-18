@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { Papel } from './membros';
-import { ehGestorVeiculos, ehImportadorBalanca } from './firebaseConfig';
+import { ehFinalizadorColheita, ehGestorVeiculos, ehImportadorBalanca } from './firebaseConfig';
 
 export interface Permissoes {
   papel: Papel;
@@ -16,6 +16,8 @@ export interface Permissoes {
   podeCadastrarVeiculos: boolean;
   /** Pode importar o relatório da balança (e-mails em IMPORTADORES_BALANCA). */
   podeImportarBalanca: boolean;
+  /** Pode finalizar e reabrir a colheita do talhão (e-mails em FINALIZADORES_COLHEITA). */
+  podeFinalizarColheita: boolean;
 }
 
 export function permissoesDoPapel(papel: Papel, email?: string | null): Permissoes {
@@ -29,11 +31,17 @@ export function permissoesDoPapel(papel: Papel, email?: string | null): Permisso
     podeCadastrarVeiculos: ehGestorVeiculos(email),
     // importar grava cargas já pesadas: além do e-mail, o papel precisa poder lançar peso (regras do Firestore)
     podeImportarBalanca: ehImportadorBalanca(email) && (papel === 'admin' || papel === 'balanceiro'),
+    podeFinalizarColheita: ehFinalizadorColheita(email),
   };
 }
 
 /** Sem Firebase (modo local) todo mundo é administrador do próprio aparelho. */
-export const PERMISSOES_LOCAL: Permissoes = { ...permissoesDoPapel('admin'), podeCadastrarVeiculos: true, podeImportarBalanca: true };
+export const PERMISSOES_LOCAL: Permissoes = {
+  ...permissoesDoPapel('admin'),
+  podeCadastrarVeiculos: true,
+  podeImportarBalanca: true,
+  podeFinalizarColheita: true,
+};
 
 export const PermissoesContext = createContext<Permissoes>(PERMISSOES_LOCAL);
 
