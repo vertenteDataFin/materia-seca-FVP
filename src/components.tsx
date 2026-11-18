@@ -12,7 +12,7 @@ import { Icone } from './Icone';
 /** Barra de etapas da coleta: Talhão → Pontos → Pesos → Resultado. */
 export function PassosColeta({ coletaId, atual }: { coletaId: string; atual: 1 | 2 | 3 | 4 }) {
   const passos: [number, string, string][] = [
-    [1, 'Talhão', '/mapa'],
+    [1, 'Talhão', '/mapa?nova=coleta'],
     [2, 'Pontos', `/coletas/${coletaId}/pontos`],
     [3, 'Pesos', `/coletas/${coletaId}/pesos`],
     [4, 'Resultado', `/coletas/${coletaId}`],

@@ -85,7 +85,7 @@ export default function ColetaPontos() {
     <>
       <div className="titulo-linha">
         <h1>Coleta — {talhao ? talhao.nome : '…'} · {fmtData(coleta.data)}</h1>
-        <Link to="/mapa">← Mapa</Link>
+        <Link to="/mapa?nova=coleta">← Mapa</Link>
       </div>
       <PassosColeta coletaId={coletaId} atual={2} />
 

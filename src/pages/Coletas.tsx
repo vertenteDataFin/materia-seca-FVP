@@ -59,7 +59,7 @@ export default function Coletas() {
             <h2><Icone nome="campo" /> Amostragem de campo</h2>
             <p className="dica">Pontos no talhão: GPS e peso verde do quadro, para estimar a produtividade e a MS antes da colheita.</p>
             <div className="acoes">
-              <Link className="botao primario" to="/mapa">Pelo mapa</Link>
+              <Link className="botao primario" to="/mapa?nova=coleta">Pelo mapa</Link>
               <Link className="botao" to="/coletas/nova">Pela lista</Link>
             </div>
           </div>

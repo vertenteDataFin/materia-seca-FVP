@@ -1,5 +1,5 @@
 import { useMemo, useState } from 'react';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate, useSearchParams } from 'react-router-dom';
 import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
 import type { Coleta } from '../tipos';
 import { resumoColeta, statusMS } from '../calc';
@@ -9,8 +9,14 @@ import { useParametros } from '../parametros';
 import MapaTalhoes from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe } from '../semaforo';
 
+/**
+ * Mapa dos talhões. Pela navegação, tocar no talhão abre as informações dele (página Talhões).
+ * Vindo de "Nova coleta → Pelo mapa" (?nova=coleta), tocar no talhão abre o menu para iniciar a coleta.
+ */
 export default function Mapa() {
   const navigate = useNavigate();
+  const [params] = useSearchParams();
+  const paraColeta = params.get('nova') === 'coleta';
   const parametros = useParametros();
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const dados = useDados();
@@ -26,7 +32,7 @@ export default function Mapa() {
   }, [dados]);
 
   if (!dados) return null;
-  const selecionado = dados.talhoes.find((t) => t.id === selecionadoId) ?? null;
+  const selecionado = paraColeta ? (dados.talhoes.find((t) => t.id === selecionadoId) ?? null) : null;
 
   if (selecionado) {
     const u = ultimaPorTalhao.get(selecionado.id);
@@ -48,12 +54,12 @@ export default function Mapa() {
 
   return (
     <div className="pagina-mapa">
-      <h1>Mapa — escolha o talhão</h1>
+      <h1>{paraColeta ? 'Nova coleta — escolha o talhão' : 'Mapa'}</h1>
       <div className="cartao">
         <MapaTalhoes
           talhoes={dados.talhoes}
           selecionadoId={selecionadoId}
-          aoSelecionar={(t) => setSelecionadoId(t.id)}
+          aoSelecionar={(t) => (paraColeta ? setSelecionadoId(t.id) : navigate(`/talhoes?talhao=${t.id}`))}
           altura="min(70vh, 640px)"
           className="mapa-principal"
           estilo={(t) => {
@@ -66,7 +72,9 @@ export default function Mapa() {
             };
           }}
         />
-        <p className="dica oculta-cel">Toque no talhão para ver os registros ou iniciar uma nova coleta.</p>
+        <p className="dica oculta-cel">
+          {paraColeta ? 'Toque no talhão para iniciar a coleta.' : 'Toque no talhão para ver as informações dele (área, capim e coletas).'}
+        </p>
         <p className="dica legenda-mapa">
           <span className="selo" style={{ background: COR_SEMAFORO.verde, color: '#fff' }}>
             <span className="rotulo-longo">verde: pronto para ensilar (MS {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)} %)</span>

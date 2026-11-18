@@ -41,7 +41,7 @@ export default function NovaColeta() {
     <>
       <div className="titulo-linha">
         <h1>Nova coleta{talhao ? ` — ${talhao.nome}` : ''}</h1>
-        <Link to="/mapa">← Mapa</Link>
+        <Link to="/mapa?nova=coleta">← Mapa</Link>
       </div>
 
       {talhao && (
@@ -62,7 +62,7 @@ export default function NovaColeta() {
               <option key={t.id} value={t.id}>{t.nome}{t.capim ? ` — ${t.capim}` : ''}</option>
             ))}
           </select>
-          {!talhao && <small className="mudo">Ou escolha pelo <Link to="/mapa">mapa</Link>.</small>}
+          {!talhao && <small className="mudo">Ou escolha pelo <Link to="/mapa?nova=coleta">mapa</Link>.</small>}
         </label>
         <label>
           Data
@@ -75,7 +75,7 @@ export default function NovaColeta() {
         {erro && <p className="erro largo">{erro}</p>}
         <div className="acoes largo">
           <button type="submit" className="primario">Iniciar coleta → marcar pontos</button>
-          <Link className="botao" to="/mapa">Cancelar</Link>
+          <Link className="botao" to="/coletas">Cancelar</Link>
         </div>
       </form>
     </>
