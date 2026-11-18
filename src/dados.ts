@@ -101,6 +101,17 @@ export function adicionarCarga(c: Novo<Carga>): string {
   return repositorio().adicionar('cargas', { ...c, criadoEm: c.criadoEm ?? new Date().toISOString() });
 }
 
+/** Grava de uma vez as cargas lidas do relatório da balança (uma entrada no histórico). */
+export function importarCargas(cargas: Novo<Carga>[], descricao: string) {
+  if (!cargas.length) return;
+  const r = repositorio();
+  const criadoEm = new Date().toISOString();
+  r.lote(
+    cargas.map((c) => ({ tipo: 'adicionar' as const, colecao: 'cargas' as const, id: r.novoId(), dados: { ...c, criadoEm } as Record<string, unknown> })),
+    { descricao },
+  );
+}
+
 export function atualizarCarga(id: string, campos: Partial<Novo<Carga>>) {
   repositorio().atualizar('cargas', id, campos);
 }

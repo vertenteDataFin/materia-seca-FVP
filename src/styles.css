@@ -461,6 +461,19 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   .lab-linha > .n:last-child { grid-column: 1 / -1; text-align: left; }
   .lab-cabecalho { flex-wrap: wrap; }
 }
+/* ---- Importação do relatório da balança ---- */
+.importar-balanca h2 { display: flex; align-items: center; gap: 0.4rem; }
+.importar-balanca h2 .mi { color: var(--verde); }
+.importar-balanca .resumo-importacao { margin: 0.8rem 0 0.5rem; }
+.importar-balanca .origens { display: grid; gap: 0.5rem; margin: 0.6rem 0 0.8rem; padding: 0.7rem 0.8rem; border-radius: 10px; background: var(--verde-claro); }
+.importar-balanca .origens h3 { margin: 0; font-size: 0.95rem; }
+.importar-balanca label.origem { display: grid; grid-template-columns: minmax(0, 1fr) minmax(12rem, 18rem); gap: 0.6rem; align-items: center; color: var(--texto); font-weight: normal; }
+.importar-balanca .aviso-conferir { color: #8a5a00; font-weight: 600; }
+.tabela-balanca tr.ignorada td { color: var(--mudo); }
+.tabela-balanca td .selo { white-space: nowrap; }
+@media (max-width: 700px) {
+  .importar-balanca label.origem { grid-template-columns: 1fr; }
+}
 /* ---- Amostragem de colheita (caminhões) ---- */
 .grade-form label.opcao-check { flex-direction: row; align-items: center; gap: 0.5rem; font-weight: normal; }
 .grade-form label.opcao-check input { width: auto; min-height: 0; }
