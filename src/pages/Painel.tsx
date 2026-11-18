@@ -128,10 +128,10 @@ export default function Painel() {
   // Produtividade por hectare: média ponderada pela área, só sobre talhões que já têm a medida
   const areaComMV = soma((l) => (l.e?.tMVtotal != null ? l.t.areaHa : 0));
   const areaComMS = soma((l) => (l.e?.tMStotal != null ? l.t.areaHa : 0));
-  const porHa = (totalT: number, area: number) => (area > 0 ? (totalT * 1000) / area : null);
-  const mvKgHa = porHa(mvTotal, areaComMV);
-  const msKgHa = porHa(msTotal, areaComMS);
-  const silagemKgHa = porHa(silagemTotal, areaComMV);
+  const porHa = (totalT: number, area: number) => (area > 0 ? totalT / area : null);
+  const mvTHa = porHa(mvTotal, areaComMV);
+  const msTHa = porHa(msTotal, areaComMS);
+  const silagemTHa = porHa(silagemTotal, areaComMV);
   const pctColhidoFazenda = areaTotal > 0 ? (colheita.areaColhidaHa / areaTotal) * 100 : null;
   const contagem: Record<Semaforo, number> = { verde: 0, amarelo: 0, vermelho: 0 };
   for (const l of linhas) contagem[semaforoDe(statusMS(l.r?.msPct ?? null, parametros))]++;
@@ -241,9 +241,9 @@ export default function Painel() {
         <h2>Resumo de produtividade</h2>
         {/* Grade 3×3: 1ª linha produtividade por hectare (destaque); 2ª e 3ª, totais estimados */}
         <div className="indicadores grade-kpi">
-          <div className="kpi-ha"><Indicador rotulo="Massa verde" valor={fmt(mvKgHa, 0)} unidade="kg/ha" /></div>
-          <div className="kpi-ha"><Indicador rotulo="Matéria seca" valor={fmt(msKgHa, 0)} unidade="kg MS/ha" /></div>
-          <div className="kpi-ha"><Indicador rotulo="Silagem" valor={fmt(silagemKgHa, 0)} unidade="kg/ha" /></div>
+          <div className="kpi-ha"><Indicador rotulo="Massa verde" valor={fmt(mvTHa, 1)} unidade="t/ha" /></div>
+          <div className="kpi-ha"><Indicador rotulo="Matéria seca" valor={fmt(msTHa, 1)} unidade="t MS/ha" /></div>
+          <div className="kpi-ha"><Indicador rotulo="Silagem" valor={fmt(silagemTHa, 1)} unidade="t/ha" /></div>
           <Indicador rotulo="Massa verde total" valor={fmt(mvTotal)} unidade="t" />
           <Indicador rotulo="Matéria seca total" valor={fmt(msTotal)} unidade="t" />
           <Indicador rotulo="Silagem total" valor={fmt(silagemTotal)} unidade="t" />
