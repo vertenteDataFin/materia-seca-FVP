@@ -31,6 +31,8 @@ export default function Colheita() {
   const [editando, setEditando] = useState<string | null>(null);
   const [mostrarFinalizados, setMostrarFinalizados] = useState(false);
   const [importando, setImportando] = useState(false);
+  // cargas pesadas: só as de hoje; as anteriores aparecem pelo botão, em blocos de 60
+  const [anteriores, setAnteriores] = useState(0);
 
   const calc = useMemo(() => {
     if (!dados) return null;
@@ -62,6 +64,12 @@ export default function Colheita() {
 
   // A tara é do caminhão: vem da última pesagem da mesma placa.
   const taraDaPlaca = (placa?: string) => calc.taras.get(normalizarPlaca(placa)) ?? null;
+
+  const diaHoje = hoje();
+  const pesadasHoje = calc.pesadas.filter((c) => c.saidaEm.startsWith(diaHoje));
+  const pesadasAntes = calc.pesadas.filter((c) => !c.saidaEm.startsWith(diaHoje));
+  const visiveis = [...pesadasHoje, ...pesadasAntes.slice(0, anteriores)];
+  const faltam = Math.max(0, pesadasAntes.length - anteriores);
 
   return (
     <>
@@ -121,38 +129,55 @@ export default function Colheita() {
       <div className="cartao">
         <div className="cabecalho-cartao">
           <h2>Cargas pesadas</h2>
-          <span className="mudo">{calc.pesadas.length}</span>
+          <span className="mudo">{pesadasHoje.length} hoje · {calc.pesadas.length} no total</span>
         </div>
         {!calc.pesadas.length ? (
           <p className="vazio">Nenhuma carga pesada ainda.</p>
         ) : (
-          <div className="rolagem">
-            <table className="tabela-cartoes lista-compacta tabela-pesadas">
-              <thead>
-                <tr>
-                  <th>Saída</th>
-                  <th>Talhão</th>
-                  <th className="oculta-cel">Placa</th>
-                  <th className="oculta-cel">Silo</th>
-                  <th className="n">Líquido t</th>
-                </tr>
-              </thead>
-              <tbody>
-                {calc.pesadas.slice(0, 60).map((c) => (
-                  <LinhaPesada
-                    key={c.id}
-                    c={c}
-                    nomeTalhao={nome(c.talhaoId)}
-                    aberta={editando === c.id}
-                    alternar={() => setEditando(editando === c.id ? null : c.id)}
-                    podePesar={podePesar}
-                    podeExcluir={podeExcluirCargasPesadas}
-                    msAuto={msAutomatica(c, andamentoDe.get(c.talhaoId), calc.msPorTalhao.get(c.talhaoId))}
-                  />
-                ))}
-              </tbody>
-            </table>
-          </div>
+          <>
+            {!visiveis.length && <p className="vazio">Nenhuma carga pesada hoje.</p>}
+            {visiveis.length > 0 && (
+              <div className="rolagem">
+                <table className="tabela-cartoes lista-compacta tabela-pesadas">
+                  <thead>
+                    <tr>
+                      <th>Saída</th>
+                      <th>Talhão</th>
+                      <th className="oculta-cel">Placa</th>
+                      <th className="oculta-cel">Silo</th>
+                      <th className="n">Líquido t</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {visiveis.map((c) => (
+                      <LinhaPesada
+                        key={c.id}
+                        c={c}
+                        nomeTalhao={nome(c.talhaoId)}
+                        aberta={editando === c.id}
+                        alternar={() => setEditando(editando === c.id ? null : c.id)}
+                        podePesar={podePesar}
+                        podeExcluir={podeExcluirCargasPesadas}
+                        msAuto={msAutomatica(c, andamentoDe.get(c.talhaoId), calc.msPorTalhao.get(c.talhaoId))}
+                      />
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            )}
+            {(faltam > 0 || anteriores > 0) && (
+              <div className="acoes">
+                {faltam > 0 && (
+                  <button type="button" onClick={() => setAnteriores((n) => n + 60)}>
+                    {anteriores ? 'Ver mais' : 'Ver cargas anteriores'} ({faltam})
+                  </button>
+                )}
+                {anteriores > 0 && (
+                  <button type="button" className="link" onClick={() => setAnteriores(0)}>Mostrar só as de hoje</button>
+                )}
+              </div>
+            )}
+          </>
         )}
       </div>
 
