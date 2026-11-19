@@ -15,6 +15,7 @@ import {
 } from '../colheita';
 import type { Carga } from '../tipos';
 import VeiculosCard from '../VeiculosCard';
+import { SILOS } from '../silos';
 import ImportarBalanca from './ImportarBalanca';
 import { CampoNumero } from '../components';
 import { Icone } from '../Icone';
@@ -417,6 +418,15 @@ function LinhaPesada({
                   placeholder={msAuto.ms != null ? fmt(msAuto.ms, 1) : '—'}
                   aoSalvar={(v) => atualizarCarga(c.id, { msPct: v })}
                 />
+              </label>
+              <label>
+                Silo
+                <select value={c.silo ?? ''} aria-label="Silo da carga" onChange={(e) => atualizarCarga(c.id, { silo: e.target.value })}>
+                  <option value="">— sem silo</option>
+                  {[...SILOS, ...(c.silo && !SILOS.includes(c.silo) ? [c.silo] : [])].map((s) => (
+                    <option key={s} value={s}>{s}</option>
+                  ))}
+                </select>
               </label>
               <p className="mudo largo">
                 <small>
