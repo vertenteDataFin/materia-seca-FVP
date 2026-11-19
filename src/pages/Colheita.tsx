@@ -289,26 +289,29 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
           <div><span>Faltam</span><strong>{a.diasRestantes != null ? `~${fmt(Math.ceil(a.diasRestantes), 0)} dia${Math.ceil(a.diasRestantes) === 1 ? '' : 's'}` : '—'}</strong></div>
         )}
       </div>
-      <p className="dica andamento-ref">
+      <div className="dica andamento-ref">
         {a.ref ? (
-          <>
-            Estimativa da amostragem de {fmtData(a.ref.data)}: {fmt(a.ref.tMVha, 1)} t MV/ha
+          <p>
+            <strong>Estimativa da amostragem de {fmtData(a.ref.data)}:</strong>
+            <br />
+            {fmt(a.ref.tMVha, 1)} t MV/ha
             {a.ref.msPct != null ? ` · MS ${fmt(a.ref.msPct, 1)}% (${fmt(a.ref.tMSha, 1)} t MS/ha)` : ' · sem MS aferida'}
             {desvio != null && ` · real ${desvio >= 0 ? '+' : ''}${fmt(desvio, 0)}% em relação à estimativa`}
-          </>
+          </p>
         ) : (
-          'Faça uma amostragem neste talhão para estimar a área colhida.'
+          <p>Faça uma amostragem neste talhão para estimar a área colhida.</p>
         )}
-        <br />
         {a.msColheita ? (
-          <>
-            MS da colheita (caminhões): <strong>{fmt(a.msColheita.media, 1)}%</strong> em {a.msColheita.n} amostra{a.msColheita.n === 1 ? '' : 's'}; é a
-            usada na MS entregue{a.tMS != null && a.tMV > 0 ? ` (${fmt(a.tMS, 1)} t MS)` : ''}.
-          </>
+          <p>
+            <strong>MS da colheita (caminhões):</strong>
+            <br />
+            {fmt(a.msColheita.media, 1)}% em {a.msColheita.n} amostra{a.msColheita.n === 1 ? '' : 's'}
+            {a.tMS != null && a.tMV > 0 ? `; MS entregue = ${fmt(a.tMS, 1)} t MS.` : '.'}
+          </p>
         ) : (
-          'Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.'
+          <p>Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.</p>
         )}
-      </p>
+      </div>
       {podeFinalizarColheita && (
         <div className="acoes">
           {a.finalizada ? (

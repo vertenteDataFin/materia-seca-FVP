@@ -598,6 +598,9 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .andamento-numeros strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
 .andamento-numeros small { font-weight: 500; color: var(--alerta); font-size: 0.72rem; }
 .andamento-ref { margin: 0.5rem 0; }
+.andamento-ref p { margin: 0 0 0.45rem; }
+.andamento-ref p:last-child { margin-bottom: 0; }
+.andamento-ref strong { color: var(--texto, inherit); }
 button.link.mostrar-finalizados { margin: 0.25rem 0 0.6rem; }
 tr.linha-edicao-carga > td { background: var(--fundo); white-space: normal; }
 .carga-edicao { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.5rem 0.75rem; align-items: end; padding: 0.25rem 0; }
