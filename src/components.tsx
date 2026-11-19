@@ -51,13 +51,11 @@ export function CampoNumero({
   aoSalvar,
   placeholder,
   ariaLabel,
-  autoFocus,
 }: {
   valor: number | null;
   aoSalvar: (v: number | null) => void;
   placeholder?: string;
   ariaLabel?: string;
-  autoFocus?: boolean;
 }) {
   const [texto, setTexto] = useState(numParaTexto(valor));
   useEffect(() => setTexto(numParaTexto(valor)), [valor]);
@@ -68,7 +66,6 @@ export function CampoNumero({
       value={texto}
       placeholder={placeholder}
       aria-label={ariaLabel}
-      autoFocus={autoFocus}
       onChange={(e) => setTexto(e.target.value)}
       onFocus={(e) => e.target.select()}
       onBlur={() => {
