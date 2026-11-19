@@ -1,7 +1,8 @@
 import { useState, type FormEvent } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { useDados } from '../dados';
-import { CHAVE_RESP, criarColeta, lembrarResponsavel } from '../coletas';
+import { criarColeta, lembrarResponsavel, responsavelPadrao } from '../coletas';
+import { usePermissoes } from '../permissoes';
 import { fmt, hoje } from '../util';
 
 /** Registro de uma nova coleta pela lista (sem mapa). Depois segue para a etapa de pontos. */
@@ -9,10 +10,11 @@ export default function NovaColeta() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const dados = useDados();
+  const { nomeUsuario } = usePermissoes();
   const [form, setForm] = useState({
     talhaoId: params.get('talhao') ?? '',
     data: hoje(),
-    responsavel: localStorage.getItem(CHAVE_RESP) ?? '',
+    responsavel: responsavelPadrao(nomeUsuario),
   });
   const [erro, setErro] = useState('');
 

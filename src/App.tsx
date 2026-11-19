@@ -5,7 +5,7 @@ import { definirRepositorio } from './dados';
 import { FIREBASE_ATIVO, obterFirebase } from './firebase';
 import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 import { inicializarDados } from './inicializacao';
-import { papelDe, useMembros } from './membros';
+import { nomeDaConta, papelDe, useMembros } from './membros';
 import { assinarParametrosNuvem } from './parametros';
 import { assinarConfigFdnNuvem } from './fdn';
 import { PERMISSOES_LOCAL, PermissoesContext, permissoesDoPapel, type Permissoes } from './permissoes';
@@ -104,7 +104,8 @@ function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
   // Não consegue ler a lista de membros e não é admin fixo: conta criada, mas ainda não liberada.
   if (!liberado) return <AguardandoLiberacao usuario={usuario} />;
   if (!iniciado) return null;
-  return <Casca repo={repo} usuario={usuario} permissoes={permissoesDoPapel(papelDe(usuario.email, membros), usuario.email)} />;
+  const permissoes = { ...permissoesDoPapel(papelDe(usuario.email, membros), usuario.email), nomeUsuario: nomeDaConta(usuario.email, usuario.displayName, membros) };
+  return <Casca repo={repo} usuario={usuario} permissoes={permissoes} />;
 }
 
 function AguardandoLiberacao({ usuario }: { usuario: User }) {

@@ -4,12 +4,23 @@ import { hoje } from './util';
 import { QUADRO_M2 } from './calc';
 
 export const CHAVE_RESP = 'silagem-ms:ultimo-responsavel';
-/** Cria uma coleta para o talhão com data de hoje, o último responsável e o quadro padrão de 1 m². Devolve o id. */
-export function criarColeta(talhaoId: string, extra: Partial<Novo<Coleta>> = {}): string {
+
+/** Responsável sugerido: o nome de quem está logado; sem nome na conta, o último digitado neste aparelho. */
+export function responsavelPadrao(nomeUsuario: string, chave = CHAVE_RESP): string {
+  if (nomeUsuario.trim()) return nomeUsuario.trim();
+  try {
+    return localStorage.getItem(chave) ?? '';
+  } catch {
+    return '';
+  }
+}
+
+/** Cria uma coleta para o talhão com data de hoje, o responsável sugerido e o quadro padrão de 1 m². Devolve o id. */
+export function criarColeta(talhaoId: string, extra: Partial<Novo<Coleta>> = {}, nomeUsuario = ''): string {
   return repositorio().adicionar('coletas', {
     talhaoId,
     data: hoje(),
-    responsavel: localStorage.getItem(CHAVE_RESP) ?? '',
+    responsavel: responsavelPadrao(nomeUsuario),
     observacoes: '',
     criadoEm: new Date().toISOString(),
     ...extra,

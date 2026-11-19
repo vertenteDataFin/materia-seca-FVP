@@ -42,9 +42,10 @@ export default function NovaAmostraColheita() {
   const [placa, setPlaca] = useState('');
   const [motorista, setMotorista] = useState('');
   const [salvarNaLista, setSalvarNaLista] = useState(true);
-  const { podeCadastrarVeiculos } = usePermissoes();
+  const { podeCadastrarVeiculos, nomeUsuario } = usePermissoes();
   const [silo, setSilo] = useState('');
-  const [responsavel, setResponsavel] = useState(lembrar(CHAVE_RESPONSAVEL));
+  // quem está logado; sem nome na conta, o último digitado neste aparelho
+  const [responsavel, setResponsavel] = useState(nomeUsuario.trim() || lembrar(CHAVE_RESPONSAVEL));
   const [pesos, setPesos] = useState<Record<CampoPeneira, string>>({ peneira19G: '', peneira8G: '', peneira4G: '', fundoG: '' });
   const [observacoes, setObservacoes] = useState('');
   const [erro, setErro] = useState('');

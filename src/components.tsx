@@ -6,6 +6,7 @@ import type { Coleta } from './tipos';
 import { fmt } from './util';
 import { ROTULO_SEMAFORO, semaforoDe, type Semaforo } from './semaforo';
 import { criarColeta } from './coletas';
+import { usePermissoes } from './permissoes';
 import { numParaTexto, parseNum } from './util';
 import { Icone } from './Icone';
 
@@ -88,11 +89,12 @@ export function MenuTalhao({
   aoFechar?: () => void;
 }) {
   const navigate = useNavigate();
+  const { nomeUsuario } = usePermissoes();
   const [criando, setCriando] = useState(false);
   async function novaColeta() {
     setCriando(true);
     try {
-      const id = criarColeta(talhao.id);
+      const id = criarColeta(talhao.id, {}, nomeUsuario);
       navigate(`/coletas/${id}/pontos`);
     } finally {
       setCriando(false);

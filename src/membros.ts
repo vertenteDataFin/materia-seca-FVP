@@ -68,6 +68,12 @@ export function papelDe(email: string | null | undefined, membros: Membro[] | nu
   return membros?.find((m) => m.email === e)?.papel ?? 'operador';
 }
 
+/** Nome de quem está logado: o do cadastro em Pessoas com acesso; senão o informado ao criar a conta; senão ''. */
+export function nomeDaConta(email: string | null | undefined, nomeDaConta: string | null | undefined, membros: Membro[] | null | undefined): string {
+  const e = email ? normalizarEmail(email) : '';
+  return membros?.find((m) => m.email === e)?.nome?.trim() || nomeDaConta?.trim() || '';
+}
+
 export function ehAdmin(email: string | null | undefined, membros: Membro[] | null | undefined): boolean {
   return papelDe(email, membros) === 'admin';
 }
