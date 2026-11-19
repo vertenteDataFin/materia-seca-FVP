@@ -1,6 +1,6 @@
 import { Fragment, useEffect, useMemo, useState, type FormEvent } from 'react';
 import { useSearchParams } from 'react-router-dom';
-import { adicionarTalhao, amostrasPorColeta, atualizarTalhao, excluirTalhao, useDados } from '../dados';
+import { amostrasPorColeta, atualizarTalhao, excluirTalhao, useDados } from '../dados';
 import { cargaPesada, resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
 import type { Talhao } from '../tipos';
 import { CAPINS_COMUNS, fmt, numParaTexto, parseNum } from '../util';
@@ -53,9 +53,9 @@ export default function Talhoes() {
       capim: form.capim.trim(),
       observacoes: form.observacoes.trim(),
     };
+    // Só edição: talhão novo não se cria pelo app (vem do mapa da fazenda, KML).
     // atualizar preserva os demais campos (ex.: contorno importado do KML)
     if (editandoId != null) atualizarTalhao(editandoId, campos);
-    else adicionarTalhao(campos);
     fecharForm();
   }
 
@@ -102,7 +102,6 @@ export default function Talhoes() {
     <>
       <div className="titulo-linha">
         <h1>Talhões</h1>
-        {!mostrarForm && podeEditarTalhoes && <button onClick={() => setMostrarForm(true)}>+ Novo talhão</button>}
       </div>
 
       {nDiverge > 0 && (
@@ -111,9 +110,9 @@ export default function Talhoes() {
         </p>
       )}
 
-      {mostrarForm && (
+      {mostrarForm && editandoId != null && (
       <form className="cartao grade-form" onSubmit={salvar}>
-        <h2>{editandoId != null ? 'Editar talhão' : 'Novo talhão'}</h2>
+        <h2>Editar talhão</h2>
         <label>
           Nome / identificação
           <input value={form.nome} onChange={(e) => setForm({ ...form, nome: e.target.value })} placeholder="Ex.: Talhão 17A - PD" />
@@ -141,7 +140,7 @@ export default function Talhoes() {
         </label>
         {erro && <p className="erro largo">{erro}</p>}
         <div className="acoes largo">
-          <button type="submit" className="primario">{editandoId != null ? 'Salvar alterações' : 'Adicionar talhão'}</button>
+          <button type="submit" className="primario">Salvar alterações</button>
           <button type="button" onClick={fecharForm}>Cancelar</button>
         </div>
       </form>
@@ -150,7 +149,7 @@ export default function Talhoes() {
       <div className="cartao">
         {semArea > 0 && <p className="aviso">{semArea} talhão(ões) sem área informada — a estimativa de produção total depende da área.</p>}
         {!talhoes.length ? (
-          <p className="vazio">Nenhum talhão cadastrado.</p>
+          <p className="vazio">Nenhum talhão cadastrado. Os talhões vêm do mapa da fazenda (KML).</p>
         ) : (
           <div className="rolagem">
             <table className="tabela-cartoes com-icones">
