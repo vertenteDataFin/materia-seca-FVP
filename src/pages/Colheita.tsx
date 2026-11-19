@@ -1,4 +1,4 @@
-import { useMemo, useState, type FormEvent } from 'react';
+import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDados } from '../dados';
 import {
   agoraLocal,
@@ -257,10 +257,76 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
   const pct = a.pctColhida;
   const barra = pct == null ? 0 : Math.min(100, pct);
   const desvio = a.finalizada && a.tMVhaReal != null && a.ref ? (a.tMVhaReal / a.ref.tMVha - 1) * 100 : null;
+  const [menuAberto, setMenuAberto] = useState(false);
+  const menuRef = useRef<HTMLDivElement>(null);
+
+  // Fecha o menu ao tocar fora ou apertar Esc
+  useEffect(() => {
+    if (!menuAberto) return;
+    const fora = (e: MouseEvent | TouchEvent) => { if (menuRef.current && !menuRef.current.contains(e.target as Node)) setMenuAberto(false); };
+    const tecla = (e: KeyboardEvent) => { if (e.key === 'Escape') setMenuAberto(false); };
+    document.addEventListener('mousedown', fora);
+    document.addEventListener('touchstart', fora);
+    document.addEventListener('keydown', tecla);
+    return () => {
+      document.removeEventListener('mousedown', fora);
+      document.removeEventListener('touchstart', fora);
+      document.removeEventListener('keydown', tecla);
+    };
+  }, [menuAberto]);
+
   return (
     <div className={`andamento${a.finalizada ? ' finalizado' : ''}`}>
       <div className="andamento-topo">
-        <strong>{a.talhao.nome}</strong>
+        <div className="andamento-nome">
+          <div className="menu-acoes" ref={menuRef}>
+            <button type="button" className="icone-acao" aria-haspopup="menu" aria-expanded={menuAberto} aria-label="Estimativas e ações" title="Estimativas e ações" onClick={() => setMenuAberto((v) => !v)}>
+              <Icone nome="mais" />
+            </button>
+            {menuAberto && (
+              <div className="menu-lista menu-andamento" role="menu">
+                <div className="dica andamento-ref">
+                  {a.ref ? (
+                    <p>
+                      <strong>Estimativa da amostragem de {fmtData(a.ref.data)}:</strong>
+                      <br />
+                      {fmt(a.ref.tMVha, 1)} t MV/ha
+                      {a.ref.msPct != null ? ` · MS ${fmt(a.ref.msPct, 1)}% (${fmt(a.ref.tMSha, 1)} t MS/ha)` : ' · sem MS aferida'}
+                      {desvio != null && ` · real ${desvio >= 0 ? '+' : ''}${fmt(desvio, 0)}% em relação à estimativa`}
+                    </p>
+                  ) : (
+                    <p>Faça uma amostragem neste talhão para estimar a área colhida.</p>
+                  )}
+                  {a.msColheita ? (
+                    <p>
+                      <strong>MS da colheita (caminhões):</strong>
+                      <br />
+                      {fmt(a.msColheita.media, 1)}% em {a.msColheita.n} amostra{a.msColheita.n === 1 ? '' : 's'}
+                      {a.tMS != null && a.tMV > 0 ? `; MS entregue = ${fmt(a.tMS, 1)} t MS.` : '.'}
+                    </p>
+                  ) : (
+                    <p>Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.</p>
+                  )}
+                </div>
+                {podeFinalizarColheita &&
+                  (a.finalizada ? (
+                    <button type="button" role="menuitem" onClick={() => { setMenuAberto(false); atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: null }); }}>
+                      <Icone nome="atualizar" /> Reabrir colheita
+                    </button>
+                  ) : (
+                    <button
+                      type="button"
+                      role="menuitem"
+                      onClick={() => { setMenuAberto(false); if (confirm(`Marcar a colheita de ${a.talhao.nome} como finalizada?`)) atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: hoje() }); }}
+                    >
+                      <Icone nome="ok" /> Finalizar colheita do talhão
+                    </button>
+                  ))}
+              </div>
+            )}
+          </div>
+          <strong>{a.talhao.nome}</strong>
+        </div>
         {a.finalizada ? (
           <span className="selo selo-ideal">Finalizada {a.talhao.colheitaFinalizadaEm ? fmtData(a.talhao.colheitaFinalizadaEm).slice(0, 5) : ''}</span>
         ) : (
@@ -289,40 +355,6 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
           <div><span>Faltam</span><strong>{a.diasRestantes != null ? `~${fmt(Math.ceil(a.diasRestantes), 0)} dia${Math.ceil(a.diasRestantes) === 1 ? '' : 's'}` : '—'}</strong></div>
         )}
       </div>
-      <div className="dica andamento-ref">
-        {a.ref ? (
-          <p>
-            <strong>Estimativa da amostragem de {fmtData(a.ref.data)}:</strong>
-            <br />
-            {fmt(a.ref.tMVha, 1)} t MV/ha
-            {a.ref.msPct != null ? ` · MS ${fmt(a.ref.msPct, 1)}% (${fmt(a.ref.tMSha, 1)} t MS/ha)` : ' · sem MS aferida'}
-            {desvio != null && ` · real ${desvio >= 0 ? '+' : ''}${fmt(desvio, 0)}% em relação à estimativa`}
-          </p>
-        ) : (
-          <p>Faça uma amostragem neste talhão para estimar a área colhida.</p>
-        )}
-        {a.msColheita ? (
-          <p>
-            <strong>MS da colheita (caminhões):</strong>
-            <br />
-            {fmt(a.msColheita.media, 1)}% em {a.msColheita.n} amostra{a.msColheita.n === 1 ? '' : 's'}
-            {a.tMS != null && a.tMV > 0 ? `; MS entregue = ${fmt(a.tMS, 1)} t MS.` : '.'}
-          </p>
-        ) : (
-          <p>Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.</p>
-        )}
-      </div>
-      {podeFinalizarColheita && (
-        <div className="acoes">
-          {a.finalizada ? (
-            <button type="button" onClick={() => atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: null })}>Reabrir colheita</button>
-          ) : (
-            <button type="button" onClick={() => confirm(`Marcar a colheita de ${a.talhao.nome} como finalizada?`) && atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: hoje() })}>
-              <Icone nome="ok" /> Finalizar colheita do talhão
-            </button>
-          )}
-        </div>
-      )}
     </div>
   );
 }

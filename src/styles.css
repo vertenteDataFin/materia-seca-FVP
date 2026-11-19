@@ -598,6 +598,11 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .andamento-numeros strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
 .andamento-numeros small { font-weight: 500; color: var(--alerta); font-size: 0.72rem; }
 .andamento-ref { margin: 0.5rem 0; }
+.andamento-nome { display: flex; align-items: center; gap: 0.3rem; min-width: 0; }
+.andamento-nome .icone-acao { margin-left: -0.35rem; }
+.menu-andamento { left: 0; right: auto; width: min(22rem, calc(100vw - 3rem)); }
+.menu-andamento .andamento-ref { margin: 0.3rem 0.5rem 0.4rem; }
+.menu-andamento .andamento-ref + button { border-top: 1px solid var(--borda); border-radius: 0 0 6px 6px; }
 .andamento-ref p { margin: 0 0 0.45rem; }
 .andamento-ref p:last-child { margin-bottom: 0; }
 .andamento-ref strong { color: var(--texto, inherit); }
