@@ -24,4 +24,11 @@ describe('permissões', () => {
     expect(permissoesDoPapel('balanceiro', 'balanca@fazenda.com.br').podeFinalizarColheita).toBe(false);
     expect(permissoesDoPapel('membro', 'tec@fazenda.com.br').podeFinalizarColheita).toBe(false);
   });
+
+  it('protótipo da coleta de campo: só o e-mail de teste vê', () => {
+    expect(permissoesDoPapel('admin', 'marialauragcardoso@gmail.com').podeTestarPrototipo).toBe(true);
+    expect(permissoesDoPapel('admin', 'maria.mesquita@fazendavertente.com.br').podeTestarPrototipo).toBe(false);
+    expect(permissoesDoPapel('membro', 'tec@fazenda.com.br').podeTestarPrototipo).toBe(false);
+    expect(permissoesDoPapel('admin').podeTestarPrototipo).toBe(false);
+  });
 });

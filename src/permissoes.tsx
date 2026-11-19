@@ -1,6 +1,6 @@
 import { createContext, useContext } from 'react';
 import type { Papel } from './membros';
-import { ehExcluidorCargasPesadas, ehFinalizadorColheita, ehGestorVeiculos, ehImportadorBalanca } from './firebaseConfig';
+import { ehExcluidorCargasPesadas, ehFinalizadorColheita, ehGestorVeiculos, ehImportadorBalanca, ehTestadorPrototipo } from './firebaseConfig';
 
 export interface Permissoes {
   papel: Papel;
@@ -20,6 +20,8 @@ export interface Permissoes {
   podeFinalizarColheita: boolean;
   /** Pode excluir cargas já pesadas (e-mails em EXCLUIDORES_CARGAS_PESADAS). */
   podeExcluirCargasPesadas: boolean;
+  /** Vê as telas em teste (e-mails em TESTADORES_PROTOTIPO). */
+  podeTestarPrototipo: boolean;
   /** Nome de quem está logado (cadastro em Pessoas com acesso ou nome da conta); '' se não houver. Preenche "Responsável". */
   nomeUsuario: string;
 }
@@ -38,6 +40,7 @@ export function permissoesDoPapel(papel: Papel, email?: string | null): Permisso
     podeFinalizarColheita: ehFinalizadorColheita(email),
     // além do e-mail, o papel tem de poder excluir (regras do Firestore)
     podeExcluirCargasPesadas: ehExcluidorCargasPesadas(email) && gestor,
+    podeTestarPrototipo: ehTestadorPrototipo(email),
     nomeUsuario: '',
   };
 }
@@ -49,6 +52,7 @@ export const PERMISSOES_LOCAL: Permissoes = {
   podeImportarBalanca: true,
   podeFinalizarColheita: true,
   podeExcluirCargasPesadas: true,
+  podeTestarPrototipo: true,
 };
 
 export const PermissoesContext = createContext<Permissoes>(PERMISSOES_LOCAL);

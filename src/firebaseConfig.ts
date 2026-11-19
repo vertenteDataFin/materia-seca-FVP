@@ -67,3 +67,10 @@ export function ehExcluidorCargasPesadas(email: string | null | undefined): bool
 export function ehFinalizadorColheita(email: string | null | undefined): boolean {
   return !!email && FINALIZADORES_COLHEITA.includes(email.trim().toLowerCase());
 }
+
+/** Quem vê as telas em teste (protótipo da coleta de campo). Só esconde as telas: os dados seguem as regras normais. */
+export const TESTADORES_PROTOTIPO: string[] = ['marialauragcardoso@gmail.com'];
+
+export function ehTestadorPrototipo(email: string | null | undefined): boolean {
+  return !!email && TESTADORES_PROTOTIPO.includes(email.trim().toLowerCase());
+}

@@ -10,6 +10,7 @@ import { fmt, fmtData } from '../util';
 import { SeloMS } from '../components';
 import { Icone } from '../Icone';
 import { useParametros } from '../parametros';
+import { usePermissoes } from '../permissoes';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
 
@@ -22,6 +23,7 @@ export default function Coletas() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const parametros = useParametros();
+  const { podeTestarPrototipo } = usePermissoes();
   const [filtro, setFiltro] = useState('');
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
@@ -62,6 +64,11 @@ export default function Coletas() {
               <Link className="botao primario" to="/mapa?nova=coleta">Pelo mapa</Link>
               <Link className="botao" to="/coletas/nova">Pela lista</Link>
             </div>
+            {podeTestarPrototipo && (
+              <p className="dica" style={{ marginTop: '0.5rem' }}>
+                Em teste (só você vê): <Link to="/coletas/rapida">coleta rápida pelo GPS</Link> (pontos e pesos na mesma tela).
+              </p>
+            )}
           </div>
           <div className="opcao-coleta">
             <h2><Icone nome="caminhao" /> Amostragem de colheita</h2>
