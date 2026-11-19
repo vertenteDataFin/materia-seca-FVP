@@ -80,9 +80,10 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
   // Clique/toque no ponto abre a coleta com os resultados.
   function aoClicar(e: MouseEvent<SVGSVGElement>) {
     const pt = pontoPerto(e);
-    if (pt) navigate(`/coletas/${pt.coletaId}`);
+    if (pt) navigate(pt.link);
   }
 
+  const xInicio = serie.inicioColheita ? esc.x(diaDe(serie.inicioColheita)) : 0;
   const yFaixaTopo = esc.y(p.msMax);
   const yFaixaBase = esc.y(p.msMin);
   const xUltimo = ultimo ? esc.x(diaDe(ultimo.data)) : 0;
@@ -118,17 +119,28 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
               {dataCurta(dataDoDia(d))}
             </text>
           ))}
+          {serie.inicioColheita && (
+            <g className="inicio-colheita">
+              <line x1={xInicio} x2={xInicio} y1={M.topo} y2={yBase} />
+              <text x={xInicio > L - M.dir - 30 ? xInicio - 1.5 : xInicio + 1.5} y={M.topo + 4} textAnchor={xInicio > L - M.dir - 30 ? 'end' : 'start'}>
+                colheita
+              </text>
+            </g>
+          )}
           {caminho && <path className="linha" d={caminho} />}
           {ativo && <line className="cursor" x1={esc.x(diaDe(ativo.data))} x2={esc.x(diaDe(ativo.data))} y1={M.topo} y2={yBase} />}
-          {pontos.map((pt) => (
-            <circle
-              key={pt.coletaId}
-              className={`ponto${pt.msPct == null ? ' pendente' : ''}${ativo?.coletaId === pt.coletaId ? ' ativo' : ''}`}
-              cx={esc.x(diaDe(pt.data))}
-              cy={yDe(pt)}
-              r={ativo?.coletaId === pt.coletaId ? 4.5 : 3.5}
-            />
-          ))}
+          {pontos.map((pt) => {
+            const r = ativo?.coletaId === pt.coletaId ? 4.5 : 3.5;
+            const cls = `ponto${pt.msPct == null ? ' pendente' : ''}${ativo?.coletaId === pt.coletaId ? ' ativo' : ''}`;
+            const cx = esc.x(diaDe(pt.data));
+            const cy = yDe(pt);
+            // amostra de caminhão (colheita): quadrado; coleta de campo: redondo
+            return pt.origem === 'colheita' ? (
+              <rect key={pt.coletaId} className={cls} x={cx - r * 0.9} y={cy - r * 0.9} width={r * 1.8} height={r * 1.8} />
+            ) : (
+              <circle key={pt.coletaId} className={cls} cx={cx} cy={cy} r={r} />
+            );
+          })}
           {!ativo && ultimo && (
             // rótulo do último valor: à direita do ponto; se não couber, acima dele
             <text
@@ -146,9 +158,9 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
             className={`grafico-ms-dica ${esc.x(diaDe(ativo.data)) < L * 0.3 ? 'esq' : esc.x(diaDe(ativo.data)) > L * 0.7 ? 'dir' : ''}`}
             style={{ left: `${(esc.x(diaDe(ativo.data)) / L) * 100}%`, top: `${(yDe(ativo) / A) * 100}%` }}
           >
-            <strong>{ativo.msPct == null ? 'MS a aferir' : `${fmt(ativo.msPct)}% MS`}</strong>
+            <strong>{ativo.msPct == null ? 'MS a aferir' : `${fmt(ativo.msPct)}% MS`}{ativo.origem === 'colheita' ? ' · colheita' : ''}</strong>
             <br />
-            <Link to={`/coletas/${ativo.coletaId}`}>{fmtData(ativo.data)}</Link> · {ativo.msPct == null ? ativo.nPontos : ativo.nPontosMS} amostra(s)
+            <Link to={ativo.link}>{fmtData(ativo.data)}</Link> · {ativo.msPct == null ? ativo.nPontos : ativo.nPontosMS} {ativo.origem === 'colheita' ? 'caminhão(ões)' : 'amostra(s)'}
           </div>
         )}
       </div>
@@ -166,7 +178,7 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
   return (
     <>
       <p className="dica">
-        MS média de cada coleta, por talhão, ao longo do tempo. A faixa verde é o ponto de ensilar ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}%).
+        MS média de cada coleta, por talhão, ao longo do tempo: ● amostragem de campo, ■ amostras de caminhão na colheita (média do dia); a linha tracejada marca o início da colheita. A faixa verde é o ponto de ensilar ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}%).
         Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). Toque num ponto para abrir a coleta e ver os resultados.{' '}
         <button type="button" className="link" onClick={() => setTabela(!tabela)}>{tabela ? 'ver gráfico' : 'ver tabela'}</button>
       </p>

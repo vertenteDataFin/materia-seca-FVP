@@ -415,7 +415,7 @@ export default function Painel() {
 
       <div className="cartao">
         <h2>Evolução da MS por talhão</h2>
-        <GraficoMS series={seriesMS(filtradas.map((l) => l.t), dados.coletas, dados.amostras)} parametros={parametros} />
+        <GraficoMS series={seriesMS(filtradas.map((l) => l.t), dados.coletas, dados.amostras, { amostrasColheita: dados.amostrasColheita, cargas: dados.cargas })} parametros={parametros} />
       </div>
     </>
   );
