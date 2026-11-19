@@ -12,7 +12,8 @@ export const CHAVE_SEED = 'silagem-ms:talhoes-carregados-v10';
 export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v6';
 // Relação de veículos da silagem (planilha): entra uma vez por aparelho, só para quem cadastra veículos.
 // v2 (18/11/2026): planilha com 6 caminhões; só os que faltam entram.
-export const CHAVE_VEICULOS = 'silagem-ms:veiculos-iniciais-v2';
+// v3 (19/11/2026): +Luciano Bezerra (7) e Luis Antonio Alonso (21); placa do Sebastião corrigida para CXJ7E24.
+export const CHAVE_VEICULOS = 'silagem-ms:veiculos-iniciais-v3';
 
 /**
  * Depois que a fonte de dados confirmou o estado (servidor ou disco): migra o banco antigo do aparelho,
@@ -50,7 +51,7 @@ export async function inicializarDados(p: Permissoes): Promise<string[]> {
     try {
       const n = importarVeiculosIniciais();
       localStorage.setItem(CHAVE_VEICULOS, '1');
-      if (n) msgs.push(`${n} veículo(s) da relação de veículos da silagem cadastrado(s) (Colheita → Veículos da colheita).`);
+      if (n) msgs.push(`${n} veículo(s) da relação de veículos da silagem cadastrado(s) ou corrigido(s) (Colheita → Veículos da colheita).`);
     } catch (e) {
       console.error('Falha ao carregar veículos iniciais', e);
     }
