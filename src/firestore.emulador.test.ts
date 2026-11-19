@@ -223,6 +223,22 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(getDoc(cfg(anon)));
   });
 
+  it('talhões excluídos: quem exclui talhão registra na lista; operador não; todo membro lê', async () => {
+    const { arrayUnion, deleteDoc } = await import('firebase/firestore');
+    const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
+    await assertSucceeds(setDoc(membro(admin, 'tec@fazenda.com.br'), { nome: 'Téc', papel: 'membro' }));
+    await assertSucceeds(setDoc(membro(admin, 'campo@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
+    const lista = (db: Firestore) => doc(collection(db, 'fazendas', FID, 'config'), 'talhoesExcluidos');
+    const tec = env.authenticatedContext('t', senha('tec@fazenda.com.br', false)).firestore();
+    await assertSucceeds(setDoc(lista(tec), { chaves: arrayUnion('CAU|1') }, { merge: true }));
+    await assertFails(setDoc(lista(tec), { chaves: ['X|1'], outro: 1 }));
+    await assertFails(deleteDoc(lista(tec)));
+    const op = env.authenticatedContext('o', senha('campo@fazenda.com.br', false)).firestore();
+    await assertFails(setDoc(lista(op), { chaves: arrayUnion('PD|2') }, { merge: true }));
+    const lido = await assertSucceeds(getDoc(lista(op)));
+    expect(lido.data()?.chaves).toEqual(['CAU|1']);
+  });
+
   it('admin não remove a si mesmo da lista nem muda o próprio papel; muda o dos outros', async () => {
     const admin = env.authenticatedContext('a', google(ADMIN)).firestore();
     await assertSucceeds(setDoc(membro(admin, ADMIN), { nome: 'Eu', papel: 'admin' }));

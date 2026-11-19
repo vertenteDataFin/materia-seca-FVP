@@ -1,10 +1,11 @@
 // @vitest-environment jsdom
 import { readFileSync } from 'node:fs';
 import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest';
-import { definirRepositorio } from './dados';
+import { definirRepositorio, excluirTalhao } from './dados';
 import { RepositorioMemoria } from './repositorio';
 import { compararNomes } from './tipos';
 import { fundirDuplicados, importarTalhoesFazenda } from './importarFazenda';
+import { chaveTalhao } from './talhoesExcluidos';
 
 let repo: RepositorioMemoria;
 
@@ -126,5 +127,38 @@ describe('fundirDuplicados', () => {
     expect(d.talhoes).toHaveLength(2);
     expect(d.talhoes.find((t) => t.id === a)).toMatchObject({ capim: 'Piatã', areaHa: 35, fazenda: 'Confinamento' });
     expect(d.coletas.find((x) => x.id === c)!.talhaoId).toBe(a);
+  });
+});
+
+describe('talhão do mapa excluído no app', () => {
+  beforeEach(() => {
+    localStorage.clear();
+    const kml = readFileSync('public/talhoes-fazenda.kml', 'utf8');
+    vi.stubGlobal('fetch', async () => new Response(kml, { status: 200 }));
+  });
+  afterEach(() => vi.unstubAllGlobals());
+
+  it('não volta na próxima sincronização (outro aparelho/usuário); se for restaurado, fica', async () => {
+    await importarTalhoesFazenda();
+    const cau1 = () => repo.obter()!.talhoes.filter((t) => /^Talhão 1 - CAU$/.test(t.nome));
+    expect(cau1()).toHaveLength(1);
+    const total = repo.obter()!.talhoes.length;
+
+    excluirTalhao(cau1()[0].id);
+    expect(cau1()).toHaveLength(0);
+    const r = await importarTalhoesFazenda();
+    expect(r.criados).toBe(0);
+    expect(cau1()).toHaveLength(0);
+    expect(repo.obter()!.talhoes.length).toBe(total - 1);
+
+    // restaurado pelo histórico (mesmo nome): a sincronização casa com ele e não o remove
+    repo.adicionar('talhoes', { nome: 'Talhão 1 - CAU', capim: 'Mombaça', areaHa: 10, observacoes: '' });
+    await importarTalhoesFazenda();
+    expect(cau1()).toHaveLength(1);
+  });
+
+  it('a chave casa o nome do app com o do KML', () => {
+    expect(chaveTalhao('Talhão 1 - CAU', 'Cauã')).toBe(chaveTalhao('CAU - TALHAO 1', 'Cauã'));
+    expect(chaveTalhao('Talhão 1 - CAU', 'Cauã')).not.toBe(chaveTalhao('Talhão 1 - PD', 'Pedra'));
   });
 });

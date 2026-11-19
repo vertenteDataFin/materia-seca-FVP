@@ -1,6 +1,7 @@
 import { useMemo, useSyncExternalStore } from 'react';
 import type { Repositorio } from './repositorio';
 import { nomeSilo } from './silos';
+import { marcarTalhaoExcluido } from './talhoesExcluidos';
 import { compararNomes, completarDados, type Amostra, type AmostraColheita, type Carga, type Coleta, type Dados, type Novo, type Talhao, type Veiculo } from './tipos';
 
 let atual: Repositorio | null = null;
@@ -90,6 +91,9 @@ export function atualizarTalhao(id: string, campos: Partial<Novo<Talhao>>) {
 /** Exclui um talhão e todas as suas coletas, amostras, cargas e amostras de colheita. */
 export function excluirTalhao(id: string) {
   const d = dadosAtuais();
+  // talhão do mapa (KML): fica registrado como excluído, para a sincronização não criá-lo de novo
+  const t = d.talhoes.find((x) => x.id === id);
+  if (t?.geometria?.length || t?.capimKml) marcarTalhaoExcluido(t.nome, t.fazenda);
   const coletas = d.coletas.filter((c) => c.talhaoId === id);
   const ids = new Set(coletas.map((c) => c.id));
   repositorio().lote([

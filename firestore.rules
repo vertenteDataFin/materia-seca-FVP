@@ -79,6 +79,14 @@ service cloud.firestore {
       allow write: if ehAdmin(fid);
     }
 
+    // Talhões do mapa excluídos no app (a sincronização com o KML não os recria): quem exclui talhão registra.
+    // Só acrescenta à lista "chaves"; não apaga o documento.
+    match /fazendas/{fid}/config/talhoesExcluidos {
+      allow create, update: if podeExcluir(fid)
+        && request.resource.data.keys().hasOnly(['chaves'])
+        && request.resource.data.chaves is list;
+    }
+
     // Quem finaliza/reabre a colheita do talhão. Mantenha igual a FINALIZADORES_COLHEITA em src/firebaseConfig.ts.
     function finalizadoresColheita() {
       return ['marialauragcardoso@gmail.com'];

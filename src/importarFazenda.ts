@@ -2,6 +2,7 @@ import { amostrasPorColeta, dadosAtuais, repositorio } from './dados';
 import { chaveNome, lerKml, semAcento, siglaFazenda, sugerirCorrespondencias, type PoligonoKml } from './kml';
 import { dentroDoTalhao } from './geo';
 import type { Novo, Talhao } from './tipos';
+import { chaveTalhao, lerTalhoesExcluidos } from './talhoesExcluidos';
 
 export const KML_FAZENDA_URL = `${import.meta.env.BASE_URL}talhoes-fazenda.kml`;
 
@@ -101,6 +102,7 @@ async function executar(): Promise<ResultadoSincronizacao> {
   const resp = await fetch(KML_FAZENDA_URL);
   if (!resp.ok) throw new Error('KML da fazenda não encontrado no app.');
   const polys = lerKml(await resp.text()).filter(entraNaImportacao);
+  const excluidos = await lerTalhoesExcluidos();
   fundirDuplicados();
   const d = dadosAtuais();
   // Divisões: o talhão antigo passa a se chamar como a primeira parte, para casar com ela.
@@ -134,6 +136,9 @@ async function executar(): Promise<ResultadoSincronizacao> {
       ops.push({ tipo: 'atualizar', colecao: 'talhoes', id, dados: { ...doKml, nome, capim, areaHa } as Record<string, unknown> });
       idDoPoligono.set(i, id);
       atualizados++;
+    } else if (excluidos.has(chaveTalhao(p.nome, p.fazenda))) {
+      // excluído no app de propósito: não volta pela sincronização
+      continue;
     } else {
       const novo: Novo<Talhao> = { nome: p.nomeApp, capim: p.capim, areaHa: areaKml, observacoes: '', ...doKml };
       const novoId = repositorio().novoId();
