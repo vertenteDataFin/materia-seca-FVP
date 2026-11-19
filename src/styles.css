@@ -693,6 +693,11 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
 .grafico-ms .ponto.pendente { fill: #fff; stroke: var(--verde); stroke-width: 1.2; }
 .grafico-ms .inicio-colheita line { stroke: #b26b00; stroke-width: 0.8; stroke-dasharray: 2.5 2; }
 .grafico-ms .inicio-colheita text { font-size: 5px; font-weight: 600; fill: #b26b00; }
+/* Gráfico ampliado (tela cheia) */
+.grafico-ms-reserva { aspect-ratio: 150 / 116; }
+.grafico-ms-fundo { position: fixed; inset: 0; z-index: 1200; background: var(--fundo); overflow: auto; padding: max(0.75rem, env(safe-area-inset-top)) 1rem max(0.75rem, env(safe-area-inset-bottom)); }
+.grafico-ms-tela figcaption { display: flex; align-items: center; gap: 0.4rem; font-size: 1.05rem; margin-bottom: 0.5rem; }
+.grafico-ms-tela .grafico-ms-fechar { margin-left: auto; }
 
 /* ---- Ordenação das colunas do Painel ---- */
 th.ordenavel { padding: 0; position: relative; }

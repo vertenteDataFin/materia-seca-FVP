@@ -1,12 +1,14 @@
-import { useState, type MouseEvent, type PointerEvent } from 'react';
+import { useEffect, useState, type MouseEvent, type PointerEvent } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Parametros } from './calc';
 import { diaDe, faixaDias, faixaMS, type PontoMS, type SerieMS } from './evolucaoMS';
+import { Icone } from './Icone';
 import { nomeComSigla } from './MapaTalhoes';
 import { fmt, fmtData } from './util';
 
 const L = 150; // largura lógica do desenho (viewBox); a largura real vem do CSS
-const A = 96; // altura lógica
+const A = 96; // altura lógica (no gráfico ampliado, acompanha o formato da tela)
 const M = { topo: 8, dir: 10, base: 18, esq: 26 };
 
 interface Escalas {
@@ -16,11 +18,9 @@ interface Escalas {
   ms: [number, number];
 }
 
-function escalas(series: SerieMS[], p: Parametros): Escalas {
-  const dias = faixaDias(series);
-  const ms = faixaMS(series, p.msMin, p.msMax);
-  const x = (d: number) => M.esq + ((d - dias[0]) / (dias[1] - dias[0])) * (L - M.esq - M.dir);
-  const y = (v: number) => M.topo + ((ms[1] - v) / (ms[1] - ms[0])) * (A - M.topo - M.base);
+function escalas(dias: [number, number], ms: [number, number], larg = L, alt = A): Escalas {
+  const x = (d: number) => M.esq + ((d - dias[0]) / (dias[1] - dias[0])) * (larg - M.esq - M.dir);
+  const y = (v: number) => M.topo + ((ms[1] - v) / (ms[1] - ms[0])) * (alt - M.topo - M.base);
   return { x, y, dias, ms };
 }
 
@@ -44,15 +44,50 @@ function dataCurta(iso: string): string {
   return fmtData(iso).slice(0, 5); // dd/mm
 }
 
+/**
+ * Tamanho lógico do desenho ampliado: ocupa a tela (descontado o título) com cerca de 2,6 px por unidade,
+ * para letras e pontos ficarem do mesmo tamanho no celular e no computador.
+ */
+function tamanhoTela(): { larg: number; alt: number } {
+  const w = Math.max(240, window.innerWidth - 32);
+  const h = Math.max(200, window.innerHeight - 90);
+  const larg = Math.max(L, w / 2.6);
+  return { larg, alt: Math.max(A * 0.8, (h * larg) / w) };
+}
+
 /** Um painel: a MS média de cada coleta de um talhão ao longo do tempo, com a faixa ideal ao fundo. */
-function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametros }) {
+function PainelMS({ serie, faixa, p }: { serie: SerieMS; faixa: { dias: [number, number]; ms: [number, number] }; p: Parametros }) {
   const navigate = useNavigate();
   const [ativo, setAtivo] = useState<PontoMS | null>(null);
+  const [expandido, setExpandido] = useState(false);
+  const [tela, setTela] = useState({ larg: L, alt: A });
+
+  // Ampliado: acompanha o tamanho da tela, fecha com Esc e trava a rolagem da página por trás.
+  useEffect(() => {
+    if (!expandido) return;
+    const medir = () => setTela(tamanhoTela());
+    const tecla = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setExpandido(false);
+    };
+    medir();
+    window.addEventListener('resize', medir);
+    window.addEventListener('keydown', tecla);
+    const overflow = document.body.style.overflow;
+    document.body.style.overflow = 'hidden';
+    return () => {
+      window.removeEventListener('resize', medir);
+      window.removeEventListener('keydown', tecla);
+      document.body.style.overflow = overflow;
+    };
+  }, [expandido]);
+
+  const { larg, alt } = expandido ? tela : { larg: L, alt: A };
+  const esc = escalas(faixa.dias, faixa.ms, larg, alt);
   const pontos = serie.pontos;
   const medidos = pontos.filter((pt): pt is PontoMS & { msPct: number } => pt.msPct != null);
   const caminho = medidos.map((pt, i) => `${i ? 'L' : 'M'}${esc.x(diaDe(pt.data)).toFixed(1)},${esc.y(pt.msPct).toFixed(1)}`).join(' ');
   const ultimo = medidos[medidos.length - 1];
-  const yBase = A - M.base;
+  const yBase = alt - M.base;
   const yDe = (pt: PontoMS) => (pt.msPct == null ? yBase : esc.y(pt.msPct));
   const yTicks: number[] = [];
   for (let v = esc.ms[0]; v <= esc.ms[1]; v += 10) yTicks.push(v);
@@ -60,7 +95,7 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
   /** Ponto (coleta) mais perto do cursor/dedo na horizontal; null se longe de todos. */
   function pontoPerto(e: PointerEvent<SVGSVGElement> | MouseEvent<SVGSVGElement>): PontoMS | null {
     const r = e.currentTarget.getBoundingClientRect();
-    const xl = ((e.clientX - r.left) / r.width) * L;
+    const xl = ((e.clientX - r.left) / r.width) * larg;
     let melhor: PontoMS | null = null;
     let dist = Infinity;
     for (const pt of pontos) {
@@ -77,8 +112,13 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
     setAtivo(pontoPerto(e));
   }
 
-  // Clique/toque no ponto abre a coleta com os resultados.
+  // Pequeno: o toque amplia o gráfico. Ampliado: o toque no ponto abre a coleta com os resultados.
   function aoClicar(e: MouseEvent<SVGSVGElement>) {
+    if (!expandido) {
+      setAtivo(null);
+      setExpandido(true);
+      return;
+    }
     const pt = pontoPerto(e);
     if (pt) navigate(pt.link);
   }
@@ -87,42 +127,47 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
   const yFaixaTopo = esc.y(p.msMax);
   const yFaixaBase = esc.y(p.msMin);
   const xUltimo = ultimo ? esc.x(diaDe(ultimo.data)) : 0;
-  const rotuloADireita = xUltimo < L - M.dir - 22;
+  const rotuloADireita = xUltimo < larg - M.dir - 22;
   const descricao = pontos.map((pt) => `${fmtData(pt.data)} ${pt.msPct == null ? 'a aferir' : `${fmt(pt.msPct)}%`}`).join(', ');
 
-  return (
-    <figure className="grafico-ms">
+  const figura = (
+    <figure className={`grafico-ms${expandido ? ' grafico-ms-tela' : ''}`}>
       <figcaption>
         <Link to={`/talhoes?talhao=${serie.talhao.id}`}><strong>{nomeComSigla(serie.talhao.nome, serie.talhao.fazenda)}</strong></Link>
         <span className="mudo"> {serie.talhao.capim}</span>
+        {expandido && (
+          <button type="button" className="icone-acao grafico-ms-fechar" onClick={() => setExpandido(false)} aria-label="Fechar o gráfico ampliado" title="Fechar (Esc)">
+            <Icone nome="fechar" />
+          </button>
+        )}
       </figcaption>
       <div className="grafico-ms-area">
         <svg
-          viewBox={`0 0 ${L} ${A}`}
+          viewBox={`0 0 ${larg} ${alt}`}
           role="img"
           aria-label={`Evolução da MS de ${nomeComSigla(serie.talhao.nome, serie.talhao.fazenda)}: ${descricao}`}
           onPointerMove={aoMover}
           onPointerDown={aoMover}
           onPointerLeave={() => setAtivo(null)}
           onClick={aoClicar}
-          style={{ cursor: ativo ? 'pointer' : 'default' }}
+          style={{ cursor: !expandido ? 'zoom-in' : ativo ? 'pointer' : 'default' }}
         >
-          <rect className="faixa-ideal" x={M.esq} y={yFaixaTopo} width={L - M.esq - M.dir} height={Math.max(0, yFaixaBase - yFaixaTopo)} />
+          <rect className="faixa-ideal" x={M.esq} y={yFaixaTopo} width={larg - M.esq - M.dir} height={Math.max(0, yFaixaBase - yFaixaTopo)} />
           {yTicks.map((v) => (
             <g key={v}>
-              <line className="grade" x1={M.esq} x2={L - M.dir} y1={esc.y(v)} y2={esc.y(v)} />
+              <line className="grade" x1={M.esq} x2={larg - M.dir} y1={esc.y(v)} y2={esc.y(v)} />
               <text className="eixo" x={M.esq - 3} y={esc.y(v) + 2.5} textAnchor="end">{v}</text>
             </g>
           ))}
           {marcasTempo(esc.dias).map((d) => (
-            <text key={d} className="eixo" x={esc.x(d)} y={A - 5} textAnchor={d === esc.dias[0] ? 'start' : d === esc.dias[1] ? 'end' : 'middle'}>
+            <text key={d} className="eixo" x={esc.x(d)} y={alt - 5} textAnchor={d === esc.dias[0] ? 'start' : d === esc.dias[1] ? 'end' : 'middle'}>
               {dataCurta(dataDoDia(d))}
             </text>
           ))}
           {serie.inicioColheita && (
             <g className="inicio-colheita">
               <line x1={xInicio} x2={xInicio} y1={M.topo} y2={yBase} />
-              <text x={xInicio > L - M.dir - 30 ? xInicio - 1.5 : xInicio + 1.5} y={M.topo + 4} textAnchor={xInicio > L - M.dir - 30 ? 'end' : 'start'}>
+              <text x={xInicio > larg - M.dir - 30 ? xInicio - 1.5 : xInicio + 1.5} y={M.topo + 4} textAnchor={xInicio > larg - M.dir - 30 ? 'end' : 'start'}>
                 colheita
               </text>
             </g>
@@ -155,8 +200,8 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
         </svg>
         {ativo && (
           <div
-            className={`grafico-ms-dica ${esc.x(diaDe(ativo.data)) < L * 0.3 ? 'esq' : esc.x(diaDe(ativo.data)) > L * 0.7 ? 'dir' : ''}`}
-            style={{ left: `${(esc.x(diaDe(ativo.data)) / L) * 100}%`, top: `${(yDe(ativo) / A) * 100}%` }}
+            className={`grafico-ms-dica ${esc.x(diaDe(ativo.data)) < larg * 0.3 ? 'esq' : esc.x(diaDe(ativo.data)) > larg * 0.7 ? 'dir' : ''}`}
+            style={{ left: `${(esc.x(diaDe(ativo.data)) / larg) * 100}%`, top: `${(yDe(ativo) / alt) * 100}%` }}
           >
             <strong>{ativo.msPct == null ? 'MS a aferir' : `${fmt(ativo.msPct)}% MS`}{ativo.origem === 'colheita' ? ' · colheita' : ''}</strong>
             <br />
@@ -166,20 +211,35 @@ function PainelMS({ serie, esc, p }: { serie: SerieMS; esc: Escalas; p: Parametr
       </div>
     </figure>
   );
+
+  // Ampliado: o gráfico vai para uma camada de tela cheia; no lugar dele fica um espaço vazio do mesmo tamanho.
+  return expandido ? (
+    <>
+      <figure className="grafico-ms grafico-ms-reserva" aria-hidden="true" />
+      {createPortal(
+        <div className="grafico-ms-fundo" role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && setExpandido(false)}>
+          {figura}
+        </div>,
+        document.body,
+      )}
+    </>
+  ) : (
+    figura
+  );
 }
 
 /** Pequenos múltiplos: um painel por talhão, mesmas escalas de tempo e de MS. Alterna para tabela. */
 export default function GraficoMS({ series, parametros }: { series: SerieMS[]; parametros: Parametros }) {
   const [tabela, setTabela] = useState(false);
   if (!series.length) return <p className="vazio">Nenhuma coleta ainda.</p>;
-  const esc = escalas(series, parametros);
+  const faixa = { dias: faixaDias(series), ms: faixaMS(series, parametros.msMin, parametros.msMax) };
   const datas = [...new Set(series.flatMap((s) => s.pontos.map((pt) => pt.data)))].sort();
 
   return (
     <>
       <p className="dica">
         MS média de cada coleta, por talhão, ao longo do tempo: ● amostragem de campo, ■ amostras de caminhão na colheita (média do dia); a linha tracejada marca o início da colheita. A faixa verde é o ponto de ensilar ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}%).
-        Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). Toque num ponto para abrir a coleta e ver os resultados.{' '}
+        Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). Toque num gráfico para ampliar; no ampliado, toque num ponto para abrir a coleta e ver os resultados.{' '}
         <button type="button" className="link" onClick={() => setTabela(!tabela)}>{tabela ? 'ver gráfico' : 'ver tabela'}</button>
       </p>
       {tabela ? (
@@ -210,7 +270,7 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
         </div>
       ) : (
         <div className="graficos-ms">
-          {series.map((s) => <PainelMS key={s.talhao.id} serie={s} esc={esc} p={parametros} />)}
+          {series.map((s) => <PainelMS key={s.talhao.id} serie={s} faixa={faixa} p={parametros} />)}
         </div>
       )}
     </>
