@@ -62,9 +62,11 @@ export default function Coletas() {
               <Link className="botao primario" to="/mapa?nova=coleta">Pelo mapa</Link>
               <Link className="botao" to="/coletas/nova">Pela lista</Link>
             </div>
-            <p className="dica" style={{ marginTop: '0.5rem' }}>
-              Em teste: <Link to="/coletas/rapida">coleta rápida pelo GPS</Link> (pontos e pesos na mesma tela).
-            </p>
+            {import.meta.env.DEV && (
+              <p className="dica" style={{ marginTop: '0.5rem' }}>
+                Em teste (só local): <Link to="/coletas/rapida">coleta rápida pelo GPS</Link> (pontos e pesos na mesma tela).
+              </p>
+            )}
           </div>
           <div className="opcao-coleta">
             <h2><Icone nome="caminhao" /> Amostragem de colheita</h2>

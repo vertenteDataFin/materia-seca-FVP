@@ -223,8 +223,9 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
             <Route path="/coletas" element={<Coletas />} />
             <Route path="/coletas/nova" element={<NovaColeta />} />
             <Route path="/coletas/colheita/nova" element={<NovaAmostraColheita />} />
-            <Route path="/coletas/rapida" element={<ColetaRapida />} />
-            <Route path="/coletas/:id/campo" element={<ColetaCampo />} />
+            {/* protótipo: só no servidor local (npm run dev), fora do app publicado */}
+            {import.meta.env.DEV && <Route path="/coletas/rapida" element={<ColetaRapida />} />}
+            {import.meta.env.DEV && <Route path="/coletas/:id/campo" element={<ColetaCampo />} />}
             <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
             <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
             <Route path="/coletas/:id" element={<ColetaDetalhe />} />
