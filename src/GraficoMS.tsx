@@ -259,7 +259,7 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
                     const pt = s.pontos.find((x) => x.data === d);
                     return (
                       <td key={d} className="n" data-rotulo={dataCurta(d)}>
-                        {!pt ? '—' : <Link to={`/coletas/${pt.coletaId}`}>{pt.msPct == null ? 'a aferir' : `${fmt(pt.msPct)}%`}</Link>}
+                        {!pt ? '—' : <Link to={pt.link}>{pt.msPct == null ? 'a aferir' : `${fmt(pt.msPct)}%`}</Link>}
                       </td>
                     );
                   })}
