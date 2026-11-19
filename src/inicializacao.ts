@@ -13,7 +13,8 @@ export const CHAVE_COLETAS = 'silagem-ms:coletas-iniciais-v6';
 // Relação de veículos da silagem (planilha): entra uma vez por aparelho, só para quem cadastra veículos.
 // v2 (18/11/2026): planilha com 6 caminhões; só os que faltam entram.
 // v3 (19/11/2026): +Luciano Bezerra (7) e Luis Antonio Alonso (21); placa do Sebastião corrigida para CXJ7E24.
-export const CHAVE_VEICULOS = 'silagem-ms:veiculos-iniciais-v3';
+// v4 (19/11/2026, tarde): +Paulo Cesar Meneses (8).
+export const CHAVE_VEICULOS = 'silagem-ms:veiculos-iniciais-v4';
 
 /**
  * Depois que a fonte de dados confirmou o estado (servidor ou disco): migra o banco antigo do aparelho,

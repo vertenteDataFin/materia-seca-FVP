@@ -14,6 +14,7 @@ export const VEICULOS_INICIAIS: Omit<Veiculo, 'id'>[] = [
   { numero: 5, motorista: 'Sebastião David', placa: 'CXJ7E24' },
   { numero: 6, motorista: 'Jonas Nogueira', placa: 'MUN2182' },
   { numero: 7, motorista: 'Luciano Bezerra', placa: 'IIX6E53' },
+  { numero: 8, motorista: 'Paulo Cesar Meneses', placa: 'CKZ3D25' },
   { numero: 21, motorista: 'Luis Antonio Alonso', placa: 'GMS0C59' },
 ];
 
