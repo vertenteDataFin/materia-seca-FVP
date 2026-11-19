@@ -19,7 +19,7 @@ export default function ColetaDetalhe() {
   const parametros = useParametros();
   const [capturando, setCapturando] = useState<string | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
-  const [mostrarMapa, setMostrarMapa] = useState(false);
+  const [mostrarMapa, setMostrarMapa] = useState(true);
   const celular = useCelular();
   const { podeExcluir } = usePermissoes();
 
