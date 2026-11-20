@@ -11,6 +11,7 @@ import { SeloMS } from '../components';
 import { Icone } from '../Icone';
 import { useParametros } from '../parametros';
 import { usePermissoes } from '../permissoes';
+import ImagemDoDia from '../ImagemDoDia';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
 
@@ -101,6 +102,7 @@ export default function Coletas() {
             {nFiltros > 0 && <span className="contador-filtro">{nFiltros}</span>}
           </button>
         </div>
+        <ImagemDoDia dados={dados} parametros={parametros} />
         {mostrarFiltros && (
           <div className="painel-filtros">
             <label>
