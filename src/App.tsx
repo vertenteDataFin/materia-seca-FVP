@@ -223,9 +223,8 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
             <Route path="/coletas" element={<Coletas />} />
             <Route path="/coletas/nova" element={<NovaColeta />} />
             <Route path="/coletas/colheita/nova" element={<NovaAmostraColheita />} />
-            {/* protótipo: só para quem está em TESTADORES_PROTOTIPO */}
-            {permissoes.podeTestarPrototipo && <Route path="/coletas/rapida" element={<ColetaRapida />} />}
-            {permissoes.podeTestarPrototipo && <Route path="/coletas/:id/campo" element={<ColetaCampo />} />}
+            <Route path="/coletas/rapida" element={<ColetaRapida />} />
+            <Route path="/coletas/:id/campo" element={<ColetaCampo />} />
             <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />
             <Route path="/coletas/:id/pesos" element={<ColetaPesos />} />
             <Route path="/coletas/:id" element={<ColetaDetalhe />} />

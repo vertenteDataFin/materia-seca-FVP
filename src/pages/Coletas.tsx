@@ -11,7 +11,6 @@ import { fmt, fmtData } from '../util';
 import { SeloMS } from '../components';
 import { Icone } from '../Icone';
 import { useParametros } from '../parametros';
-import { usePermissoes } from '../permissoes';
 import ImagemDoDia from '../ImagemDoDia';
 
 const CLASSE_STATUS: Record<StatusColeta, string> = { semPontos: '', campo: 'selo-baixo', laboratorio: 'selo-alto', completa: 'selo-ideal' };
@@ -25,7 +24,6 @@ export default function Coletas() {
   const navigate = useNavigate();
   const [params] = useSearchParams();
   const parametros = useParametros();
-  const { podeTestarPrototipo } = usePermissoes();
   const [filtro, setFiltro] = useState('');
   const [de, setDe] = useState('');
   const [ate, setAte] = useState('');
@@ -61,16 +59,13 @@ export default function Coletas() {
         <div className="cartao escolha-coleta">
           <div className="opcao-coleta">
             <h2><Icone nome="campo" /> Amostragem de campo</h2>
-            <p className="dica">Pontos no talhão: GPS e peso verde do quadro, para estimar a produtividade e a MS antes da colheita.</p>
+            <p className="dica">
+              Em campo, só marque os pontos no GPS e etiquete os sacos; o peso verde é lançado depois, em <strong>Aguardando pesagem</strong>.
+            </p>
             <div className="acoes">
-              <Link className="botao primario" to="/mapa?nova=coleta">Pelo mapa</Link>
-              <Link className="botao" to="/coletas/nova">Pela lista</Link>
+              <Link className="botao primario" to="/coletas/rapida"><Icone nome="gps" /> Começar pelo GPS</Link>
+              <Link className="botao" to="/mapa?nova=coleta">Pelo mapa</Link>
             </div>
-            {podeTestarPrototipo && (
-              <p className="dica" style={{ marginTop: '0.5rem' }}>
-                Em teste (só você vê): <Link to="/coletas/rapida">coleta rápida pelo GPS</Link> (pontos e pesos na mesma tela).
-              </p>
-            )}
           </div>
           <div className="opcao-coleta">
             <h2><Icone nome="caminhao" /> Amostragem de colheita</h2>
@@ -86,7 +81,7 @@ export default function Coletas() {
         abrir a etapa pendente ou o resultado.
       </p>
 
-      {podeTestarPrototipo && <FilaPesagem destaque={params.get('pesagem')} />}
+      <FilaPesagem destaque={params.get('pesagem')} />
       <FilaMS destaque={params.get('coleta')} destaqueColheita={params.get('colheita')} />
 
       <div className="cartao">

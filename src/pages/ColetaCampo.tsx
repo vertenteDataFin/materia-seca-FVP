@@ -12,7 +12,7 @@ import { usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 
 /**
- * PROTÓTIPO — coleta de campo com menos toques, passo 2: em campo só se marcam os pontos.
+ * Coleta de campo (padrão), passo 2: em campo só se marcam os pontos.
  * "Ponto aqui" lê o GPS e cria o ponto com o código da etiqueta do saco; o peso verde é lançado depois,
  * em "Aguardando pesagem" (topo da página Amostragem).
  */
@@ -76,7 +76,6 @@ export default function ColetaCampo() {
           <h1>{talhao?.nome ?? '…'}</h1>
           <small className="mudo">{fmtData(coleta.data)}{coleta.responsavel ? ` · ${coleta.responsavel}` : ''} · quadro 1 m²</small>
         </div>
-        <span className="selo selo-alto">protótipo</span>
       </div>
 
       <div className="resumo-campo" aria-live="polite">

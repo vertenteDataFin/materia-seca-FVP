@@ -20,7 +20,7 @@ interface Grupo {
 export const semPesoVerde = (a: Amostra) => a.pesoVerdeKg == null;
 
 /**
- * PROTÓTIPO — "stand by" da pesagem (topo da página Amostragem): em campo só se marcam os pontos no GPS;
+ * "Stand by" da pesagem (topo da página Amostragem): em campo só se marcam os pontos no GPS;
  * os sacos são pesados depois e o peso verde é lançado aqui, pelo código da etiqueta.
  * Com todos os pontos pesados, a coleta sai daqui e entra em "Aguardando MS".
  */
@@ -60,7 +60,7 @@ export function FilaPesagem({ destaque }: { destaque: string | null }) {
   return (
     <div className="cartao fila-ms fila-pesagem">
       <div className="cabecalho-cartao">
-        <h2>Aguardando pesagem <span className="selo selo-baixo">em teste</span></h2>
+        <h2>Aguardando pesagem</h2>
         <span className="selo selo-alto">{total} ponto{total === 1 ? '' : 's'}</span>
       </div>
       <p className="dica">

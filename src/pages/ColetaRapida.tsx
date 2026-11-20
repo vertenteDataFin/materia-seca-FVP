@@ -10,7 +10,7 @@ import { fmt, hoje } from '../util';
 import { Icone } from '../Icone';
 
 /**
- * PROTÓTIPO — coleta de campo com menos toques, passo 1: o GPS já diz em que talhão a pessoa está.
+ * Coleta de campo (padrão), passo 1: o GPS já diz em que talhão a pessoa está.
  * Um toque começa a coleta (data de hoje, responsável = quem está logado) e vai direto para o campo.
  */
 export default function ColetaRapida() {
@@ -56,7 +56,6 @@ export default function ColetaRapida() {
     <div className="coleta-rapida">
       <div className="titulo-linha">
         <h1>Coleta de campo</h1>
-        <span className="selo selo-alto">protótipo</span>
       </div>
 
       <div className="cartao">
@@ -114,7 +113,7 @@ export default function ColetaRapida() {
         </div>
       )}
 
-      <p className="dica">Versão em teste. O fluxo atual continua em <Link to="/coletas">Amostragem → Nova coleta</Link>.</p>
+      <p className="dica">Prefere marcar os pontos tocando no mapa? <Link to="/mapa?nova=coleta">Coleta pelo mapa</Link>.</p>
     </div>
   );
 }
