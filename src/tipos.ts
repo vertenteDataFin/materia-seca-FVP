@@ -15,6 +15,11 @@ export interface Talhao {
   observacoes?: string;
   /** Colheita marcada como finalizada (data AAAA-MM-DD); null/ausente = não finalizada. */
   colheitaFinalizadaEm?: string | null;
+  /**
+   * Área colhida informada pelo setor agrícola (ha) até o fim do dia `data` (AAAA-MM-DD).
+   * Com ela, a produtividade real da colheita (t entregues ÷ ha colhidos) refaz a estimativa de produção.
+   */
+  areaColhidaInformada?: { ha: number; data: string } | null;
 }
 
 /** Evento de amostragem em um talhão (uma ida a campo). */

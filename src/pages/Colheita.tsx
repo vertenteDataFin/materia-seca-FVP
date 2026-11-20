@@ -254,9 +254,25 @@ function CargaPendente({ c, nomeTalhao, podePesar, podeExcluir, taraDoCaminhao }
 }
 
 function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
-  const { podeFinalizarColheita } = usePermissoes();
+  const { podeFinalizarColheita, podeEditarTalhoes } = usePermissoes();
   const pct = a.pctColhida;
-  const barra = pct == null ? 0 : Math.min(100, pct);
+  // Barra em toneladas: verde = entregue; amarelo = nova estimativa (produtividade real da colheita);
+  // vermelho = teto (estimativa da amostragem de campo). Sem nenhuma estimativa, a barra é o % da área.
+  const teto = a.producaoAmostragemT;
+  const nova = a.finalizada ? null : a.producaoEstimadaT;
+  const escala = Math.max(teto ?? 0, nova ?? 0, a.tMV);
+  const emToneladas = escala > 0 && (teto != null || nova != null);
+  const posicao = (t: number) => Math.min(100, (t / escala) * 100);
+  const barra = emToneladas ? posicao(a.tMV) : pct == null ? 0 : Math.min(100, pct);
+  const [haInformado, setHaInformado] = useState(a.informada ? String(a.informada.ha).replace('.', ',') : '');
+  const [dataInformada, setDataInformada] = useState(a.informada?.data ?? hoje());
+  const salvarArea = (e: FormEvent) => {
+    e.preventDefault();
+    const ha = parseNum(haInformado);
+    if (ha == null || ha <= 0) return;
+    atualizarTalhao(a.talhao.id, { areaColhidaInformada: { ha, data: dataInformada } });
+    setMenuAberto(false);
+  };
   const desvio = a.finalizada && a.tMVhaReal != null && a.ref ? (a.tMVhaReal / a.ref.tMVha - 1) * 100 : null;
   const [menuAberto, setMenuAberto] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
@@ -308,7 +324,42 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
                   ) : (
                     <p>Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.</p>
                   )}
+                  {a.informada ? (
+                    <p>
+                      <strong>Área colhida informada (setor agrícola):</strong>
+                      <br />
+                      {fmt(a.informada.ha, 1)} ha até {fmtData(a.informada.data)}
+                      {a.tMVhaColhido != null
+                        ? `; ${fmt(a.tMVateInformada, 1)} t entregues até essa data = ${fmt(a.tMVhaColhido, 1)} t MV/ha colhido.`
+                        : '; nenhuma carga pesada até essa data.'}
+                    </p>
+                  ) : (
+                    !a.finalizada && <p>A área colhida é estimada pela amostragem. Se o setor agrícola informar a área, registre abaixo para refazer a estimativa de produção.</p>
+                  )}
                 </div>
+                {podeEditarTalhoes && !a.finalizada && (
+                  <form className="form-area-colhida" onSubmit={salvarArea}>
+                    <label>
+                      Área colhida (ha)
+                      <input className="num" inputMode="decimal" value={haInformado} onChange={(e) => setHaInformado(e.target.value)} placeholder="ex.: 30" />
+                    </label>
+                    <label>
+                      Até o dia
+                      <input type="date" value={dataInformada} max={hoje()} onChange={(e) => setDataInformada(e.target.value)} />
+                    </label>
+                    <div className="form-area-botoes">
+                      <button type="submit" className="primario" disabled={!(parseNum(haInformado) ?? 0)}>Salvar área</button>
+                      {a.informada && (
+                        <button
+                          type="button"
+                          onClick={() => { setMenuAberto(false); setHaInformado(''); atualizarTalhao(a.talhao.id, { areaColhidaInformada: null }); }}
+                        >
+                          Voltar à estimativa
+                        </button>
+                      )}
+                    </div>
+                  </form>
+                )}
                 {podeFinalizarColheita &&
                   (a.finalizada ? (
                     <button type="button" role="menuitem" onClick={() => { setMenuAberto(false); atualizarTalhao(a.talhao.id, { colheitaFinalizadaEm: null }); }}>
@@ -334,15 +385,32 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
           <span className="selo selo-baixo">Em colheita</span>
         )}
       </div>
-      <div className="barra-progresso" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct == null ? undefined : Math.round(pct)}>
-        <span style={{ width: `${barra}%` }} />
+      <div className="barra-andamento">
+        <div className="barra-progresso" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={pct == null ? undefined : Math.round(pct)}>
+          <span style={{ width: `${barra}%` }} />
+        </div>
+        {emToneladas && nova != null && <i className="marca-barra estimada" style={{ left: `${posicao(nova)}%` }} title={`Nova estimativa: ${fmt(nova, 0)} t`} />}
+        {emToneladas && teto != null && <i className="marca-barra teto" style={{ left: `${posicao(teto)}%` }} title={`Amostragem de campo: ${fmt(teto, 0)} t`} />}
       </div>
+      {emToneladas && (
+        <p className="andamento-legenda">
+          <span><i className="leg entregue" />Entregue {fmt(a.tMV, 0)} t</span>
+          {nova != null && <span><i className="leg estimada" />Nova estimativa {fmt(nova, 0)} t ({fmt(a.tMVhaColhido, 1)} t/ha)</span>}
+          {teto != null && a.ref && <span><i className="leg teto" />Amostragem {fmt(teto, 0)} t ({fmt(a.ref.tMVha, 1)} t/ha)</span>}
+        </p>
+      )}
       <p className="andamento-area">
         {a.areaColhidaHa == null ? (
           <span className="mudo">Sem amostragem com produção neste talhão: não dá para estimar a área colhida.</span>
         ) : (
           <>
             <strong>{fmt(pct, 0)}%</strong> colhido · {fmt(a.areaColhidaHa, 1)} de {fmt(a.talhao.areaHa, 1)} ha
+            {a.informada && (
+              <span className="mudo">
+                {' '}· {fmt(a.informada.ha, 1)} ha informados pelo agrícola em {fmtData(a.informada.data).slice(0, 5)}
+                {a.areaColhidaHa - a.informada.ha > 0.05 ? ' + entregas depois' : ''}
+              </span>
+            )}
           </>
         )}
       </p>

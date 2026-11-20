@@ -134,6 +134,33 @@ describe('colheita', () => {
     expect(fim.tMVhaReal).toBeCloseTo(0.25);
   });
 
+  it('área colhida informada pelo agrícola: produtividade real, nova estimativa e teto da amostragem', () => {
+    const ref = referenciaDoTalhao('t1', coletas, amostrasPorColeta(amostras)); // 40 t MV/ha
+    const cargas = [
+      carga('k1', '2026-11-14T07:00', 40000, 15000), // 25 t
+      carga('k2', '2026-11-15T07:00', 40000, 15000), // 25 t (até 15/11: 50 t)
+      carga('k3', '2026-11-16T07:00', 35000, 15000), // 20 t depois da data informada
+    ];
+    const semInfo = andamentoTalhao(talhao, cargas, ref);
+    expect(semInfo.fonteArea).toBe('amostragem');
+    expect(semInfo.producaoAmostragemT).toBeCloseTo(4000); // 40 t/ha × 100 ha
+    expect(semInfo.producaoEstimadaT).toBeNull();
+
+    const a = andamentoTalhao({ ...talhao, areaColhidaInformada: { ha: 2.5, data: '2026-11-15' } }, cargas, ref);
+    expect(a.fonteArea).toBe('informada');
+    expect(a.tMVateInformada).toBeCloseTo(50);
+    expect(a.tMVhaColhido).toBeCloseTo(20); // 50 t ÷ 2,5 ha
+    expect(a.areaColhidaHa).toBeCloseTo(3.5); // 2,5 ha + 20 t ÷ 20 t/ha
+    expect(a.pctColhida).toBeCloseTo(3.5);
+    expect(a.producaoEstimadaT).toBeCloseTo(2000); // 20 t/ha × 100 ha
+    expect(a.producaoAmostragemT).toBeCloseTo(4000);
+
+    // sem amostragem também funciona com a área informada
+    const semRef = andamentoTalhao({ ...talhao, areaColhidaInformada: { ha: 2.5, data: '2026-11-15' } }, cargas, null);
+    expect(semRef.areaColhidaHa).toBeCloseTo(3.5);
+    expect(semRef.producaoAmostragemT).toBeNull();
+  });
+
   it('sugere placas pelo uso', () => {
     expect(sugestoes([carga('a', 'x', null, null, { placa: 'ABC' }), carga('b', 'x', null, null, { placa: 'XYZ' }), carga('c', 'x', null, null, { placa: 'XYZ' })], 'placa')).toEqual(['XYZ', 'ABC']);
   });

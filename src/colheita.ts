@@ -118,6 +118,18 @@ export interface AndamentoTalhao {
   finalizada: boolean;
   /** Produtividade realizada (t MV/ha sobre a área do talhão): só faz sentido com a colheita finalizada. */
   tMVhaReal: number | null;
+  /** De onde vem a área colhida: informada pelo setor agrícola (mais o que entrou depois) ou estimada pela amostragem. */
+  fonteArea: 'informada' | 'amostragem' | null;
+  /** Área colhida informada pelo setor agrícola, com a data. */
+  informada: { ha: number; data: string } | null;
+  /** Massa verde entregue até o fim do dia da área informada (t). */
+  tMVateInformada: number | null;
+  /** Produtividade da colheita (t MV/ha): entregue até a data ÷ área informada. */
+  tMVhaColhido: number | null;
+  /** Teto: produção estimada pela amostragem de campo no talhão todo (t MV). */
+  producaoAmostragemT: number | null;
+  /** Nova estimativa: produtividade da colheita × área do talhão (t MV); finalizada = o entregue. */
+  producaoEstimadaT: number | null;
 }
 
 export function andamentoTalhao(
@@ -138,9 +150,23 @@ export function andamentoTalhao(
     tMS += (liquidoKg(c)! / 1000) * (ms / 100);
   }
 
+  // Área colhida informada pelo setor agrícola: a produtividade real (entregue até aquela data ÷ ha)
+  // estende a área com o que entrou depois e refaz a estimativa de produção do talhão.
+  const inf = talhao.areaColhidaInformada && talhao.areaColhidaInformada.ha > 0 ? talhao.areaColhidaInformada : null;
+  const tMVateInformada = inf
+    ? pesadas.filter((c) => c.saidaEm.slice(0, 10) <= inf.data).reduce((s, c) => s + liquidoKg(c)! / 1000, 0)
+    : null;
+  const tMVhaColhido = inf && tMVateInformada ? tMVateInformada / inf.ha : null;
+
   let areaColhidaHa: number | null = null;
-  if (ref && pesadas.length) areaColhidaHa = tMS != null && ref.tMSha ? tMS / ref.tMSha : tMV / ref.tMVha;
-  else if (ref) areaColhidaHa = 0;
+  let fonteArea: AndamentoTalhao['fonteArea'] = null;
+  if (inf) {
+    areaColhidaHa = inf.ha + (tMVhaColhido ? (tMV - (tMVateInformada ?? 0)) / tMVhaColhido : 0);
+    fonteArea = 'informada';
+  } else if (ref) {
+    areaColhidaHa = pesadas.length ? (tMS != null && ref.tMSha ? tMS / ref.tMSha : tMV / ref.tMVha) : 0;
+    fonteArea = 'amostragem';
+  }
   const pctColhida = areaColhidaHa != null && talhao.areaHa > 0 ? (areaColhidaHa / talhao.areaHa) * 100 : null;
 
   const dias = new Set(pesadas.map((c) => c.saidaEm.slice(0, 10)));
@@ -172,6 +198,12 @@ export function andamentoTalhao(
     ultima: datas[datas.length - 1] ?? null,
     finalizada,
     tMVhaReal: talhao.areaHa > 0 && pesadas.length ? tMV / talhao.areaHa : null,
+    fonteArea,
+    informada: inf,
+    tMVateInformada,
+    tMVhaColhido,
+    producaoAmostragemT: ref && talhao.areaHa > 0 ? ref.tMVha * talhao.areaHa : null,
+    producaoEstimadaT: finalizada && pesadas.length ? tMV : tMVhaColhido && talhao.areaHa > 0 ? tMVhaColhido * talhao.areaHa : null,
   };
 }
 
