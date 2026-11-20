@@ -1,5 +1,5 @@
 import { resumoColeta, teorMS } from './calc';
-import { compararColetasDesc, type Amostra, type AmostraColheita, type Carga, type Coleta, type Talhao } from './tipos';
+import { compararColetasDesc, type Amostra, type AreaInformada,type AmostraColheita, type Carga, type Coleta, type Talhao } from './tipos';
 
 /**
  * Acompanhamento da colheita: as cargas pesadas de cada talhão, convertidas em área colhida pela
@@ -130,6 +130,40 @@ export interface AndamentoTalhao {
   producaoAmostragemT: number | null;
   /** Nova estimativa: produtividade da colheita × área do talhão (t MV); finalizada = o entregue. */
   producaoEstimadaT: number | null;
+  /** Histórico das áreas informadas (em ordem de data), com a produtividade acumulada e a de cada período. */
+  historicoArea: LinhaHistoricoArea[];
+}
+
+export interface LinhaHistoricoArea extends AreaInformada {
+  /** Entregue até o fim do dia (t MV). */
+  tMVate: number;
+  /** Produtividade acumulada: entregue até a data ÷ área informada (t MV/ha). */
+  tMVha: number | null;
+  /** Desde a informação anterior: área a mais (ha), entregue no período (t) e produtividade do período (t/ha). */
+  haPeriodo: number | null;
+  tPeriodo: number | null;
+  tMVhaPeriodo: number | null;
+}
+
+/** Áreas informadas do talhão, uma por data, em ordem de data (inclui a atual, se for de antes do histórico). */
+export function areasInformadas(t: Pick<Talhao, 'areaColhidaInformada' | 'historicoAreaColhida'>): AreaInformada[] {
+  const porData = new Map<string, AreaInformada>();
+  for (const a of t.historicoAreaColhida ?? []) if (a.ha > 0) porData.set(a.data, a);
+  const atual = t.areaColhidaInformada;
+  if (atual && atual.ha > 0 && !porData.has(atual.data)) porData.set(atual.data, atual);
+  return [...porData.values()].sort((a, b) => a.data.localeCompare(b.data));
+}
+
+/** Campos do talhão para gravar o histórico com uma área a mais (a mesma data é substituída) ou a menos. */
+export function camposAreaInformada(
+  t: Pick<Talhao, 'areaColhidaInformada' | 'historicoAreaColhida'>,
+  mudanca: { incluir: AreaInformada } | { remover: string },
+): Pick<Talhao, 'areaColhidaInformada' | 'historicoAreaColhida'> {
+  let lista = areasInformadas(t);
+  if ('incluir' in mudanca) lista = [...lista.filter((a) => a.data !== mudanca.incluir.data), mudanca.incluir];
+  else lista = lista.filter((a) => a.data !== mudanca.remover);
+  lista.sort((a, b) => a.data.localeCompare(b.data));
+  return { historicoAreaColhida: lista, areaColhidaInformada: lista[lista.length - 1] ?? null };
 }
 
 export function andamentoTalhao(
@@ -152,10 +186,24 @@ export function andamentoTalhao(
 
   // Área colhida informada pelo setor agrícola: a produtividade real (entregue até aquela data ÷ ha)
   // estende a área com o que entrou depois e refaz a estimativa de produção do talhão.
-  const inf = talhao.areaColhidaInformada && talhao.areaColhidaInformada.ha > 0 ? talhao.areaColhidaInformada : null;
-  const tMVateInformada = inf
-    ? pesadas.filter((c) => c.saidaEm.slice(0, 10) <= inf.data).reduce((s, c) => s + liquidoKg(c)! / 1000, 0)
-    : null;
+  const entregueAte = (data: string) => pesadas.filter((c) => c.saidaEm.slice(0, 10) <= data).reduce((s, c) => s + liquidoKg(c)! / 1000, 0);
+  const historicoArea: LinhaHistoricoArea[] = [];
+  for (const a of areasInformadas(talhao)) {
+    const tMVate = entregueAte(a.data);
+    const ant = historicoArea[historicoArea.length - 1];
+    const haPeriodo = ant ? a.ha - ant.ha : null;
+    const tPeriodo = ant ? tMVate - ant.tMVate : null;
+    historicoArea.push({
+      ...a,
+      tMVate,
+      tMVha: tMVate > 0 ? tMVate / a.ha : null,
+      haPeriodo,
+      tPeriodo,
+      tMVhaPeriodo: haPeriodo && haPeriodo > 0 && tPeriodo != null ? tPeriodo / haPeriodo : null,
+    });
+  }
+  const inf = historicoArea.length ? historicoArea[historicoArea.length - 1] : null;
+  const tMVateInformada = inf ? inf.tMVate : null;
   const tMVhaColhido = inf && tMVateInformada ? tMVateInformada / inf.ha : null;
 
   let areaColhidaHa: number | null = null;
@@ -199,7 +247,8 @@ export function andamentoTalhao(
     finalizada,
     tMVhaReal: talhao.areaHa > 0 && pesadas.length ? tMV / talhao.areaHa : null,
     fonteArea,
-    informada: inf,
+    informada: inf ? { ha: inf.ha, data: inf.data } : null,
+    historicoArea,
     tMVateInformada,
     tMVhaColhido,
     producaoAmostragemT: ref && talhao.areaHa > 0 ? ref.tMVha * talhao.areaHa : null,

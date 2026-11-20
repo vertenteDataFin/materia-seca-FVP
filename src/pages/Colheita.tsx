@@ -3,6 +3,7 @@ import { amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDa
 import {
   agoraLocal,
   andamentoTalhao,
+  camposAreaInformada,
   cargaPesada,
   fmtSaida,
   liquidoKg,
@@ -270,8 +271,14 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
     e.preventDefault();
     const ha = parseNum(haInformado);
     if (ha == null || ha <= 0) return;
-    atualizarTalhao(a.talhao.id, { areaColhidaInformada: { ha, data: dataInformada } });
+    atualizarTalhao(a.talhao.id, camposAreaInformada(a.talhao, { incluir: { ha, data: dataInformada, registradoEm: new Date().toISOString() } }));
     setMenuAberto(false);
+  };
+  const removerArea = (data: string) => {
+    if (!confirm(`Apagar a área informada em ${fmtData(data)}?`)) return;
+    const campos = camposAreaInformada(a.talhao, { remover: data });
+    atualizarTalhao(a.talhao.id, campos);
+    if (!campos.areaColhidaInformada) setHaInformado('');
   };
   const desvio = a.finalizada && a.tMVhaReal != null && a.ref ? (a.tMVhaReal / a.ref.tMVha - 1) * 100 : null;
   const [menuAberto, setMenuAberto] = useState(false);
@@ -324,15 +331,33 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
                   ) : (
                     <p>Sem amostra de caminhão com MS neste talhão: a MS entregue usa a da amostragem de campo.</p>
                   )}
-                  {a.informada ? (
-                    <p>
+                  {a.historicoArea.length ? (
+                    <div>
                       <strong>Área colhida informada (setor agrícola):</strong>
-                      <br />
-                      {fmt(a.informada.ha, 1)} ha até {fmtData(a.informada.data)}
-                      {a.tMVhaColhido != null
-                        ? `; ${fmt(a.tMVateInformada, 1)} t entregues até essa data = ${fmt(a.tMVhaColhido, 1)} t MV/ha colhido.`
-                        : '; nenhuma carga pesada até essa data.'}
-                    </p>
+                      <ul className="historico-area">
+                        {[...a.historicoArea].reverse().map((h) => (
+                          <li key={h.data}>
+                            <span>
+                              <strong>{fmtData(h.data).slice(0, 5)}</strong> · {fmt(h.ha, 1)} ha · {fmt(h.tMVate, 0)} t
+                              {h.tMVha != null ? ` = ${fmt(h.tMVha, 1)} t/ha` : ' · sem carga pesada até a data'}
+                              {h.haPeriodo != null && (
+                                <small className="mudo">
+                                  <br />
+                                  desde a anterior: {h.haPeriodo >= 0 ? '+' : ''}{fmt(h.haPeriodo, 1)} ha, {fmt(h.tPeriodo, 0)} t
+                                  {h.tMVhaPeriodo != null ? ` = ${fmt(h.tMVhaPeriodo, 1)} t/ha` : ''}
+                                </small>
+                              )}
+                            </span>
+                            {podeEditarTalhoes && (
+                              <button type="button" className="icone-acao" aria-label={`Apagar a área de ${fmtData(h.data)}`} title="Apagar" onClick={() => removerArea(h.data)}>
+                                <Icone nome="excluir" />
+                              </button>
+                            )}
+                          </li>
+                        ))}
+                      </ul>
+                      <small className="mudo">A estimativa usa a mais recente.</small>
+                    </div>
                   ) : (
                     !a.finalizada && <p>A área colhida é estimada pela amostragem. Se o setor agrícola informar a área, registre abaixo para refazer a estimativa de produção.</p>
                   )}
@@ -352,7 +377,12 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
                       {a.informada && (
                         <button
                           type="button"
-                          onClick={() => { setMenuAberto(false); setHaInformado(''); atualizarTalhao(a.talhao.id, { areaColhidaInformada: null }); }}
+                          onClick={() => {
+                            if (!confirm('Apagar todas as áreas informadas deste talhão e voltar à estimativa da amostragem?')) return;
+                            setMenuAberto(false);
+                            setHaInformado('');
+                            atualizarTalhao(a.talhao.id, { areaColhidaInformada: null, historicoAreaColhida: [] });
+                          }}
                         >
                           Voltar à estimativa
                         </button>

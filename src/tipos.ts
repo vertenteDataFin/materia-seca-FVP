@@ -19,7 +19,17 @@ export interface Talhao {
    * Área colhida informada pelo setor agrícola (ha) até o fim do dia `data` (AAAA-MM-DD).
    * Com ela, a produtividade real da colheita (t entregues ÷ ha colhidos) refaz a estimativa de produção.
    */
-  areaColhidaInformada?: { ha: number; data: string } | null;
+  areaColhidaInformada?: AreaInformada | null;
+  /** Todas as áreas colhidas informadas (uma por data); a de data mais recente fica também em areaColhidaInformada. */
+  historicoAreaColhida?: AreaInformada[];
+}
+
+/** Área colhida informada pelo setor agrícola até o fim do dia `data`. */
+export interface AreaInformada {
+  ha: number;
+  data: string; // AAAA-MM-DD
+  /** Quando foi registrada no app (ISO). */
+  registradoEm?: string;
 }
 
 /** Evento de amostragem em um talhão (uma ida a campo). */

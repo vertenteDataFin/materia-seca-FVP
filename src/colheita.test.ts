@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { amostrasPorColeta } from './dados';
 import {
   andamentoTalhao,
+  camposAreaInformada,
   cargaPesada,
   liquidoKg,
   msColheitaPorTalhao,
@@ -159,6 +160,36 @@ describe('colheita', () => {
     const semRef = andamentoTalhao({ ...talhao, areaColhidaInformada: { ha: 2.5, data: '2026-11-15' } }, cargas, null);
     expect(semRef.areaColhidaHa).toBeCloseTo(3.5);
     expect(semRef.producaoAmostragemT).toBeNull();
+  });
+
+  it('histórico das áreas informadas: inclui, substitui a mesma data, remove; produtividade por período', () => {
+    const ref = referenciaDoTalhao('t1', coletas, amostrasPorColeta(amostras));
+    const cargas = [
+      carga('k1', '2026-11-14T07:00', 40000, 15000), // 25 t
+      carga('k2', '2026-11-15T07:00', 40000, 15000), // 25 t
+      carga('k3', '2026-11-16T07:00', 35000, 15000), // 20 t
+    ];
+    // registro antigo (só a área atual, sem histórico) entra no histórico
+    let t: Talhao = { ...talhao, areaColhidaInformada: { ha: 1, data: '2026-11-14' } };
+    t = { ...t, ...camposAreaInformada(t, { incluir: { ha: 2, data: '2026-11-16' } }) };
+    t = { ...t, ...camposAreaInformada(t, { incluir: { ha: 3, data: '2026-11-16' } }) }; // mesma data: substitui
+    expect(t.historicoAreaColhida!.map((a) => a.ha)).toEqual([1, 3]);
+    expect(t.areaColhidaInformada!.ha).toBe(3);
+
+    const a = andamentoTalhao(t, cargas, ref);
+    expect(a.historicoArea).toHaveLength(2);
+    expect(a.historicoArea[0].tMVha).toBeCloseTo(25); // 25 t ÷ 1 ha
+    expect(a.historicoArea[1].tMVha).toBeCloseTo(70 / 3);
+    expect(a.historicoArea[1].haPeriodo).toBeCloseTo(2);
+    expect(a.historicoArea[1].tMVhaPeriodo).toBeCloseTo(22.5); // 45 t ÷ 2 ha
+    expect(a.areaColhidaHa).toBeCloseTo(3); // usa a mais recente
+
+    // informação de data anterior à mais recente não vira a atual
+    const t2 = { ...t, ...camposAreaInformada(t, { incluir: { ha: 2, data: '2026-11-15' } }) };
+    expect(t2.areaColhidaInformada!.data).toBe('2026-11-16');
+    const t3 = { ...t2, ...camposAreaInformada(t2, { remover: '2026-11-16' }) };
+    expect(t3.areaColhidaInformada).toEqual({ ha: 2, data: '2026-11-15' });
+    expect(camposAreaInformada({}, { remover: 'x' }).areaColhidaInformada).toBeNull();
   });
 
   it('sugere placas pelo uso', () => {

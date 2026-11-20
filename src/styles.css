@@ -614,7 +614,10 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .andamento-legenda .leg.entregue { background: var(--verde); }
 .andamento-legenda .leg.estimada { background: #e0a100; width: 3px; }
 .andamento-legenda .leg.teto { background: #c62828; width: 3px; }
-.form-area-colhida { display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.6rem; padding: 0.5rem; border-top: 1px solid var(--borda); }
+.historico-area { list-style: none; margin: 0.25rem 0 0.2rem; padding: 0; display: grid; gap: 0.25rem; }
+.historico-area li { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.4rem; padding: 0.3rem 0.4rem; background: var(--fundo); border-radius: 6px; }
+.menu-lista .historico-area .icone-acao { width: auto; padding: 0.15rem; flex: none; }
+.form-area-colhida {display: grid; grid-template-columns: 1fr 1fr; gap: 0.4rem 0.6rem; padding: 0.5rem; border-top: 1px solid var(--borda); }
 .form-area-colhida label { display: grid; gap: 0.15rem; font-size: 0.8rem; font-weight: 600; color: var(--mudo); }
 .form-area-colhida input { width: 100%; box-sizing: border-box; }
 .form-area-botoes { grid-column: 1 / -1; display: flex; gap: 0.4rem; flex-wrap: wrap; }
