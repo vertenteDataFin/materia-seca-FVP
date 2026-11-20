@@ -68,5 +68,5 @@ describe('relatório da balança', () => {
     expect(linhas.filter((l) => l.totalKg == null).every((l) => !l.completa)).toBe(true);
     // completas sempre com líquido positivo
     expect(linhas.filter((l) => l.completa).every((l) => (l.liquidoKg ?? 0) > 0)).toBe(true);
-  });
+  }, 30_000); // lê o arquivo real com o Excel: com os outros testes rodando juntos, passa de 5 s
 });
