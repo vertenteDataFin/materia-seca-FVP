@@ -1,3 +1,4 @@
+import { carregarModulo } from './carregarModulo';
 import type ExcelJS from 'exceljs';
 import { amostrasPorColeta, dadosAtuais } from './dados';
 import type { Coleta, Dados, Talhao } from './tipos';
@@ -209,7 +210,7 @@ function dataHoraLocal(iso: string): Date | null {
 /** Gera o .xlsx (ExcelJS carregado sob demanda) e dispara o download. */
 export async function exportarExcel() {
   const planilhas = montarPlanilhas();
-  const { Workbook } = (await import('exceljs')).default;
+  const { Workbook } = (await carregarModulo(() => import('exceljs'))).default;
   const wb: ExcelJS.Workbook = new Workbook();
   wb.creator = 'Silagem MS';
 

@@ -1,3 +1,4 @@
+import { carregarModulo } from './carregarModulo';
 import { chaveNome, semAcento, siglaFazenda } from './kml';
 import { normalizarPlaca } from './colheita';
 import type { Talhao } from './tipos';
@@ -125,7 +126,7 @@ export async function lerArquivoBalanca(arquivo: File): Promise<LinhaBalanca[]> 
 
 /** Lê o conteúdo de um .xlsx da balança (ExcelJS carregado sob demanda). */
 export async function lerXlsxBalanca(conteudo: ArrayBuffer): Promise<LinhaBalanca[]> {
-  const { Workbook } = (await import('exceljs')).default;
+  const { Workbook } = (await carregarModulo(() => import('exceljs'))).default;
   const wb = new Workbook();
   await wb.xlsx.load(conteudo);
   const ws = wb.worksheets[0];

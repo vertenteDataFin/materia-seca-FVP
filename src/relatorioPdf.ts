@@ -1,3 +1,4 @@
+import { carregarModulo } from './carregarModulo';
 import { amostrasPorColeta, dadosAtuais, ultimaColetaPorTalhao } from './dados';
 import { estimativaTalhao, producaoPonto, resumoColeta, statusMS, teorMS, type Parametros, type ResumoColeta } from './calc';
 import { areaAnelM2 } from './kml';
@@ -219,7 +220,7 @@ const BORDA: [number, number, number] = [217, 226, 212];
 
 /** Gera o PDF (jsPDF carregado sob demanda) e dispara o download. */
 export async function gerarRelatorioPdf(rel: Relatorio = montarRelatorio()) {
-  const [{ jsPDF }, { default: autoTable }] = await Promise.all([import('jspdf'), import('jspdf-autotable')]);
+  const [{ jsPDF }, { default: autoTable }] = await carregarModulo(() => Promise.all([import('jspdf'), import('jspdf-autotable')]));
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const largura = doc.internal.pageSize.getWidth();
   const altura = doc.internal.pageSize.getHeight();
