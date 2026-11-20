@@ -2,8 +2,8 @@ import { useEffect, useMemo, useState, type ReactNode } from 'react';
 import { Icone } from '../Icone';
 import { Link } from 'react-router-dom';
 import { amostrasPorColeta, ultimaColetaPorTalhao, useDados } from '../dados';
-import { estimativaTalhao, resumoColeta, statusMS, type ResumoColeta } from '../calc';
-import { compararNomes, type Coleta, type Talhao } from '../tipos';
+import { estimativaTalhao, resumoColeta, statusMS, type Parametros, type ResumoColeta } from '../calc';
+import { compararNomes, type Coleta, type Dados, type Talhao } from '../tipos';
 import { Bolinha, Indicador } from '../components';
 import { fmt, fmtData } from '../util';
 import { useParametros } from '../parametros';
@@ -11,6 +11,8 @@ import { nomeComSigla } from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 import { seriesMS } from '../evolucaoMS';
 import GraficoMS from '../GraficoMS';
+import { coletasDoDia, datasComColeta, gerarImagemColetasDia } from '../imagemColetasDia';
+import { compartilharOuBaixarImagem } from '../imagemAmostraColheita';
 import { progressoColheita, resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
 
 type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'tMVha' | 'msPct' | 'tMSha' | 'colheita';
@@ -241,6 +243,7 @@ export default function Painel() {
       <h1>Painel de produção</h1>
       <div className="cartao">
         <h2>Resumo de produtividade</h2>
+        <ImagemDoDia dados={dados} parametros={parametros} />
 
         {/* 1) Só o que foi medido: talhões com coleta */}
         <h3 className="bloco-kpi">
@@ -418,5 +421,42 @@ export default function Painel() {
         <GraficoMS series={seriesMS(filtradas.map((l) => l.t), dados.coletas, dados.amostras, { amostrasColheita: dados.amostrasColheita, cargas: dados.cargas })} parametros={parametros} />
       </div>
     </>
+  );
+}
+
+/** Resumo: imagem (PNG) das amostragens de campo de um dia, para mandar pelo WhatsApp. */
+function ImagemDoDia({ dados, parametros }: { dados: Dados; parametros: Parametros }) {
+  const datas = datasComColeta(dados);
+  const [data, setData] = useState(datas[0] ?? '');
+  const [gerando, setGerando] = useState(false);
+  if (!datas.length) return null;
+  const dia = datas.includes(data) ? data : datas[0];
+  async function gerar() {
+    setGerando(true);
+    try {
+      const coletas = coletasDoDia(dia, dados, parametros);
+      if (!coletas.length) throw new Error('nenhum ponto registrado nas coletas desse dia');
+      const blob = await gerarImagemColetasDia(dia, coletas, parametros);
+      await compartilharOuBaixarImagem(blob, `Amostragem_campo_${dia}.png`, `Amostragem de campo de ${fmtData(dia)}`);
+    } catch (e) {
+      alert(`Não deu para gerar a imagem: ${(e as Error).message}`);
+    } finally {
+      setGerando(false);
+    }
+  }
+  return (
+    <div className="imagem-dia">
+      <label>
+        Amostras de campo do dia{' '}
+        <select value={dia} onChange={(e) => setData(e.target.value)} aria-label="Dia das amostras de campo">
+          {datas.map((d) => (
+            <option key={d} value={d}>{fmtData(d)}</option>
+          ))}
+        </select>
+      </label>
+      <button type="button" className="primario" disabled={gerando} onClick={gerar}>
+        {gerando ? 'Gerando…' : 'Gerar imagem'}
+      </button>
+    </div>
   );
 }

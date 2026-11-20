@@ -614,7 +614,9 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .andamento-legenda .leg.entregue { background: var(--verde); }
 .andamento-legenda .leg.estimada { background: #e0a100; width: 3px; }
 .andamento-legenda .leg.teto { background: #c62828; width: 3px; }
-.periodo-pdf { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; margin: 0.4rem 0 0.7rem; }
+.imagem-dia { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; margin: 0 0 0.6rem; padding: 0.55rem 0.7rem; background: var(--fundo); border-radius: 8px; }
+.imagem-dia label { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; flex-wrap: wrap; }
+.periodo-pdf {display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; margin: 0.4rem 0 0.7rem; }
 .periodo-pdf .periodo-titulo { font-weight: 600; }
 .periodo-pdf label { display: inline-flex; align-items: center; gap: 0.35rem; }
 .periodo-pdf .periodo-atalhos { display: inline-flex; gap: 0.7rem; }
