@@ -651,6 +651,7 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .coleta-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.2rem; margin: 0.7rem 0 0; font-size: 0.92rem; }
 .coleta-edicao { border-top: 1px solid var(--borda); margin-top: 1rem; padding-top: 0.9rem; }
 .coleta-edicao h3 { margin: 0; }
+.coleta-edicao .acoes-edicao { display: inline-flex; flex-wrap: wrap; gap: 0.4rem; justify-content: flex-end; }
 @media (max-width: 600px) {
   .coleta-ident dl { grid-template-columns: 1fr 1fr; }
   .coleta-secao .cabecalho-cartao { flex-wrap: nowrap; }

@@ -37,11 +37,9 @@ export function pendenteLab(a: Amostra): boolean {
   return teorMS(a) == null;
 }
 
-/** Para onde o toque na coleta leva: etapa pendente em campo, laboratório (sem MS) ou o resultado. */
+/** Para onde o toque na coleta leva: laboratório (sem MS) ou a página da coleta (identificação, mapa e pontos). */
 export function destinoColeta(id: string, status: StatusColeta): string {
   switch (status) {
-    case 'semPontos': return `/coletas/${id}/pontos`;
-    case 'campo': return `/coletas/${id}/pesos`;
     case 'laboratorio': return `/coletas?coleta=${id}`;
     default: return `/coletas/${id}`;
   }

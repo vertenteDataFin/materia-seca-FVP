@@ -4,8 +4,8 @@ import { destinoColeta } from './fluxo';
 
 describe('destinoColeta', () => {
   it('leva para a etapa pendente, o laboratório ou o resultado conforme a situação', () => {
-    expect(destinoColeta('c1', 'semPontos')).toBe('/coletas/c1/pontos');
-    expect(destinoColeta('c1', 'campo')).toBe('/coletas/c1/pesos');
+    expect(destinoColeta('c1', 'semPontos')).toBe('/coletas/c1');
+    expect(destinoColeta('c1', 'campo')).toBe('/coletas/c1');
     expect(destinoColeta('c1', 'laboratorio')).toBe('/coletas?coleta=c1');
     expect(destinoColeta('c1', 'completa')).toBe('/coletas/c1');
   });

@@ -20,7 +20,8 @@ export default function ColetaDetalhe() {
   const [capturando, setCapturando] = useState<string | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
   const [editandoDados, setEditandoDados] = useState(false);
-  const [editandoPontos, setEditandoPontos] = useState(false);
+  // Coleta ainda sem pontos: já abre a edição (marcar no mapa ou pelo GPS)
+  const [editandoPontos, setEditandoPontos] = useState(() => !!dados && !dados.amostras.some((a) => a.coletaId === coletaId));
   const celular = useCelular();
   const { podeExcluir } = usePermissoes();
 
@@ -217,9 +218,12 @@ export default function ColetaDetalhe() {
           <div className="coleta-edicao">
         <div className="cabecalho-cartao">
           <h3>Editar pontos</h3>
-          <button className="primario" onClick={adicionarPonto} disabled={capturando != null}>
-            {capturando === 'novo' ? 'Lendo GPS…' : <><Icone nome="gps" /> Novo ponto aqui</>}
-          </button>
+          <span className="acoes-edicao">
+            <Link className="botao" to={`/coletas/${coletaId}/pontos`}><Icone nome="mapa" /> Marcar no mapa</Link>
+            <button className="primario" onClick={adicionarPonto} disabled={capturando != null}>
+              {capturando === 'novo' ? 'Lendo GPS…' : <><Icone nome="gps" /> Novo ponto aqui</>}
+            </button>
+          </span>
         </div>
         <p className="dica">
           Peso verde = massa cortada no quadro de 1 m² (campo);
