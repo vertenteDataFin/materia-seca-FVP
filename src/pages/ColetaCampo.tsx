@@ -1,10 +1,9 @@
 import { useState } from 'react';
 import { Link, useNavigate, useParams } from 'react-router-dom';
-import { atualizarAmostra, useDados } from '../dados';
+import { useDados } from '../dados';
 import type { Amostra } from '../tipos';
 import { adicionarPonto, removerPonto } from '../coletas';
-import { producaoPonto, resumoColeta } from '../calc';
-import { CampoNumero } from '../components';
+import { producaoPonto } from '../calc';
 import { capturarPosicao, dentroDoTalhao, origemPosicao, type OrigemPosicao, type Posicao } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { codigoAmostra } from '../fluxo';
@@ -13,8 +12,9 @@ import { usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 
 /**
- * PROTÓTIPO — coleta de campo com menos toques, passo 2: pontos e pesos na mesma tela.
- * "Ponto aqui" lê o GPS, cria o ponto e já abre o campo do peso; o resumo atualiza na hora.
+ * PROTÓTIPO — coleta de campo com menos toques, passo 2: em campo só se marcam os pontos.
+ * "Ponto aqui" lê o GPS e cria o ponto com o código da etiqueta do saco; o peso verde é lançado depois,
+ * em "Aguardando pesagem" (topo da página Amostragem).
  */
 export default function ColetaCampo() {
   const coletaId = useParams().id!;
@@ -23,7 +23,6 @@ export default function ColetaCampo() {
   const { podeExcluir } = usePermissoes();
   const [lendo, setLendo] = useState(false);
   const [erro, setErro] = useState('');
-  const [focoId, setFocoId] = useState<string | null>(null);
   const [verMapa, setVerMapa] = useState(true);
 
   if (!dados) return null;
@@ -37,16 +36,16 @@ export default function ColetaCampo() {
   }
   const talhao = dados.talhoes.find((t) => t.id === coleta.talhaoId);
   const amostras = dados.amostras.filter((a) => a.coletaId === coletaId).sort((a, b) => b.ponto - a.ponto); // o último ponto em cima
-  const r = resumoColeta(coleta, amostras);
   const fora = (a: Amostra) => (a.lat != null && a.lng != null ? dentroDoTalhao(a.lng, a.lat, talhao?.geometria) === false : false);
   const semPeso = amostras.filter((a) => a.pesoVerdeKg == null).length;
+  const comGps = amostras.filter((a) => a.lat != null && origemPosicao(a) === 'gps').length;
+  const nFora = amostras.filter(fora).length;
 
   function novo(pos?: Pick<Posicao, 'lat' | 'lng'> & Partial<Posicao>, origem?: OrigemPosicao) {
-    const id = adicionarPonto(
+    adicionarPonto(
       coletaId,
       pos ? { lat: pos.lat, lng: pos.lng, precisaoM: pos.precisaoM ?? null, capturadoEm: pos.capturadoEm ?? new Date().toISOString(), origemPos: origem } : {},
     );
-    setFocoId(id);
   }
 
   async function pontoAqui() {
@@ -81,11 +80,11 @@ export default function ColetaCampo() {
       </div>
 
       <div className="resumo-campo" aria-live="polite">
-        <div><strong>{r.nPontos}</strong><small>pesados</small></div>
-        <div><strong>{fmt(r.tMVha)}</strong><small>t MV/ha</small></div>
-        <div className={r.cvPct != null && r.cvPct > 25 ? 'alerta' : ''}><strong>{r.cvPct == null ? '—' : `${fmt(r.cvPct, 0)}%`}</strong><small>CV</small></div>
+        <div><strong>{amostras.length}</strong><small>pontos</small></div>
+        <div><strong>{comGps}</strong><small>com GPS</small></div>
+        <div className={nFora ? 'alerta' : ''}><strong>{nFora}</strong><small>fora do talhão</small></div>
       </div>
-      {r.cvPct != null && r.cvPct > 25 && <p className="aviso">Variação alta entre pontos: vale pesar mais um ou dois.</p>}
+      {nFora > 0 && <p className="aviso">Ponto fora do contorno do talhão: confira se o GPS pegou bem ou remova e marque de novo.</p>}
 
       {talhao?.geometria?.length ? (
         <div className="cartao mapa-campo">
@@ -109,7 +108,10 @@ export default function ColetaCampo() {
       )}
 
       {!amostras.length ? (
-        <p className="vazio cartao">Vá até o primeiro ponto, corte o quadro e toque em <strong>Ponto aqui</strong>.</p>
+        <p className="vazio cartao">
+          Vá até o primeiro ponto, corte o quadro e toque em <strong>Ponto aqui</strong>. Escreva o código que aparecer na etiqueta do saco: o peso é
+          lançado depois, em <strong>Aguardando pesagem</strong>.
+        </p>
       ) : (
         <div className="pontos-campo">
           {amostras.map((a) => (
@@ -123,16 +125,9 @@ export default function ColetaCampo() {
                   {producaoPonto(a, coleta.areaAmostralM2) != null ? ` · ${fmt(producaoPonto(a, coleta.areaAmostralM2), 2)} kg/m²` : ''}
                 </small>
               </div>
-              <label className="ponto-peso">
-                <span>kg</span>
-                <CampoNumero
-                  valor={a.pesoVerdeKg}
-                  ariaLabel={`Peso verde ponto ${a.ponto}`}
-                  placeholder="peso"
-                  autoFocus={focoId === a.id}
-                  aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })}
-                />
-              </label>
+              <span className={`ponto-peso-status${a.pesoVerdeKg == null ? ' pendente' : ''}`}>
+                {a.pesoVerdeKg == null ? 'pesar depois' : `${fmt(a.pesoVerdeKg, 2)} kg`}
+              </span>
               {podeExcluir && (
                 <button type="button" className="icone-acao perigo" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && removerPonto(a.id)}>
                   <Icone nome="excluir" />
@@ -147,8 +142,14 @@ export default function ColetaCampo() {
         <button type="button" className="primario botao-grande" onClick={pontoAqui} disabled={lendo}>
           {lendo ? 'Lendo GPS…' : <><Icone nome="gps" /> Ponto aqui</>}
         </button>
-        <button type="button" className="botao-grande" disabled={!r.nPontos} onClick={() => navigate(`/coletas/${coletaId}`)} title={semPeso ? `${semPeso} ponto(s) sem peso` : undefined}>
-          <Icone nome="ok" /> Concluir
+        <button
+          type="button"
+          className="botao-grande"
+          disabled={!amostras.length}
+          onClick={() => navigate(semPeso ? `/coletas?pesagem=${coletaId}` : `/coletas/${coletaId}`)}
+          title={semPeso ? `${semPeso} ponto(s) para pesar depois` : undefined}
+        >
+          <Icone nome="ok" /> Terminei
         </button>
       </div>
     </div>

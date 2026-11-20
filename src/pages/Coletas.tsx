@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react';
 import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FilaMS } from './Laboratorio';
+import { FilaPesagem } from './FilaPesagem';
 import AmostrasColheitaCard from './AmostrasColheita';
 import { amostrasPorColeta, useDados } from '../dados';
 import { compararColetasDesc } from '../tipos';
@@ -85,6 +86,7 @@ export default function Coletas() {
         abrir a etapa pendente ou o resultado.
       </p>
 
+      {podeTestarPrototipo && <FilaPesagem destaque={params.get('pesagem')} />}
       <FilaMS destaque={params.get('coleta')} destaqueColheita={params.get('colheita')} />
 
       <div className="cartao">

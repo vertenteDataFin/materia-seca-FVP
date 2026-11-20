@@ -836,7 +836,10 @@ th.ordenavel.ativa .seta { opacity: 1; }
 .mapa-campo .link { display: inline-flex; align-items: center; gap: 0.25rem; margin-bottom: 0.4rem; }
 .pontos-campo { display: grid; gap: 0.5rem; }
 .ponto-campo { display: flex; align-items: center; gap: 0.6rem; background: white; border: 1px solid var(--borda); border-radius: 8px; padding: 0.5rem 0.6rem; }
-.ponto-campo.sem-peso { border-color: var(--verde); border-width: 2px; }
+.ponto-campo.sem-peso { border-color: var(--borda); }
+.ponto-peso-status { flex: none; font-size: 0.85rem; font-weight: 600; color: var(--verde); }
+.ponto-peso-status.pendente { color: #8a6100; background: #fdf3d6; border-radius: 999px; padding: 0.15rem 0.55rem; font-size: 0.78rem; }
+.ponto-info .codigo { font-size: 1rem; font-weight: 700; align-self: flex-start; }
 .ponto-campo.fora { border-color: #b3261e; }
 .ponto-n { flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--verde); color: white; font-weight: 700; display: grid; place-items: center; }
 .ponto-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
