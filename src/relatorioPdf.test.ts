@@ -1,7 +1,7 @@
 // @vitest-environment jsdom
 import { describe, expect, it } from 'vitest';
 import { PARAMETROS_PADRAO } from './calc';
-import { descreverDatas, montarRelatorio } from './relatorioPdf';
+import { descreverDatas, descreverPeriodo, montarRelatorio, noPeriodo } from './relatorioPdf';
 import { montarPlanilhas } from './exportarExcel';
 import type { Amostra, AmostraColheita, Dados } from './tipos';
 
@@ -114,6 +114,22 @@ describe('relatório em PDF', () => {
       'Talhões ainda sem coleta: TL 20 - Conf.',
     ]);
     expect(r.premissas[3]).toContain('15 % de perdas');
+  });
+
+  it('período: só as coletas das datas escolhidas; uma data só; subtítulo e premissa dizem o período', () => {
+    const tudo = montarRelatorio(dados, PARAMETROS_PADRAO, new Date(2026, 10, 11, 10, 0));
+    const dia = montarRelatorio(dados, PARAMETROS_PADRAO, new Date(2026, 10, 11, 10, 0), { de: '2026-11-10', ate: '2026-11-10' });
+    expect(dia.amostras.linhas.length).toBeGreaterThan(0);
+    expect(dia.amostras.linhas.length).toBeLessThan(tudo.amostras.linhas.length);
+    expect(dia.amostras.linhas.every((l) => l[2] === '10/11/2026')).toBe(true);
+    expect(dia.subtitulo).toMatch(/período de 10\/11\/2026 · coletas de 10\/11\/2026/);
+    expect(dia.premissas.join(' ')).toMatch(/Só as coletas de 10\/11\/2026/);
+    const ate = montarRelatorio(dados, PARAMETROS_PADRAO, new Date(2026, 10, 11, 10, 0), { ate: '2026-11-07' });
+    expect(ate.amostras.linhas.every((l) => l[2] <= '07/11/2026')).toBe(true);
+    expect(noPeriodo('2026-11-10T07:30', { de: '2026-11-10', ate: '2026-11-10' })).toBe(true);
+    expect(noPeriodo('2026-11-11', { ate: '2026-11-10' })).toBe(false);
+    expect(descreverPeriodo({ de: '2026-11-10' })).toBe('a partir de 10/11/2026');
+    expect(descreverPeriodo({})).toBe('');
   });
 
   it('sem dados, não quebra', () => {

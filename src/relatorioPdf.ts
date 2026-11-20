@@ -90,13 +90,35 @@ function montarColheita(d: Dados): Relatorio['colheita'] {
   };
 }
 
-/** Monta o relatório (dados puros, testável) a partir do estado atual e dos parâmetros. */
-export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerParametros(), agora = new Date()): Relatorio {
+/** Período do relatório (datas AAAA-MM-DD, inclusive); sem `de`/`ate` = sem limite daquele lado. */
+export interface PeriodoRelatorio {
+  de?: string;
+  ate?: string;
+}
+
+/** A data (AAAA-MM-DD, ou o início de um AAAA-MM-DDTHH:mm) está no período? */
+export function noPeriodo(data: string, periodo: PeriodoRelatorio = {}): boolean {
+  const dia = data.slice(0, 10);
+  return (!periodo.de || dia >= periodo.de) && (!periodo.ate || dia <= periodo.ate);
+}
+
+/** "de 10/11/2026 a 19/11/2026", "de 19/11/2026", "a partir de 10/11/2026", "até 19/11/2026"; '' sem filtro. */
+export function descreverPeriodo(periodo: PeriodoRelatorio = {}): string {
+  const { de, ate } = periodo;
+  if (de && ate) return de === ate ? `de ${fmtData(de)}` : `de ${fmtData(de)} a ${fmtData(ate)}`;
+  if (de) return `a partir de ${fmtData(de)}`;
+  if (ate) return `até ${fmtData(ate)}`;
+  return '';
+}
+
+/** Monta o relatório (dados puros, testável) a partir do estado atual e dos parâmetros; opcionalmente só de um período. */
+export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerParametros(), agora = new Date(), periodo: PeriodoRelatorio = {}): Relatorio {
+  const filtrado = !!(periodo.de || periodo.ate);
   const talhoes = [...d.talhoes].sort((a, b) => compararNomes(a.nome, b.nome));
   const porId = new Map(talhoes.map((t) => [t.id, t]));
   const porColeta = amostrasPorColeta(d.amostras);
   const coletas = [...d.coletas]
-    .filter((c) => porId.has(c.talhaoId))
+    .filter((c) => porId.has(c.talhaoId) && noPeriodo(c.data, periodo))
     .sort((a, b) => compararNomes(porId.get(a.talhaoId)!.nome, porId.get(b.talhaoId)!.nome) || a.data.localeCompare(b.data) || (a.criadoEm ?? '').localeCompare(b.criadoEm ?? ''));
   const curto = (c: Coleta) => nomeComSigla(porId.get(c.talhaoId)!.nome, porId.get(c.talhaoId)!.fazenda);
   const fazendas = [...new Set(coletas.map((c) => porId.get(c.talhaoId)!.fazenda).filter(Boolean))];
@@ -186,12 +208,12 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
   });
   if (semMS.length) pendencias.push(`Aferir a MS no laboratório: ${semMS.map((c) => `${curto(c)} de ${fmtData(c.data)}`).join(', ')}.`);
   const semColeta = talhoes.filter((t) => t.capim && !ultima.has(t.id)).map((t) => nomeComSigla(t.nome, t.fazenda));
-  if (semColeta.length) pendencias.push(`Talhões ainda sem coleta: ${semColeta.join(', ')}.`);
+  if (semColeta.length) pendencias.push(`${filtrado ? 'Talhões sem coleta no período' : 'Talhões ainda sem coleta'}: ${semColeta.join(', ')}.`);
   if (!pendencias.length) pendencias.push('Nenhuma pendência.');
 
   return {
     titulo: 'RELATÓRIO DE COLETAS — MATÉRIA SECA E PRODUÇÃO ESTIMADA',
-    subtitulo: `${fazendas.length ? `Fazenda ${fazendas.join(' / ')} · ` : ''}coletas de ${descreverDatas(coletas.map((c) => c.data))} · emitido em ${fmtData(hoje())}`,
+    subtitulo: `${fazendas.length ? `Fazenda ${fazendas.join(' / ')} · ` : ''}${filtrado ? `período ${descreverPeriodo(periodo)} · ` : ''}coletas de ${descreverDatas(coletas.map((c) => c.data))} · emitido em ${fmtData(hoje())}`,
     premissas: [
       quadros.length === 1
         ? `Quadro de amostragem de ${fmt(quadros[0], 2)} m². Massa verde (MV) de cada amostra em kg/m².`
@@ -200,7 +222,9 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
       'Áreas: área em uso de cada talhão conforme o cadastro do app (conferir tamanhos).',
       // só caracteres do WinAnsi (fontes padrão do PDF): hífen no lugar do sinal de menos
       `Produção: t MV/ha = kg/m² × 10; t MS/ha = t MV/ha × MS ÷ 100. Silagem = MV total - ${fmt(p.perdasPct, 0)} % de perdas; volume de silo a ${fmt(p.densidadeKgM3, 0)} kg/m³. Faixa ideal de MS: ${fmt(p.msMin, 0)}–${fmt(p.msMax, 0)} %.`,
-      'Resultados por talhão usam a coleta mais recente de cada talhão.',
+      filtrado
+        ? `Só as coletas ${descreverPeriodo(periodo)}; resultados por talhão usam a coleta mais recente de cada talhão no período.`
+        : 'Resultados por talhão usam a coleta mais recente de cada talhão.',
     ],
     amostras: { cabecalho: ['Talhão', 'Capim', 'Data da coleta', 'Amostra', 'MV (kg/m²)', 'MV (t/ha)', 'MS (%)', 'MS (t/ha)'], linhas: linhasAmostras },
     talhoes: {
@@ -211,7 +235,12 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
     },
     leitura,
     pendencias,
-    colheita: montarColheita(d),
+    // colheita do período: cargas e amostras de caminhão das datas escolhidas (a referência de campo continua a mais recente)
+    colheita: montarColheita(
+      filtrado
+        ? { ...d, cargas: (d.cargas ?? []).filter((c) => noPeriodo(c.saidaEm, periodo)), amostrasColheita: (d.amostrasColheita ?? []).filter((a) => noPeriodo(a.coletadaEm, periodo)) }
+        : d,
+    ),
     rodape: `Gerado pelo app Silagem MS em ${agora.toLocaleString('pt-BR')} a partir dos dados de campo informados; cálculos conforme as fórmulas do app (${URL_APP}).`,
   };
 }
@@ -222,7 +251,7 @@ const MUDO: [number, number, number] = [107, 118, 107];
 const BORDA: [number, number, number] = [217, 226, 212];
 
 /** Gera o PDF (jsPDF carregado sob demanda) e dispara o download. */
-export async function gerarRelatorioPdf(rel: Relatorio = montarRelatorio()) {
+export async function gerarRelatorioPdf(rel: Relatorio = montarRelatorio(), periodo: PeriodoRelatorio = {}) {
   const [{ jsPDF }, { default: autoTable }] = await carregarModulo(() => Promise.all([import('jspdf'), import('jspdf-autotable')]));
   const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
   const largura = doc.internal.pageSize.getWidth();
@@ -355,5 +384,6 @@ export async function gerarRelatorioPdf(rel: Relatorio = montarRelatorio()) {
     doc.text(`${i}/${paginas}`, largura - M, altura - M + 6, { align: 'right' });
   }
 
-  doc.save(`Relatorio_coletas_MS_${hoje()}.pdf`);
+  const sufixo = periodo.de && periodo.de === periodo.ate ? periodo.de : periodo.de || periodo.ate ? `${periodo.de ?? 'inicio'}_a_${periodo.ate ?? hoje()}` : hoje();
+  doc.save(`Relatorio_coletas_MS_${sufixo}.pdf`);
 }

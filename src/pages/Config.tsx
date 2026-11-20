@@ -10,7 +10,7 @@ import { COLETAS_INICIAIS, importarColetasIniciais } from '../coletasIniciais';
 import { FIREBASE_ATIVO } from '../firebase';
 import { sair } from '../sessao';
 import { adicionarMembro, alterarPapel, papelDe, removerMembro, ROTULO_PAPEL, useMembros, type Papel } from '../membros';
-import { gerarRelatorioPdf } from '../relatorioPdf';
+import { descreverPeriodo, gerarRelatorioPdf, montarRelatorio, noPeriodo } from '../relatorioPdf';
 import { usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 import { liberarSolicitacao, recusarSolicitacao, useSolicitacoes } from '../solicitacoes';
@@ -31,6 +31,9 @@ export default function Config({ usuario }: { usuario?: User }) {
   const [texto, setTexto] = useState(() => textoDe(parametros));
   const [mensagem, setMensagem] = useState('');
   const [exportando, setExportando] = useState(false);
+  // Período do relatório em PDF (vazio = todas as coletas)
+  const [pdfDe, setPdfDe] = useState('');
+  const [pdfAte, setPdfAte] = useState('');
   const arquivo = useRef<HTMLInputElement>(null);
   const { podeEditarTalhoes, admin } = usePermissoes();
 
@@ -59,10 +62,21 @@ export default function Config({ usuario }: { usuario?: User }) {
   }
 
   async function gerarPdf() {
+    const de = pdfDe || undefined;
+    const ate = pdfAte || undefined;
+    if (de && ate && de > ate) {
+      setMensagem('Relatório: a data inicial ("De") está depois da final ("Até").');
+      return;
+    }
+    const periodo = { de, ate };
+    if ((de || ate) && !dadosAtuais().coletas.some((c) => noPeriodo(c.data, periodo))) {
+      setMensagem(`Relatório: nenhuma coleta ${descreverPeriodo(periodo)}.`);
+      return;
+    }
     setExportando(true);
     setMensagem('');
     try {
-      await gerarRelatorioPdf();
+      await gerarRelatorioPdf(montarRelatorio(undefined, undefined, undefined, periodo), periodo);
     } catch (e) {
       setMensagem(`Falha ao gerar o relatório: ${(e as Error).message}`);
     } finally {
@@ -175,6 +189,23 @@ export default function Config({ usuario }: { usuario?: User }) {
           O relatório em PDF segue o modelo do relatório de coletas (premissas, resultados por amostra e por talhão e leitura dos resultados).
           O Excel traz as planilhas Talhões, Coletas (com os resultados calculados), Amostras e Parâmetros.
         </p>
+        <div className="periodo-pdf">
+          <span className="periodo-titulo">Período do relatório em PDF:</span>
+          <label>
+            De <input type="date" value={pdfDe} max={pdfAte || undefined} onChange={(e) => setPdfDe(e.target.value)} />
+          </label>
+          <label>
+            Até <input type="date" value={pdfAte} min={pdfDe || undefined} onChange={(e) => setPdfAte(e.target.value)} />
+          </label>
+          <span className="periodo-atalhos">
+            <button type="button" className="link" onClick={() => { setPdfDe(hoje()); setPdfAte(hoje()); }}>hoje</button>
+            {pdfDe && pdfDe !== pdfAte && <button type="button" className="link" onClick={() => setPdfAte(pdfDe)}>só o dia {pdfDe.split('-').reverse().join('/').slice(0, 5)}</button>}
+            {(pdfDe || pdfAte) && <button type="button" className="link" onClick={() => { setPdfDe(''); setPdfAte(''); }}>todas as coletas</button>}
+          </span>
+          <small className="mudo">
+            {pdfDe || pdfAte ? `Só as coletas ${descreverPeriodo({ de: pdfDe || undefined, ate: pdfAte || undefined })} (e as cargas e amostras de caminhão dessas datas).` : 'Em branco: todas as coletas. Para uma data só, use a mesma data em "De" e "Até".'}
+          </small>
+        </div>
         <div className="acoes">
           <button className="primario" onClick={gerarPdf} disabled={exportando}>{exportando ? 'Gerando…' : 'Gerar relatório (PDF)'}</button>
           <button onClick={exportarXlsx} disabled={exportando}>Exportar Excel (.xlsx)</button>
