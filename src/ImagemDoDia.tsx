@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import type { Parametros } from './calc';
+import { Icone } from './Icone';
 import { compartilharOuBaixarImagem } from './imagemAmostraColheita';
 import { coletasDoDia, datasComColeta, gerarImagemColetasDia } from './imagemColetasDia';
 import type { Dados } from './tipos';
@@ -27,16 +28,13 @@ export default function ImagemDoDia({ dados, parametros }: { dados: Pick<Dados, 
   }
   return (
     <div className="imagem-dia">
-      <label>
-        Imagem das amostras do dia{' '}
-        <select value={dia} onChange={(e) => setData(e.target.value)} aria-label="Dia das amostras de campo">
-          {datas.map((d) => (
-            <option key={d} value={d}>{fmtData(d)}</option>
-          ))}
-        </select>
-      </label>
-      <button type="button" className="primario" disabled={gerando} onClick={gerar}>
-        {gerando ? 'Gerando…' : 'Gerar imagem'}
+      <select value={dia} onChange={(e) => setData(e.target.value)} aria-label="Dia do relatório das amostras de campo" title="Dia do relatório (imagem)">
+        {datas.map((d) => (
+          <option key={d} value={d}>{fmtData(d)}</option>
+        ))}
+      </select>
+      <button type="button" className="primario" disabled={gerando} onClick={gerar} title="Gerar a imagem das amostras de campo do dia para compartilhar">
+        <Icone nome="enviar" /> {gerando ? 'Gerando…' : 'Relatório'}
       </button>
     </div>
   );

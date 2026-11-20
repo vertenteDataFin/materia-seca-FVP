@@ -23,8 +23,9 @@ import filtro from '@material-design-icons/svg/filled/filter_list.svg?raw';
 import colheita from '@material-design-icons/svg/filled/agriculture.svg?raw';
 import caminhao from '@material-design-icons/svg/filled/local_shipping.svg?raw';
 import balanca from '@material-design-icons/svg/filled/scale.svg?raw';
+import enviar from '@material-design-icons/svg/filled/send.svg?raw';
 
-const ICONES = { editar, excluir, fechar, atualizar, gps, alerta, ok, expandir, recolher, subir, descer, ordenar, painel, mapa, campo, lab, talhoes, config, mais, adicionar, filtro, colheita, caminhao, balanca } as const;
+const ICONES = { editar, excluir, fechar, atualizar, gps, alerta, ok, expandir, recolher, subir, descer, ordenar, painel, mapa, campo, lab, talhoes, config, mais, adicionar, filtro, colheita, caminhao, balanca, enviar } as const;
 
 export type NomeIcone = keyof typeof ICONES;
 

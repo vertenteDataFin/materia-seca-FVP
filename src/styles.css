@@ -614,8 +614,17 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .andamento-legenda .leg.entregue { background: var(--verde); }
 .andamento-legenda .leg.estimada { background: #e0a100; width: 3px; }
 .andamento-legenda .leg.teto { background: #c62828; width: 3px; }
-.imagem-dia { display: flex; flex-wrap: wrap; align-items: center; gap: 0.5rem 0.8rem; margin: 0 0 0.6rem; padding: 0.55rem 0.7rem; background: var(--fundo); border-radius: 8px; }
-.imagem-dia label { display: inline-flex; align-items: center; gap: 0.4rem; font-weight: 600; flex-wrap: wrap; }
+/* Relatório (imagem) das amostras do dia: no cabeçalho do card, entre o título e o filtro */
+.imagem-dia { display: flex; align-items: center; gap: 0.4rem; margin-left: auto; }
+.imagem-dia select { width: auto; padding-top: 0.35rem; padding-bottom: 0.35rem; }
+.imagem-dia button { display: inline-flex; align-items: center; gap: 0.35rem; white-space: nowrap; padding-top: 0.4rem; padding-bottom: 0.4rem; }
+.cabecalho-filtro .imagem-dia + .botao-filtro { margin-left: 0; }
+/* celular: não cabe tudo numa linha; título e filtro em cima, dia e "Relatório" logo abaixo */
+@media (max-width: 600px) {
+  .cabecalho-cartao.cabecalho-filtro:has(.imagem-dia) { flex-wrap: wrap; row-gap: 0.5rem; }
+  .cabecalho-filtro .imagem-dia { order: 3; flex: 1 1 100%; margin-left: 0; }
+  .cabecalho-filtro .imagem-dia button { flex: none; }
+}
 .periodo-pdf {display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.8rem; margin: 0.4rem 0 0.7rem; }
 .periodo-pdf .periodo-titulo { font-weight: 600; }
 .periodo-pdf label { display: inline-flex; align-items: center; gap: 0.35rem; }

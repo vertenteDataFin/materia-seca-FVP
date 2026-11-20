@@ -90,6 +90,7 @@ export default function Coletas() {
       <div className="cartao">
         <div className="cabecalho-cartao cabecalho-filtro">
           <h2>Amostragem de campo</h2>
+          <ImagemDoDia dados={dados} parametros={parametros} />
           <button
             type="button"
             className={`icone-acao botao-filtro${nFiltros ? ' ativo' : ''}`}
@@ -102,7 +103,6 @@ export default function Coletas() {
             {nFiltros > 0 && <span className="contador-filtro">{nFiltros}</span>}
           </button>
         </div>
-        <ImagemDoDia dados={dados} parametros={parametros} />
         {mostrarFiltros && (
           <div className="painel-filtros">
             <label>
