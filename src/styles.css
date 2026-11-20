@@ -636,6 +636,26 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .periodo-pdf label { display: inline-flex; align-items: center; gap: 0.35rem; }
 .periodo-pdf .periodo-atalhos { display: inline-flex; gap: 0.7rem; }
 .periodo-pdf small { flex-basis: 100%; }
+/* Resultado da coleta: uma página só (identificação, mapa, tabela dos pontos) */
+.coleta-ident { display: flex; align-items: flex-start; gap: 0.5rem; }
+.coleta-ident dl { flex: 1; margin: 0; display: grid; grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr)); gap: 0.6rem 1.2rem; }
+.coleta-ident dl > div.largo { grid-column: 1 / -1; }
+.coleta-ident dt { font-size: 0.75rem; font-weight: 700; text-transform: uppercase; letter-spacing: 0.02em; color: var(--mudo); }
+.coleta-ident dd { margin: 0.1rem 0 0; font-size: 1.05rem; font-weight: 600; }
+.edicao-dados { margin-top: 0.8rem; padding: 0.8rem; border: 1px dashed var(--borda); border-radius: 8px; background: var(--fundo); }
+.coleta-secao { border-top: 1px solid var(--borda); margin-top: 1rem; padding-top: 0.9rem; }
+.coleta-secao h2 { font-size: 1.05rem; margin: 0 0 0.6rem; }
+.coleta-secao .cabecalho-cartao h2 { margin: 0; }
+.tabela-pontos tfoot td { border-top: 2px solid var(--borda); font-weight: 700; }
+.tabela-pontos tr.ponto-fora td { background: #fbe4e1; }
+.coleta-resumo { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 1.2rem; margin: 0.7rem 0 0; font-size: 0.92rem; }
+.coleta-edicao { border-top: 1px solid var(--borda); margin-top: 1rem; padding-top: 0.9rem; }
+.coleta-edicao h3 { margin: 0; }
+@media (max-width: 600px) {
+  .coleta-ident dl { grid-template-columns: 1fr 1fr; }
+  .coleta-secao .cabecalho-cartao { flex-wrap: nowrap; }
+  .coleta-secao .cabecalho-cartao > button { flex: none; }
+}
 .historico-area {list-style: none; margin: 0.25rem 0 0.2rem; padding: 0; display: grid; gap: 0.25rem; }
 .historico-area li { display: flex; align-items: flex-start; justify-content: space-between; gap: 0.4rem; padding: 0.3rem 0.4rem; background: var(--fundo); border-radius: 6px; }
 .menu-lista .historico-area .icone-acao { width: auto; padding: 0.15rem; flex: none; }

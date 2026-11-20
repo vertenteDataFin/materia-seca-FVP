@@ -3,11 +3,11 @@ import { Link, useNavigate, useParams } from 'react-router-dom';
 import { adicionarAmostra, atualizarAmostra, atualizarColeta, excluirAmostra, excluirColeta, useDados } from '../dados';
 import type { Amostra, Coleta, Talhao } from '../tipos';
 import { estimativaTalhao, lancarSeco, producaoPonto, resumoColeta, statusMS, teorMS, teorUmidade, UMIDO_PADRAO_G } from '../calc';
-import { AvisoQuadro, CampoNumero, Indicador, PassosColeta, SeloMS, useCelular } from '../components';
+import { AvisoQuadro, CampoNumero, SeloMS, useCelular } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM } from '../geo';
 import { Icone } from '../Icone';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
-import { fmt } from '../util';
+import { fmt, fmtData } from '../util';
 import { useParametros } from '../parametros';
 import { usePermissoes } from '../permissoes';
 import { codigoAmostra, ROTULO_STATUS_COLETA, statusColeta } from '../fluxo';
@@ -19,7 +19,8 @@ export default function ColetaDetalhe() {
   const parametros = useParametros();
   const [capturando, setCapturando] = useState<string | 'novo' | null>(null);
   const [erroGps, setErroGps] = useState('');
-  const [mostrarMapa, setMostrarMapa] = useState(true);
+  const [editandoDados, setEditandoDados] = useState(false);
+  const [editandoPontos, setEditandoPontos] = useState(false);
   const celular = useCelular();
   const { podeExcluir } = usePermissoes();
 
@@ -101,25 +102,127 @@ export default function ColetaDetalhe() {
       <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} title="Remover ponto" onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && excluirAmostra(a.id)}><Icone nome="excluir" /></button>
     ) : null;
 
+  const status = statusColeta(amostras);
+  const ordenadas = [...amostras].sort((a, b) => a.ponto - b.ponto);
+  const tMSponto = (a: Amostra) => {
+    const kg = producaoPonto(a, coleta.areaAmostralM2);
+    const ms = teorMS(a);
+    return kg == null || ms == null ? null : (kg * 10 * ms) / 100;
+  };
+
   return (
     <>
       <div className="titulo-linha">
         <h1>Coleta — {talhao ? talhao.nome : 'talhão removido'}</h1>
         <Link to="/coletas">← Coletas</Link>
       </div>
-      <PassosColeta coletaId={coletaId} atual={4} />
 
-      <CabecalhoColeta coleta={coleta} talhoes={talhoes} />
+      <div className="cartao coleta-unica">
+        {/* 1) Identificação da coleta */}
+        <div className="coleta-ident">
+          <dl>
+            <div><dt>Talhão</dt><dd>{talhao ? talhao.nome : 'talhão removido'}{talhao?.capim ? <small className="mudo"> · {talhao.capim}</small> : null}</dd></div>
+            <div><dt>Data da coleta</dt><dd>{fmtData(coleta.data)}</dd></div>
+            <div><dt>Responsável</dt><dd>{coleta.responsavel || <span className="mudo">—</span>}</dd></div>
+            <div><dt>Situação</dt><dd>{ROTULO_STATUS_COLETA[status]}</dd></div>
+            {coleta.observacoes ? <div className="largo"><dt>Observações</dt><dd>{coleta.observacoes}</dd></div> : null}
+          </dl>
+          <button type="button" className="icone-acao" aria-expanded={editandoDados} aria-label="Editar talhão, data, responsável e observações" title="Editar dados da coleta" onClick={() => setEditandoDados((v) => !v)}>
+            <Icone nome={editandoDados ? 'fechar' : 'editar'} />
+          </button>
+        </div>
+        {editandoDados && <CabecalhoColeta coleta={coleta} talhoes={talhoes} />}
 
-      <div className="cartao">
+        {/* 2) Mapa dos pontos */}
+        {!!talhao?.geometria?.length && (
+          <section className="coleta-secao">
+            <h2>Mapa dos pontos</h2>
+            <MapaTalhoes talhoes={[talhao]} marcadores={marcadores} altura={celular ? 260 : 340} />
+          </section>
+        )}
+
+        {/* 3) Resultados dos pontos */}
+        <section className="coleta-secao">
+          <div className="cabecalho-cartao">
+            <h2>Resultados dos pontos</h2>
+            <button type="button" className={editandoPontos ? 'primario' : ''} onClick={() => setEditandoPontos((v) => !v)}>
+              {editandoPontos ? <><Icone nome="ok" /> Pronto</> : <><Icone nome="editar" /> Editar pontos</>}
+            </button>
+          </div>
+          {nFora > 0 && <p className="aviso">{nFora} ponto(s) com GPS fora do contorno do talhão (marcados em vermelho). Confira o talhão da coleta.</p>}
+          {!editandoPontos && (
+            <>
+              {!amostras.length ? (
+                <p className="vazio">Nenhum ponto nesta coleta.</p>
+              ) : (
+                <div className="rolagem">
+                  <table className="tabela-simples tabela-pontos">
+                    <thead>
+                      <tr>
+                        <th>Ponto</th>
+                        <th className="oculta-cel">Posição</th>
+                        <th className="n">MV (kg/m²)</th>
+                        <th className="n">t MV/ha</th>
+                        <th className="n">MS %</th>
+                        <th className="n">t MS/ha</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {ordenadas.map((a) => {
+                        const kg = producaoPonto(a, coleta.areaAmostralM2);
+                        const ms = teorMS(a);
+                        return (
+                          <tr key={a.id} className={fora(a) ? 'ponto-fora' : ''}>
+                            <td><strong>{a.ponto}</strong> <code className="codigo oculta-cel">{codigoAmostra(talhao?.nome ?? '', coleta.data, a.ponto)}</code></td>
+                            <td className="oculta-cel">{statusGps(a)}</td>
+                            <td className="n">{kg == null ? <span className="mudo">a pesar</span> : fmt(kg, 2)}</td>
+                            <td className="n">{kg == null ? '—' : fmt(kg * 10, 1)}</td>
+                            <td className="n">{ms == null ? <span className="mudo">a aferir</span> : fmt(ms, 1)}</td>
+                            <td className="n">{fmt(tMSponto(a), 1)}</td>
+                          </tr>
+                        );
+                      })}
+                    </tbody>
+                    <tfoot>
+                      <tr>
+                        <td><strong>Média</strong></td>
+                        <td className="oculta-cel mudo">{r.nPontos} pesado(s) · MS em {r.nPontosMS}</td>
+                        <td className="n">{fmt(r.mvKgM2, 2)}</td>
+                        <td className="n">{fmt(r.tMVha, 1)}</td>
+                        <td className="n">{fmt(r.msPct, 1)}</td>
+                        <td className="n">{fmt(r.tMSha, 1)}</td>
+                      </tr>
+                    </tfoot>
+                  </table>
+                </div>
+              )}
+              <p className="coleta-resumo">
+                <SeloMS status={statusMS(r.msPct, parametros)} />
+                <span>CV entre pontos: <strong>{r.cvPct == null ? '—' : `${fmt(r.cvPct, 0)}%`}</strong></span>
+                {r.umidadePct != null && <span>Umidade: <strong>{fmt(r.umidadePct, 1)}%</strong></span>}
+                {talhao && est && est.tMVtotal != null && (
+                  <span>
+                    No talhão ({fmt(talhao.areaHa, 1)} ha): <strong>{fmt(est.tMVtotal, 0)} t MV</strong>
+                    {est.tMStotal != null && <> · <strong>{fmt(est.tMStotal, 0)} t MS</strong></>}
+                    {est.silagemT != null && <> · silagem {fmt(est.silagemT, 0)} t (−{fmt(parametros.perdasPct, 0)}%)</>}
+                  </span>
+                )}
+              </p>
+              {r.cvPct != null && r.cvPct > 25 && <p className="aviso">Variação alta entre pontos (CV &gt; 25%). Considere amostrar mais pontos para uma estimativa confiável.</p>}
+            </>
+          )}
+        </section>
+
+        {editandoPontos && (
+          <div className="coleta-edicao">
         <div className="cabecalho-cartao">
-          <h2>Pontos amostrados</h2>
+          <h3>Editar pontos</h3>
           <button className="primario" onClick={adicionarPonto} disabled={capturando != null}>
             {capturando === 'novo' ? 'Lendo GPS…' : <><Icone nome="gps" /> Novo ponto aqui</>}
           </button>
         </div>
         <p className="dica">
-          Situação: <strong>{ROTULO_STATUS_COLETA[statusColeta(amostras)]}</strong>. Peso verde = massa cortada no quadro de 1 m² (campo);
+          Peso verde = massa cortada no quadro de 1 m² (campo);
           o seco da subamostra de {UMIDO_PADRAO_G} g (já sem a tara) dá a MS e normalmente é lançado em <Link to={`/coletas?coleta=${coletaId}`}>Aguardando MS (Amostragem)</Link>, mas
           úmido e seco também podem ser editados aqui (o úmido fica em {UMIDO_PADRAO_G} g se não for informado). <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
@@ -209,43 +312,7 @@ export default function ColetaDetalhe() {
         </div>
         )}
         {nSemGps > 0 && amostras.length > 0 && <p className="dica">{nSemGps} ponto(s) sem posição GPS.</p>}
-      </div>
-
-      {!!talhao?.geometria?.length && (
-        <div className="cartao">
-          <div className="cabecalho-cartao">
-            <h2>Mapa dos pontos</h2>
-            <button onClick={() => setMostrarMapa((v) => !v)}>{mostrarMapa ? 'Ocultar mapa' : `Ver no mapa (${marcadores.length} ponto(s))`}</button>
           </div>
-          {mostrarMapa && <MapaTalhoes talhoes={[talhao]} marcadores={marcadores} altura={340} />}
-        </div>
-      )}
-
-      <div className="cartao">
-        <h2>Resultado da coleta</h2>
-        <div className="indicadores">
-          <Indicador rotulo="Pontos válidos" valor={`${r.nPontos} / MS em ${r.nPontosMS}`} />
-          <Indicador rotulo="Massa verde" valor={fmt(r.mvKgM2, 2)} unidade="kg/m²" />
-          <Indicador rotulo="CV entre pontos" valor={fmt(r.cvPct)} unidade="%" />
-          <Indicador rotulo="Produção verde" valor={fmt(r.tMVha)} unidade="t MV/ha" />
-          <Indicador rotulo="Matéria seca" valor={fmt(r.msPct)} unidade="%" />
-          <Indicador rotulo="Umidade" valor={fmt(r.umidadePct)} unidade="%" />
-          <Indicador rotulo="Produção de MS" valor={fmt(r.tMSha)} unidade="t MS/ha" />
-        </div>
-        <p><SeloMS status={statusMS(r.msPct, parametros)} /></p>
-        {r.cvPct != null && r.cvPct > 25 && (
-          <p className="aviso">Variação alta entre pontos (CV &gt; 25%). Considere amostrar mais pontos para uma estimativa confiável.</p>
-        )}
-        {talhao && est && (
-          <>
-            <h3>Estimativa para o talhão ({fmt(talhao.areaHa, 2)} ha)</h3>
-            <div className="indicadores">
-              <Indicador rotulo="Massa verde total" valor={fmt(est.tMVtotal)} unidade="t" />
-              <Indicador rotulo="Matéria seca total" valor={fmt(est.tMStotal)} unidade="t" />
-              <Indicador rotulo={`Silagem (−${fmt(parametros.perdasPct, 0)}% perdas)`} valor={fmt(est.silagemT)} unidade="t" />
-              <Indicador rotulo={`Volume de silo (${fmt(parametros.densidadeKgM3, 0)} kg/m³)`} valor={fmt(est.volumeM3, 0)} unidade="m³" />
-            </div>
-          </>
         )}
       </div>
 
@@ -264,7 +331,7 @@ function CabecalhoColeta({ coleta, talhoes }: { coleta: Coleta; talhoes: Talhao[
   const salvar = (campos: Partial<Coleta>) => atualizarColeta(coleta.id, campos);
 
   return (
-    <div className="cartao grade-form">
+    <div className="grade-form edicao-dados">
       <label>
         Talhão
         <select value={form.talhaoId} onChange={(e) => salvar({ talhaoId: e.target.value })}>
