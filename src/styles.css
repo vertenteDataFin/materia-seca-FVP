@@ -557,6 +557,12 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 }
 /* ---- Amostragem: fila do laboratório no topo ---- */
 .cartao.fila-ms { border-color: #f0d9a0; }
+/* Aguardando pesagem: azul, para não confundir com o Aguardando MS (amarelo) */
+.cartao.fila-pesagem { border-color: #9cc3e6; background: #f3f8fd; }
+.fila-pesagem .lab-grupo { border-color: #c5dcf0; }
+.fila-pesagem .lab-linha.pendente { background: #e3effa; }
+.fila-pesagem .selo-alto { background: #dcebf7; color: #1d4f7a; }
+.fila-pesagem .cabecalho-cartao .selo-baixo { background: #1d4f7a; color: white; }
 /* ---- Colheita ---- */
 .ok { color: var(--verde); font-weight: 600; margin: 0; }
 .lista-cargas { display: grid; gap: 0.6rem; }
