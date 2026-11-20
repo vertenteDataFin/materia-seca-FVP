@@ -102,9 +102,12 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
   const fazendas = [...new Set(coletas.map((c) => porId.get(c.talhaoId)!.fazenda).filter(Boolean))];
   const quadros = [...new Set(coletas.map((c) => c.areaAmostralM2))];
 
-  // 2. amostras
+  // 2. amostras: em ordem de data da coleta (no mesmo dia, por talhão)
   const linhasAmostras: string[][] = [];
-  for (const c of coletas) {
+  const porData = [...coletas].sort(
+    (a, b) => a.data.localeCompare(b.data) || compararNomes(porId.get(a.talhaoId)!.nome, porId.get(b.talhaoId)!.nome) || (a.criadoEm ?? '').localeCompare(b.criadoEm ?? ''),
+  );
+  for (const c of porData) {
     const t = porId.get(c.talhaoId)!;
     for (const a of (porColeta.get(c.id) ?? []).filter((a) => a.pesoVerdeKg != null)) {
       const mv = producaoPonto(a, c.areaAmostralM2)!;

@@ -85,9 +85,12 @@ describe('relatório em PDF', () => {
   it('reproduz as tabelas do relatório de 07/11 e lê os resultados', () => {
     const r = montarRelatorio(dados, PARAMETROS_PADRAO, new Date(2026, 10, 11, 10, 0));
     expect(r.subtitulo).toMatch(/^Fazenda Pedra \/ Confinamento · coletas de 06\/11\/2026 a 10\/11\/2026 · emitido em/);
-    // 2. amostras: ordem por talhão e data; a coleta sem MS aparece "a aferir"
-    expect(r.amostras.linhas[0]).toEqual(['TL 18 - PD', 'Miyagi', '07/11/2026', '1', '2,02', '20,2', '22', '4,4']);
+    // 2. amostras: ordem por data da coleta (no mesmo dia, por talhão); a coleta sem MS aparece "a aferir"
     expect(r.amostras.linhas).toHaveLength(12);
+    const iso = (d: string) => d.split('/').reverse().join('-');
+    const datas = r.amostras.linhas.map((l) => iso(l[2]));
+    expect(datas).toEqual([...datas].sort());
+    expect(r.amostras.linhas).toContainEqual(['TL 18 - PD', 'Miyagi', '07/11/2026', '1', '2,02', '20,2', '22', '4,4']);
     expect(r.amostras.linhas[r.amostras.linhas.length - 1]).toEqual(['TL 23 - Conf', 'Mombaça', '10/11/2026', '2', '2,40', '24,0', 'a aferir', '—']);
     // 3. por talhão: última coleta; TL 23 - Conf de 10/11 ainda sem MS
     const t18 = r.talhoes.linhas.find((l) => l[0] === 'TL 18 - PD')!;
