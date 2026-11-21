@@ -285,8 +285,8 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
                   </td>
                   {datas.map((d) => {
                     const pt = s.pontos.find((x) => x.data === d);
-                    // No celular (cartões) ficam só as 4 últimas amostras do talhão
-                    const recente = [...new Set(s.pontos.map((x) => x.data))].slice(-4).includes(d);
+                    // No celular (cartões) ficam só as 3 últimas amostras do talhão
+                    const recente = [...new Set(s.pontos.map((x) => x.data))].slice(-3).includes(d);
                     return (
                       <td key={d} className={recente ? 'n' : 'n oculta-cel'} data-rotulo={dataCurta(d)}>
                         {!pt ? '—' : <Link to={pt.link}>{pt.msPct == null ? 'a aferir' : `${fmt(pt.msPct)}%`}</Link>}
