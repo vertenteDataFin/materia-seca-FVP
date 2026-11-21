@@ -91,6 +91,9 @@ export default function Talhoes() {
   const semArea = talhoes.filter((t) => !(t.areaHa > 0)).length;
   const nColetas = new Map<string, number>();
   for (const c of dados.coletas) nColetas.set(c.talhaoId, (nColetas.get(c.talhaoId) ?? 0) + 1);
+  // Amostras do talhão = coletas de campo + amostras de caminhão na colheita
+  const nColheita = new Map<string, number>();
+  for (const a of dados.amostrasColheita) nColheita.set(a.talhaoId, (nColheita.get(a.talhaoId) ?? 0) + 1);
   const selecionado = talhoes.find((t) => t.id === selecionadoId) ?? null;
   const diverge = (t: Talhao) => {
     const f = capimFoto(t.nome);
@@ -159,7 +162,7 @@ export default function Talhoes() {
                   <th>Fazenda</th>
                   <th className="n">Área (ha)</th>
                   <th>Capim</th>
-                  <th className="n">Coletas</th>
+                  <th className="n">Amostras</th>
                   <th className="n">Colheita</th>
                   <th>Contorno</th>
                   <th>Obs.</th>
@@ -179,7 +182,13 @@ export default function Talhoes() {
                     <td className="oculta-cel">{t.fazenda || '—'}</td>
                     <td className="n" data-rotulo="Área (ha)">{t.areaHa > 0 ? fmt(t.areaHa, 2) : <span className="selo selo-alto">informar</span>}</td>
                     <td data-rotulo="Capim">{t.capim || '—'}{diverge(t) && <span className="selo selo-alto" style={{ marginLeft: '0.4rem' }}>KML≠foto</span>}</td>
-                    <td className="n" data-rotulo="Coletas">{nColetas.get(t.id) ?? 0}</td>
+                    <td
+                      className="n"
+                      data-rotulo="Amostras"
+                      title={`${nColetas.get(t.id) ?? 0} de campo + ${nColheita.get(t.id) ?? 0} de colheita (caminhão)`}
+                    >
+                      {(nColetas.get(t.id) ?? 0) + (nColheita.get(t.id) ?? 0)}
+                    </td>
                     <td className="n" data-rotulo="Colheita">
                       {colheita.get(t.id) ? (
                         <span className={colheita.get(t.id)!.finalizada ? 'progresso-mini finalizado' : 'progresso-mini'} title={tituloProgresso(colheita.get(t.id)!)}>
