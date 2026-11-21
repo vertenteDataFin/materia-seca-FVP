@@ -40,6 +40,8 @@ interface Props {
   className?: string;
   /** Zoom máximo ao enquadrar (padrão 16; use 17–18 para um talhão só). */
   zoomMax?: number;
+  /** Onde o usuário está ("Cadê eu?"): ponto azul com o círculo de precisão; o mapa vai até lá quando muda. */
+  posicaoUsuario?: { lat: number; lng: number; precisaoM: number | null } | null;
 }
 
 const SATELITE = 'https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}';
@@ -89,10 +91,11 @@ function estiloPath(sel: boolean, e: EstiloTalhao): L.PathOptions {
 }
 
 /** Mapa com imagem de satélite e os contornos dos talhões, legendados como na foto da fazenda. */
-export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, estilo, marcadores, aoClicarMapa, aoClicarMarcador, altura = 480, zoomMax = 16, className }: Props) {
+export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, estilo, marcadores, aoClicarMapa, aoClicarMarcador, altura = 480, zoomMax = 16, className, posicaoUsuario }: Props) {
   const divRef = useRef<HTMLDivElement>(null);
   const mapRef = useRef<L.Map | null>(null);
   const camadaRef = useRef<L.LayerGroup | null>(null);
+  const camadaUsuarioRef = useRef<L.LayerGroup | null>(null);
   const clicarRef = useRef(aoClicarMapa);
   clicarRef.current = aoClicarMapa;
   const comGeo = talhoes.filter((t) => t.geometria?.length);
@@ -103,6 +106,7 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
     const map = L.map(divRef.current, { zoomControl: true, attributionControl: true, zoomSnap: 0.25 });
     L.tileLayer(SATELITE, { maxZoom: 18, attribution: 'Imagens © Esri, Maxar, Earthstar Geographics' }).addTo(map);
     camadaRef.current = L.layerGroup().addTo(map);
+    camadaUsuarioRef.current = L.layerGroup().addTo(map);
     map.on('click', (e: L.LeafletMouseEvent) => clicarRef.current?.(e.latlng.lat, e.latlng.lng));
     mapRef.current = map;
     // O contêiner pode mudar de tamanho depois (ex.: altura flexível no celular, rotação): o Leaflet precisa recalcular
@@ -171,6 +175,23 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
       (map as unknown as { _ajustado?: boolean })._ajustado = true;
     }
   });
+
+  // Posição do usuário ("Cadê eu?"): desenha e leva o mapa até lá a cada leitura nova
+  useEffect(() => {
+    const map = mapRef.current;
+    const camada = camadaUsuarioRef.current;
+    if (!map || !camada) return;
+    camada.clearLayers();
+    if (!posicaoUsuario) return;
+    const p: [number, number] = [posicaoUsuario.lat, posicaoUsuario.lng];
+    if (posicaoUsuario.precisaoM != null && posicaoUsuario.precisaoM > 0) {
+      L.circle(p, { radius: posicaoUsuario.precisaoM, color: '#1a73e8', weight: 1, fillColor: '#1a73e8', fillOpacity: 0.15, interactive: false }).addTo(camada);
+    }
+    L.circleMarker(p, { radius: 8, color: '#fff', weight: 3, fillColor: '#1a73e8', fillOpacity: 1, interactive: false })
+      .bindTooltip('Você', { permanent: true, direction: 'top', offset: [0, -10], className: 'tooltip-voce' })
+      .addTo(camada);
+    map.flyTo(p, Math.max(map.getZoom(), 16), { duration: 0.8 });
+  }, [posicaoUsuario]);
 
   if (!comGeo.length) {
     return <p className="vazio">Nenhum talhão com contorno. Importe o KML em Talhões para ver o mapa.</p>;

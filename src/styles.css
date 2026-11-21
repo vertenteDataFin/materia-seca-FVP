@@ -151,6 +151,19 @@ button.mini { padding: 0.15rem 0.45rem; font-size: 0.9rem; line-height: 1.2; }
 .tooltip-ponto.mapa { background: #fff; color: #c25e00; border-color: #ff7a00; }
 .tooltip-ponto.mapa.alerta { color: #ff3b30; border-color: #ff3b30; }
 .tooltip-ponto::before { display: none; }
+/* "Cadê eu?" no mapa: botão sobre o mapa, ponto azul e o aviso de onde a pessoa está */
+.mapa-com-botao { position: relative; }
+.botao-cade-eu {
+  position: absolute; top: 10px; right: 10px; z-index: 5; display: inline-flex; align-items: center; gap: 0.35rem;
+  background: #fff; color: #1a56b0; border: 1px solid #c5d7f0; font-weight: 700; box-shadow: 0 2px 6px rgba(0, 0, 0, 0.25);
+}
+.botao-cade-eu:hover { background: #eef4fd; }
+.tooltip-voce { background: #1a73e8; color: #fff; border: 1px solid #fff; border-radius: 10px; padding: 0 7px; font-weight: 700; font-size: 12px; box-shadow: 0 1px 3px rgba(0,0,0,0.5); }
+.tooltip-voce::before { display: none; }
+.onde-estou { display: flex; align-items: center; gap: 0.6rem; flex-wrap: wrap; margin-top: 0.6rem; padding: 0.55rem 0.75rem; border: 1px solid #c5d7f0; background: #eef4fd; border-radius: 8px; color: #173a6b; }
+.onde-estou > .mi { color: #1a73e8; flex: none; }
+.onde-estou-texto { flex: 1; min-width: 12rem; }
+.onde-estou-acoes { display: inline-flex; align-items: center; gap: 0.4rem; }
 /* Legenda da origem dos pontos (GPS = cheia, mapa = vazada) */
 .legenda-origem { display: flex; align-items: center; gap: 0.35rem 0.5rem; flex-wrap: wrap; }
 .ponto-legenda { display: inline-block; width: 12px; height: 12px; border-radius: 50%; box-sizing: border-box; vertical-align: middle; }
@@ -321,7 +334,12 @@ tr.linha-sel:has(+ tr.linha-detalhe) > td { border-bottom: none; }
   }
   .pagina-mapa h1 { font-size: 1.1rem; margin: 0 0 0.4rem; flex: none; }
   .pagina-mapa .cartao { flex: 1; min-height: 0; display: flex; flex-direction: column; padding: 0.5rem; margin-bottom: 0; }
-  .pagina-mapa .cartao > .mapa { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .pagina-mapa .cartao > .mapa, .pagina-mapa .cartao > .mapa-com-botao { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .pagina-mapa .mapa-com-botao > .mapa { flex: 1; min-height: 0; display: flex; flex-direction: column; }
+  .pagina-mapa .onde-estou { flex: none; margin-top: 0.4rem; padding: 0.4rem 0.6rem; font-size: 0.9rem; gap: 0.4rem; }
+  .pagina-mapa .onde-estou-texto { min-width: 0; }
+  .pagina-mapa .onde-estou-acoes button { padding: 0.3rem 0.6rem; }
+  .botao-cade-eu { top: 8px; right: 8px; padding: 0.4rem 0.65rem; }
   .pagina-mapa .mapa-principal { flex: 1; min-height: 0; height: auto !important; border-radius: 8px; }
   .pagina-mapa .legenda-mapa { flex: none; margin: 0.4rem 0 0; display: flex; gap: 0.3rem; flex-wrap: nowrap; overflow: hidden; }
   .pagina-mapa .legenda-mapa .selo { font-size: 0.72rem; padding: 0.15rem 0.45rem; white-space: nowrap; }

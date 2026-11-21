@@ -10,6 +10,8 @@ import MapaTalhoes from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe } from '../semaforo';
 import { progressoColheita, resumoColheita, type AndamentoTalhao } from '../colheita';
 import { Icone } from '../Icone';
+import { capturarPosicao, type Posicao } from '../geo';
+import { talhoesPorPosicao } from '../talhaoPorGps';
 
 /**
  * Mapa dos talhões. Pela navegação, tocar no talhão abre as informações dele (página Talhões).
@@ -47,6 +49,21 @@ export default function Mapa() {
   const parametros = useParametros();
   const [selecionadoId, setSelecionadoId] = useState<string | null>(null);
   const dados = useDados();
+  // "Cadê eu?": só mostra onde a pessoa está e em que talhão (não cria coleta)
+  const [posicao, setPosicao] = useState<Posicao | null>(null);
+  const [lendoGps, setLendoGps] = useState(false);
+  const [erroGps, setErroGps] = useState('');
+  async function cadeEu() {
+    setLendoGps(true);
+    setErroGps('');
+    try {
+      setPosicao(await capturarPosicao());
+    } catch (e) {
+      setErroGps((e as Error).message);
+    } finally {
+      setLendoGps(false);
+    }
+  }
 
   // Por talhão: a última coleta com MS aferida; se nenhuma tem MS ainda, a última coleta (MS pendente).
   const ultimaPorTalhao = useMemo(() => {
@@ -70,6 +87,10 @@ export default function Mapa() {
 
   if (!dados) return null;
   const selecionado = paraColeta ? (dados.talhoes.find((t) => t.id === selecionadoId) ?? null) : null;
+  const proximos = posicao ? talhoesPorPosicao(dados.talhoes, posicao) : [];
+  const ondeEstou = proximos[0]?.dentro ? proximos[0].talhao : null;
+  const maisPerto = !ondeEstou ? proximos[0] : null;
+  const distancia = (m: number) => (m < 1000 ? `${fmt(m, 0)} m` : `${fmt(m / 1000, 1)} km`);
 
   if (selecionado) {
     const u = ultimaPorTalhao.get(selecionado.id);
@@ -110,7 +131,12 @@ export default function Mapa() {
         )}
       </div>
       <div className="cartao">
+        <div className="mapa-com-botao">
+        <button type="button" className="botao-cade-eu" onClick={cadeEu} disabled={lendoGps} title="Mostrar onde estou no mapa (não inicia coleta)">
+          <Icone nome="gps" /> {lendoGps ? 'Procurando…' : 'Cadê eu?'}
+        </button>
         <MapaTalhoes
+          posicaoUsuario={posicao}
           talhoes={dados.talhoes}
           selecionadoId={selecionadoId}
           aoSelecionar={(t) => (paraColeta ? setSelecionadoId(t.id) : navigate(`/talhoes?talhao=${t.id}`))}
@@ -127,6 +153,44 @@ export default function Mapa() {
             };
           }}
         />
+        </div>
+        {erroGps && (
+          <p className="aviso">
+            {erroGps}{' '}
+            <button type="button" className="link" onClick={cadeEu}>Tentar de novo</button>
+          </p>
+        )}
+        {posicao && (
+          <div className="onde-estou" aria-live="polite">
+            <Icone nome="gps" />
+            <span className="onde-estou-texto">
+              {ondeEstou ? (
+                <>
+                  Você está no <strong>{ondeEstou.nome}</strong>
+                  {ondeEstou.capim ? <span className="mudo"> · {ondeEstou.capim}</span> : null}
+                </>
+              ) : maisPerto ? (
+                <>
+                  Você está fora dos talhões do mapa. Mais perto: <strong>{maisPerto.talhao.nome}</strong>, a {distancia(maisPerto.distanciaM)}.
+                </>
+              ) : (
+                'Nenhum talhão com contorno para comparar.'
+              )}
+              {posicao.precisaoM != null && <small className="mudo"> (GPS ±{fmt(posicao.precisaoM, 0)} m)</small>}
+            </span>
+            <span className="onde-estou-acoes">
+              {ondeEstou &&
+                (paraColeta ? (
+                  <button type="button" className="primario" onClick={() => setSelecionadoId(ondeEstou.id)}>Escolher este talhão</button>
+                ) : (
+                  <button type="button" onClick={() => navigate(`/talhoes?talhao=${ondeEstou.id}`)}>Ver talhão</button>
+                ))}
+              <button type="button" className="icone-acao" aria-label="Esconder minha posição" title="Esconder minha posição" onClick={() => setPosicao(null)}>
+                <Icone nome="fechar" />
+              </button>
+            </span>
+          </div>
+        )}
         <p className="dica oculta-cel">
           {paraColeta ? 'Toque no talhão para iniciar a coleta.' : 'Toque no talhão para ver as informações dele (área, capim, coletas e colheita).'}
           {visao === 'amostragem' && ' A cor e a MS de cada talhão são da última coleta com MS aferida.'}
