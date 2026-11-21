@@ -90,10 +90,14 @@ export default function Talhoes() {
   const talhoes = dados.talhoes;
   const semArea = talhoes.filter((t) => !(t.areaHa > 0)).length;
   const nColetas = new Map<string, number>();
+  // Amostras do talhão = soma dos pontos de todas as coletas de campo
+  const talhaoDaColeta = new Map(dados.coletas.map((c) => [c.id, c.talhaoId]));
+  const nAmostras = new Map<string, number>();
+  for (const a of dados.amostras) {
+    const tid = talhaoDaColeta.get(a.coletaId);
+    if (tid) nAmostras.set(tid, (nAmostras.get(tid) ?? 0) + 1);
+  }
   for (const c of dados.coletas) nColetas.set(c.talhaoId, (nColetas.get(c.talhaoId) ?? 0) + 1);
-  // Amostras do talhão = coletas de campo + amostras de caminhão na colheita
-  const nColheita = new Map<string, number>();
-  for (const a of dados.amostrasColheita) nColheita.set(a.talhaoId, (nColheita.get(a.talhaoId) ?? 0) + 1);
   const selecionado = talhoes.find((t) => t.id === selecionadoId) ?? null;
   const diverge = (t: Talhao) => {
     const f = capimFoto(t.nome);
@@ -185,9 +189,9 @@ export default function Talhoes() {
                     <td
                       className="n"
                       data-rotulo="Amostras"
-                      title={`${nColetas.get(t.id) ?? 0} de campo + ${nColheita.get(t.id) ?? 0} de colheita (caminhão)`}
+                      title={`${nAmostras.get(t.id) ?? 0} ponto(s) em ${nColetas.get(t.id) ?? 0} coleta(s)`}
                     >
-                      {(nColetas.get(t.id) ?? 0) + (nColheita.get(t.id) ?? 0)}
+                      {nAmostras.get(t.id) ?? 0}
                     </td>
                     <td className="n" data-rotulo="Colheita">
                       {colheita.get(t.id) ? (
