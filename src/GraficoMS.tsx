@@ -1,4 +1,4 @@
-import { useEffect, useState, type MouseEvent, type PointerEvent } from 'react';
+import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Parametros } from './calc';
@@ -55,12 +55,27 @@ function tamanhoTela(): { larg: number; alt: number } {
   return { larg, alt: Math.max(A * 0.8, (h * larg) / w) };
 }
 
+/** Pixels por unidade lógica no gráfico em linha: letras e pontos do mesmo tamanho em qualquer largura. */
+const PX_POR_UNIDADE = 2.2;
+
 /** Um painel: a MS média de cada coleta de um talhão ao longo do tempo, com a faixa ideal ao fundo. */
 function PainelMS({ serie, faixa, p }: { serie: SerieMS; faixa: { dias: [number, number]; ms: [number, number] }; p: Parametros }) {
   const navigate = useNavigate();
   const [ativo, setAtivo] = useState<PontoMS | null>(null);
   const [expandido, setExpandido] = useState(false);
   const [tela, setTela] = useState({ larg: L, alt: A });
+  // Um gráfico por linha: a largura lógica acompanha a largura do cartão; a altura fica fixa.
+  const figRef = useRef<HTMLElement>(null);
+  const [largLinha, setLargLinha] = useState(L);
+  useEffect(() => {
+    const el = figRef.current;
+    if (!el || expandido) return;
+    const medir = () => setLargLinha(Math.max(L, el.clientWidth / PX_POR_UNIDADE));
+    medir();
+    const ro = new ResizeObserver(medir);
+    ro.observe(el);
+    return () => ro.disconnect();
+  }, [expandido]);
 
   // Ampliado: acompanha o tamanho da tela, fecha com Esc e trava a rolagem da página por trás.
   useEffect(() => {
@@ -81,7 +96,7 @@ function PainelMS({ serie, faixa, p }: { serie: SerieMS; faixa: { dias: [number,
     };
   }, [expandido]);
 
-  const { larg, alt } = expandido ? tela : { larg: L, alt: A };
+  const { larg, alt } = expandido ? tela : { larg: largLinha, alt: A };
   const esc = escalas(faixa.dias, faixa.ms, larg, alt);
   const pontos = serie.pontos;
   const medidos = pontos.filter((pt): pt is PontoMS & { msPct: number } => pt.msPct != null);
@@ -131,7 +146,7 @@ function PainelMS({ serie, faixa, p }: { serie: SerieMS; faixa: { dias: [number,
   const descricao = pontos.map((pt) => `${fmtData(pt.data)} ${pt.msPct == null ? 'a aferir' : `${fmt(pt.msPct)}%`}`).join(', ');
 
   const figura = (
-    <figure className={`grafico-ms${expandido ? ' grafico-ms-tela' : ''}`}>
+    <figure ref={expandido ? undefined : figRef} className={`grafico-ms${expandido ? ' grafico-ms-tela' : ''}`}>
       <figcaption>
         <Link to={`/talhoes?talhao=${serie.talhao.id}`}><strong>{nomeComSigla(serie.talhao.nome, serie.talhao.fazenda)}</strong></Link>
         <span className="mudo"> {serie.talhao.capim}</span>
@@ -215,7 +230,7 @@ function PainelMS({ serie, faixa, p }: { serie: SerieMS; faixa: { dias: [number,
   // Ampliado: o gráfico vai para uma camada de tela cheia; no lugar dele fica um espaço vazio do mesmo tamanho.
   return expandido ? (
     <>
-      <figure className="grafico-ms grafico-ms-reserva" aria-hidden="true" />
+      <figure className="grafico-ms grafico-ms-reserva" aria-hidden="true" style={{ height: A * PX_POR_UNIDADE + 24 }} />
       {createPortal(
         <div className="grafico-ms-fundo" role="dialog" aria-modal="true" onClick={(e) => e.target === e.currentTarget && setExpandido(false)}>
           {figura}

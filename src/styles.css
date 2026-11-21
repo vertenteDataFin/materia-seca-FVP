@@ -756,7 +756,7 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
   .lista-pontos li.pedido select { flex: 1; }
 }
 /* ---- Evolução da MS (pequenos múltiplos) ---- */
-.graficos-ms { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 0.75rem 1rem; }
+.graficos-ms { display: grid; grid-template-columns: 1fr; gap: 1rem; } /* um gráfico por linha */
 .grafico-ms { margin: 0; }
 .grafico-ms figcaption { margin-bottom: 0.15rem; }
 .grafico-ms-area { position: relative; }
@@ -776,7 +776,6 @@ button.selo-filtro.ativo { opacity: 1; border-color: var(--texto); box-shadow: 0
 .grafico-ms .inicio-colheita line { stroke: #b26b00; stroke-width: 0.8; stroke-dasharray: 2.5 2; }
 .grafico-ms .inicio-colheita text { font-size: 5px; font-weight: 600; fill: #b26b00; }
 /* Gráfico ampliado (tela cheia) */
-.grafico-ms-reserva { aspect-ratio: 150 / 116; }
 .grafico-ms-fundo { position: fixed; inset: 0; z-index: 1200; background: var(--fundo); overflow: auto; padding: max(0.75rem, env(safe-area-inset-top)) 1rem max(0.75rem, env(safe-area-inset-bottom)); }
 .grafico-ms-tela figcaption { display: flex; align-items: center; gap: 0.4rem; font-size: 1.05rem; margin-bottom: 0.5rem; }
 .grafico-ms-tela .grafico-ms-fechar { margin-left: auto; }
