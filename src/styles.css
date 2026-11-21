@@ -896,3 +896,14 @@ th.ordenavel.ativa .seta { opacity: 1; }
   .barra-campo { bottom: calc(3.6rem + env(safe-area-inset-bottom)); padding-bottom: 0.6rem; }
   .coleta-campo { padding-bottom: 10rem; }
 }
+
+/* Painel: tabela de MS com o gráfico do talhão aberto logo abaixo (fundo branco: a faixa ideal é verde-claro) */
+.link-talhao-ms { text-decoration: none; color: inherit; text-align: left; }
+.link-talhao-ms .seta-ms { display: inline-block; width: 0.9em; color: var(--verde); }
+tr.linha-grafico-ms > td { padding: 0.5rem 0.5rem 1rem; text-align: left; background: #fff; border-bottom: 2px solid var(--verde); }
+.linha-grafico-ms .grafico-ms figcaption { display: none; }
+.rolagem:has(tr.linha-grafico-ms) { overflow-x: auto; }
+@media (max-width: 700px) {
+  .tabela-cartoes tr.linha-grafico-ms { background: #fff; padding: 0.5rem 0.6rem 0.6rem; }
+  .tabela-cartoes tr.linha-grafico-ms > td { border: none; padding: 0; }
+}

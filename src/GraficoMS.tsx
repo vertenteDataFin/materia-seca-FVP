@@ -1,4 +1,4 @@
-import { useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
+import { Fragment, useEffect, useRef, useState, type MouseEvent, type PointerEvent } from 'react';
 import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import type { Parametros } from './calc';
@@ -243,9 +243,17 @@ function PainelMS({ serie, faixa, p }: { serie: SerieMS; faixa: { dias: [number,
   );
 }
 
-/** Pequenos múltiplos: um painel por talhão, mesmas escalas de tempo e de MS. Alterna para tabela. */
+/** Tabela de MS por talhão e data (padrão); tocar no talhão abre o gráfico dele logo abaixo. Alterna para todos os gráficos. */
 export default function GraficoMS({ series, parametros }: { series: SerieMS[]; parametros: Parametros }) {
-  const [tabela, setTabela] = useState(false);
+  const [tabela, setTabela] = useState(true);
+  const [abertos, setAbertos] = useState<Set<string>>(new Set());
+  const alternar = (id: string) =>
+    setAbertos((a) => {
+      const n = new Set(a);
+      if (n.has(id)) n.delete(id);
+      else n.add(id);
+      return n;
+    });
   if (!series.length) return <p className="vazio">Nenhuma coleta ainda.</p>;
   const faixa = { dias: faixaDias(series), ms: faixaMS(series, parametros.msMin, parametros.msMax) };
   const datas = [...new Set(series.flatMap((s) => s.pontos.map((pt) => pt.data)))].sort();
@@ -254,8 +262,8 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
     <>
       <p className="dica">
         MS média de cada coleta, por talhão, ao longo do tempo: ● amostragem de campo, ■ amostras de caminhão na colheita (média do dia); a linha tracejada marca o início da colheita. A faixa verde é o ponto de ensilar ({fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}%).
-        Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). Toque num gráfico para ampliar; no ampliado, toque num ponto para abrir a coleta e ver os resultados.{' '}
-        <button type="button" className="link" onClick={() => setTabela(!tabela)}>{tabela ? 'ver gráfico' : 'ver tabela'}</button>
+        Ponto vazio na base = coleta ainda sem MS (a aferir no laboratório). {tabela ? 'Toque no nome do talhão para ver o gráfico dele.' : ''} Toque num gráfico para ampliar; no ampliado, toque num ponto para abrir a coleta e ver os resultados.{' '}
+        <button type="button" className="link" onClick={() => setTabela(!tabela)}>{tabela ? 'ver todos os gráficos' : 'ver tabela'}</button>
       </p>
       {tabela ? (
         <div className="rolagem">
@@ -268,8 +276,13 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
             </thead>
             <tbody>
               {series.map((s) => (
-                <tr key={s.talhao.id}>
-                  <td className="largo-cel"><strong>{nomeComSigla(s.talhao.nome, s.talhao.fazenda)}</strong></td>
+                <Fragment key={s.talhao.id}>
+                <tr className={abertos.has(s.talhao.id) ? 'linha-sel' : ''}>
+                  <td className="largo-cel">
+                    <button type="button" className="link link-talhao-ms" aria-expanded={abertos.has(s.talhao.id)} onClick={() => alternar(s.talhao.id)} title="Ver o gráfico deste talhão">
+                      <span className="seta-ms" aria-hidden="true">{abertos.has(s.talhao.id) ? '▾' : '▸'}</span> <strong>{nomeComSigla(s.talhao.nome, s.talhao.fazenda)}</strong>
+                    </button>
+                  </td>
                   {datas.map((d) => {
                     const pt = s.pontos.find((x) => x.data === d);
                     return (
@@ -279,6 +292,14 @@ export default function GraficoMS({ series, parametros }: { series: SerieMS[]; p
                     );
                   })}
                 </tr>
+                {abertos.has(s.talhao.id) && (
+                  <tr className="linha-detalhe linha-grafico-ms">
+                    <td colSpan={datas.length + 1}>
+                      <PainelMS serie={s} faixa={faixa} p={parametros} />
+                    </td>
+                  </tr>
+                )}
+                </Fragment>
               ))}
             </tbody>
           </table>
