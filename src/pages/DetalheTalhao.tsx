@@ -11,6 +11,11 @@ import { useParametros } from '../parametros';
 import { usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 import ColheitaTalhao from './ColheitaTalhao';
+import { origemPosicao } from '../geo';
+import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
+
+/** Uma cor por coleta no mapa dos pontos (da mais recente para a mais antiga). */
+const CORES_COLETA = ['#ff7a00', '#1a73e8', '#d81b60', '#8e24aa', '#00897b', '#fdd835', '#6d4c41', '#3949ab', '#c0ca33', '#00acc1'];
 
 function Fonte({ rotulo, valor, confere }: { rotulo: string; valor: string; confere?: boolean | null }) {
   return (
@@ -61,6 +66,26 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar, embutido 
       .sort(compararColetasDesc)
       .map((c) => ({ c, r: resumoColeta(c, porColeta.get(c.id) ?? []) }));
   }, [dados, t.id]);
+
+  // Todos os pontos com posição, de todas as coletas do talhão; cada coleta com uma cor
+  const mapaPontos = useMemo(() => {
+    if (!dados) return { marcadores: [] as Marcador[], coletasDe: [] as string[], legenda: [] as { id: string; data: string; cor: string; n: number }[] };
+    const porColeta = amostrasPorColeta(dados.amostras);
+    const marcadores: Marcador[] = [];
+    const coletasDe: string[] = [];
+    const legenda: { id: string; data: string; cor: string; n: number }[] = [];
+    coletas.forEach(({ c }) => {
+      const pts = (porColeta.get(c.id) ?? []).filter((a) => a.lat != null && a.lng != null).sort((a, b) => a.ponto - b.ponto);
+      if (!pts.length) return;
+      const cor = CORES_COLETA[legenda.length % CORES_COLETA.length];
+      legenda.push({ id: c.id, data: c.data, cor, n: pts.length });
+      for (const a of pts) {
+        marcadores.push({ lat: a.lat!, lng: a.lng!, rotulo: `${fmtData(c.data).slice(0, 5)} P${a.ponto}`, cor, origem: origemPosicao(a) ?? undefined });
+        coletasDe.push(c.id);
+      }
+    });
+    return { marcadores, coletasDe, legenda };
+  }, [dados, coletas]);
 
   const areaPoligono = useMemo(
     () => (t.geometria?.length ? t.geometria.reduce((s, anel) => s + areaAnelM2(anel), 0) / 10000 : null),
@@ -220,6 +245,26 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar, embutido 
               ))}
             </tbody>
           </table>
+        </div>
+      )}
+      {mapaPontos.marcadores.length > 0 && (
+        <div className="mapa-pontos-talhao">
+          <h3 className="detalhe-titulo">Pontos coletados no talhão ({mapaPontos.marcadores.length})</h3>
+          <MapaTalhoes
+            talhoes={[t]}
+            marcadores={mapaPontos.marcadores}
+            aoClicarMarcador={(i) => navigate(`/coletas/${mapaPontos.coletasDe[i]}`)}
+            altura="min(55vh, 460px)"
+            zoomMax={17}
+          />
+          <p className="dica legenda-pontos-talhao">
+            {mapaPontos.legenda.map((l) => (
+              <span key={l.id} className="legenda-coleta">
+                <span className="bolinha" style={{ background: l.cor }} aria-hidden="true" /> {fmtData(l.data)} ({l.n})
+              </span>
+            ))}
+            <span className="mudo"> · toque num ponto para abrir a coleta</span>
+          </p>
         </div>
       )}
       <ColheitaTalhao talhao={t} />

@@ -921,3 +921,10 @@ tr.linha-grafico-ms > td { padding: 0.5rem 0.5rem 1rem; text-align: left; backgr
   .cabecalho-cargas .filtro-caminhao { order: 3; flex: 1 1 100%; margin: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); min-width: 0; }
   .cabecalho-cargas .filtro-caminhao select { width: 100%; max-width: none; min-width: 0; }
 }
+
+/* Talhões: mapa com os pontos de todas as coletas do talhão */
+.mapa-pontos-talhao { margin-top: 0.9rem; }
+.mapa-pontos-talhao .detalhe-titulo { margin: 0 0 0.4rem; }
+.legenda-pontos-talhao { display: flex; flex-wrap: wrap; gap: 0.3rem 0.9rem; margin-top: 0.4rem; }
+.legenda-coleta { display: inline-flex; align-items: center; gap: 0.3rem; white-space: nowrap; }
+.legenda-coleta .bolinha { width: 0.8rem; height: 0.8rem; border-radius: 50%; border: 2px solid #fff; box-shadow: 0 0 0 1px rgba(0, 0, 0, 0.25); }

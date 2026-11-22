@@ -22,6 +22,8 @@ export interface Marcador {
   /** Origem da posição: 'gps' = bolinha cheia; 'mapa' = bolinha vazada. */
   origem?: 'gps' | 'mapa';
   titulo?: string;
+  /** Cor da bolinha (padrão: laranja; alerta sempre em vermelho). */
+  cor?: string;
 }
 
 interface Props {
@@ -153,7 +155,7 @@ export default function MapaTalhoes({ talhoes, selecionadoId, aoSelecionar, esti
     }
 
     (marcadores ?? []).forEach((m, i) => {
-      const cor = m.alerta ? '#ff3b30' : '#ff7a00';
+      const cor = m.alerta ? '#ff3b30' : (m.cor ?? '#ff7a00');
       const vazado = m.origem === 'mapa';
       const cm = L.circleMarker([m.lat, m.lng], {
         radius: aoClicarMarcador ? 9 : 7,
