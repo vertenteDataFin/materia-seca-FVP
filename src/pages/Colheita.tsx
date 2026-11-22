@@ -80,6 +80,13 @@ export default function Colheita() {
   // Com caminhão escolhido: todas as cargas dele (de todos os dias)
   const doCaminhao = caminhao ? calc.pesadas.filter((c) => normalizarPlaca(c.placa) === caminhao) : [];
   const tDoCaminhao = doCaminhao.reduce((s, c) => s + (liquidoKg(c) ?? 0), 0) / 1000;
+  // Média do peso líquido por carga (t), só das cargas com líquido
+  const mediaT = (cs: typeof calc.pesadas) => {
+    const l = cs.map((c) => liquidoKg(c)).filter((x): x is number => x != null);
+    return l.length ? l.reduce((s, x) => s + x, 0) / l.length / 1000 : null;
+  };
+  const mediaCaminhao = caminhao ? mediaT(doCaminhao) : null;
+  const mediaGeral = mediaT(calc.pesadas);
   const visiveis = caminhao ? doCaminhao : [...pesadasHoje, ...pesadasAntes.slice(0, anteriores)];
   const faltam = caminhao ? 0 : Math.max(0, pesadasAntes.length - anteriores);
 
@@ -154,11 +161,13 @@ export default function Colheita() {
               </select>
             </label>
           )}
-          <span className="mudo contagem-cargas">{pesadasHoje.length} hoje · {calc.pesadas.length} no total</span>
+          <span className="mudo contagem-cargas">{pesadasHoje.length} hoje · {calc.pesadas.length} no total{mediaGeral != null && !caminhao ? ` · média ${fmt(mediaGeral, 1)} t` : ''}</span>
         </div>
         {caminhao && (
           <p className="dica resumo-caminhao">
-            {doCaminhao.length} carga{doCaminhao.length === 1 ? '' : 's'} deste caminhão · {fmt(tDoCaminhao, 1)} t{' '}
+            {doCaminhao.length} carga{doCaminhao.length === 1 ? '' : 's'} deste caminhão · {fmt(tDoCaminhao, 1)} t
+            {mediaCaminhao != null && <> · média <strong>{fmt(mediaCaminhao, 1)} t</strong>/carga</>}
+            {mediaGeral != null && <span className="mudo"> (geral {fmt(mediaGeral, 1)} t)</span>}{' '}
             <button type="button" className="link" onClick={() => setCaminhao('')}>limpar filtro</button>
           </p>
         )}
