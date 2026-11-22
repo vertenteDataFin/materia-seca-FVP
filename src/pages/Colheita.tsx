@@ -139,14 +139,11 @@ export default function Colheita() {
       </div>
 
       <div className="cartao">
-        <div className="cabecalho-cartao">
+        <div className="cabecalho-cartao cabecalho-cargas">
           <h2>Cargas pesadas</h2>
-          <span className="mudo">{pesadasHoje.length} hoje · {calc.pesadas.length} no total</span>
-        </div>
-        {caminhoes.length > 1 && (
-          <div className="filtro-caminhao">
-            <label>
-              Caminhão{' '}
+          {caminhoes.length > 1 && (
+            <label className="filtro-caminhao">
+              <span>Caminhão</span>
               <select value={caminhao} onChange={(e) => setCaminhao(e.target.value)}>
                 <option value="">Todos</option>
                 {caminhoes.map(({ placa, v, n }) => (
@@ -156,15 +153,14 @@ export default function Colheita() {
                 ))}
               </select>
             </label>
-            {caminhao && (
-              <>
-                <span className="mudo">
-                  {doCaminhao.length} carga{doCaminhao.length === 1 ? '' : 's'} · {fmt(tDoCaminhao, 1)} t
-                </span>
-                <button type="button" className="link" onClick={() => setCaminhao('')}>limpar</button>
-              </>
-            )}
-          </div>
+          )}
+          <span className="mudo contagem-cargas">{pesadasHoje.length} hoje · {calc.pesadas.length} no total</span>
+        </div>
+        {caminhao && (
+          <p className="dica resumo-caminhao">
+            {doCaminhao.length} carga{doCaminhao.length === 1 ? '' : 's'} deste caminhão · {fmt(tDoCaminhao, 1)} t{' '}
+            <button type="button" className="link" onClick={() => setCaminhao('')}>limpar filtro</button>
+          </p>
         )}
         {!calc.pesadas.length ? (
           <p className="vazio">Nenhuma carga pesada ainda.</p>
