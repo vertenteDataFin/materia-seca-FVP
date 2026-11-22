@@ -14,6 +14,8 @@ export interface DadosImagemAmostra {
   capim: string;
   pe: PeFdn;
   pef: FaixaPef;
+  /** Nº do caminhão no cadastro de veículos (aparece ao lado da placa). */
+  numeroCaminhao?: number | null;
 }
 
 const LARGURA = 1080;
@@ -80,7 +82,7 @@ function desenhar(ctx: CanvasRenderingContext2D, d: DadosImagemAmostra): number 
     ['Talhão', d.talhao],
     ['Capim', d.capim || '—'],
     ['Silo de destino', a.silo || '—'],
-    ['Caminhão (placa)', a.placa || '—'],
+    [d.numeroCaminhao != null ? 'Caminhão (nº · placa)' : 'Caminhão (placa)', d.numeroCaminhao != null ? `${d.numeroCaminhao} · ${a.placa || '—'}` : a.placa || '—'],
     ['Motorista', a.motorista || '—'],
     ['Amostrado por', a.responsavel || '—'],
   ];

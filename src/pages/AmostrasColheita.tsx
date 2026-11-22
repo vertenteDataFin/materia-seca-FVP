@@ -10,6 +10,7 @@ import type { AmostraColheita } from '../tipos';
 import { faltaPeFdn, peFdnDaAmostra, rotuloPeFdn, textoFonteFdn, textoPeFdn, useConfigFdn } from '../fdn';
 import { LegendaPenn, PctPeneira, PercentuaisPenn } from '../PennState';
 import { compartilharOuBaixarImagem, gerarImagemAmostra } from '../imagemAmostraColheita';
+import { veiculoDaPlaca } from '../veiculos';
 
 const LIMITE = 80;
 
@@ -101,13 +102,14 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
 function EdicaoAmostra({ a, talhao, podeExcluir, capim }: { a: AmostraColheita; talhao: string; podeExcluir: boolean; capim: string }) {
   const ps = pennState(a);
   const cfgFdn = useConfigFdn();
+  const dados = useDados();
   const pe = peFdnDaAmostra(a, capim, cfgFdn);
   const pct = (v: number | null) => (v == null ? '—' : `${fmt(v * 100, 1)}%`);
   const [gerando, setGerando] = useState(false);
   async function exportarImagem() {
     setGerando(true);
     try {
-      const blob = await gerarImagemAmostra({ amostra: a, talhao, capim, pe, pef: cfgFdn.pef });
+      const blob = await gerarImagemAmostra({ amostra: a, talhao, capim, pe, pef: cfgFdn.pef, numeroCaminhao: veiculoDaPlaca(dados?.veiculos ?? [], a.placa)?.numero ?? null });
       const nome = `coleta-${(a.codigo ?? a.placa).replace(/[^\w-]+/g, '_')}.png`;
       await compartilharOuBaixarImagem(blob, nome, `Amostra ${a.codigo ?? a.placa}`);
     } catch (e) {
