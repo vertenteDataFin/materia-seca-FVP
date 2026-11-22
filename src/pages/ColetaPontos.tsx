@@ -7,7 +7,7 @@ import { PassosColeta } from '../components';
 import { capturarPosicao, dentroDoTalhao, fmtCoord, origemPosicao, ROTULO_ORIGEM, type OrigemPosicao, type Posicao } from '../geo';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmtData } from '../util';
-import { usePermissoes } from '../permissoes';
+import { podeRemoverPonto, usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 
 /**
@@ -21,7 +21,8 @@ export default function ColetaPontos() {
   const [capturando, setCapturando] = useState(false);
   const [erro, setErro] = useState('');
   const [alvoId, setAlvoId] = useState<string | null>(null);
-  const { podeExcluir } = usePermissoes();
+  const permissoes = usePermissoes();
+  const podeRemover = (a: Amostra) => podeRemoverPonto(permissoes, a);
 
   if (!dados) return null;
   const coleta = dados.coletas.find((c) => c.id === coletaId);
@@ -99,7 +100,7 @@ export default function ColetaPontos() {
             </>
           )}
           Para corrigir um ponto, escolha <em>Marcar no mapa</em> na lista abaixo e toque no lugar certo.
-          {podeExcluir && ' Toque num marcador do mapa para removê-lo.'}
+          {permissoes.podeExcluir ? ' Toque num marcador do mapa para removê-lo.' : ' Toque num marcador ainda sem peso para removê-lo.'}
         </p>
         <p className="aviso alvo-ponto">
           Próximo toque no mapa: <strong>{acaoDoToque}</strong>
@@ -115,7 +116,7 @@ export default function ColetaPontos() {
             talhoes={[talhao]}
             marcadores={marcadores}
             aoClicarMapa={(lat, lng) => aplicar({ lat, lng }, 'mapa')}
-            aoClicarMarcador={podeExcluir ? (i) => remover(comPosicao[i]) : undefined}
+            aoClicarMarcador={(i) => podeRemover(comPosicao[i]) && remover(comPosicao[i])}
             altura="min(55vh, 520px)"
             zoomMax={17}
           />
@@ -163,7 +164,7 @@ export default function ColetaPontos() {
                 ) : (
                   <button type="button" className="mini" onClick={() => setAlvoId(a.id)}>{temPosicao(a) ? 'Mover' : 'Marcar no mapa'}</button>
                 )}
-                {podeExcluir && <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} title="Remover ponto" onClick={() => remover(a)}><Icone nome="excluir" /></button>}
+                {podeRemover(a) && <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} title="Remover ponto" onClick={() => remover(a)}><Icone nome="excluir" /></button>}
               </li>
             ))}
           </ul>

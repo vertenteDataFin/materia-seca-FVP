@@ -8,7 +8,7 @@ import { capturarPosicao, dentroDoTalhao, origemPosicao, type OrigemPosicao, typ
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { codigoAmostra } from '../fluxo';
 import { fmt, fmtData } from '../util';
-import { usePermissoes } from '../permissoes';
+import { podeRemoverPonto, usePermissoes } from '../permissoes';
 import { Icone } from '../Icone';
 
 /**
@@ -20,7 +20,7 @@ export default function ColetaCampo() {
   const coletaId = useParams().id!;
   const dados = useDados();
   const navigate = useNavigate();
-  const { podeExcluir } = usePermissoes();
+  const permissoes = usePermissoes();
   const [lendo, setLendo] = useState(false);
   const [erro, setErro] = useState('');
   const [verMapa, setVerMapa] = useState(true);
@@ -127,7 +127,7 @@ export default function ColetaCampo() {
               <span className={`ponto-peso-status${a.pesoVerdeKg == null ? ' pendente' : ''}`}>
                 {a.pesoVerdeKg == null ? 'pesar depois' : `${fmt(a.pesoVerdeKg, 2)} kg`}
               </span>
-              {podeExcluir && (
+              {podeRemoverPonto(permissoes, a) && (
                 <button type="button" className="icone-acao perigo" aria-label={`Remover ponto ${a.ponto}`} onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && removerPonto(a.id)}>
                   <Icone nome="excluir" />
                 </button>

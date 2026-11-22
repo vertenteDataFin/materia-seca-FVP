@@ -55,6 +55,14 @@ export const PERMISSOES_LOCAL: Permissoes = {
   podeTestarPrototipo: true,
 };
 
+/**
+ * Pode remover este ponto da coleta? Administrador e membro removem qualquer um; operador e balanceiro
+ * só os que ainda não têm o peso de MV (um ponto marcado por engano no campo). Igual às regras do Firestore.
+ */
+export function podeRemoverPonto(p: Pick<Permissoes, 'podeExcluir'>, a: { pesoVerdeKg?: number | null }): boolean {
+  return p.podeExcluir || a.pesoVerdeKg == null;
+}
+
 export const PermissoesContext = createContext<Permissoes>(PERMISSOES_LOCAL);
 
 export function usePermissoes(): Permissoes {

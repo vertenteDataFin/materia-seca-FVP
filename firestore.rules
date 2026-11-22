@@ -155,10 +155,13 @@ service cloud.firestore {
       allow delete: if ehMembro(fid) && email() in gestoresVeiculos();
     }
 
-    // Coletas e amostras (de campo e de colheita): todo membro registra e edita; só administrador e membro excluem.
+    // Coletas e amostras (de campo e de colheita): todo membro registra e edita; administrador e membro excluem.
+    // Operador e balanceiro só excluem ponto de campo ainda sem o peso de MV (marcado por engano na coleta).
     match /fazendas/{fid}/{col}/{id} {
       allow read, create, update: if ehMembro(fid) && col in ['coletas', 'amostras', 'amostrasColheita'];
-      allow delete: if podeExcluir(fid) && col in ['coletas', 'amostras', 'amostrasColheita'];
+      allow delete: if col in ['coletas', 'amostras', 'amostrasColheita']
+        && (podeExcluir(fid)
+          || (col == 'amostras' && ehMembro(fid) && resource.data.get('pesoVerdeKg', null) == null));
     }
   }
 }

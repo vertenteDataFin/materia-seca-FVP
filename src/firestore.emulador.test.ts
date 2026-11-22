@@ -88,8 +88,19 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertSucceeds(setDoc(coleta, { talhaoId: 't1', data: '2026-11-09', responsavel: '', areaAmostralM2: 1 }));
     await assertSucceeds(setDoc(amostra, { coletaId: 'c1', ponto: 1, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null }));
     await assertSucceeds(updateDoc(amostra, { pesoVerdeKg: 2.5 }));
-    await assertFails(deleteDoc(amostra));
+    await assertFails(deleteDoc(amostra)); // ponto já pesado: operador não exclui
     await assertFails(deleteDoc(coleta));
+    // ponto ainda sem peso de MV (marcado por engano no campo): operador exclui
+    const semPeso = doc(collection(op, 'fazendas', FID, 'amostras'), 'a2');
+    await assertSucceeds(setDoc(semPeso, { coletaId: 'c1', ponto: 2, pesoVerdeKg: null, pesoUmidoG: null, pesoSecoG: null }));
+    await assertSucceeds(deleteDoc(semPeso));
+    const semCampo = doc(collection(op, 'fazendas', FID, 'amostras'), 'a3');
+    await assertSucceeds(setDoc(semCampo, { coletaId: 'c1', ponto: 3 }));
+    await assertSucceeds(deleteDoc(semCampo));
+    // amostra de colheita continua só para administrador e membro
+    const ac = doc(collection(op, 'fazendas', FID, 'amostrasColheita'), 'x1');
+    await assertSucceeds(setDoc(ac, { talhaoId: 't1', coletadaEm: '2026-11-17T08:00' }));
+    await assertFails(deleteDoc(ac));
     // membro comum exclui
     await assertSucceeds(setDoc(membro(admin, 'tec@fazenda.com.br'), { nome: 'Téc', papel: 'membro' }));
     const tec = env.authenticatedContext('t', senha('tec@fazenda.com.br', false)).firestore();

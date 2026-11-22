@@ -9,7 +9,7 @@ import { Icone } from '../Icone';
 import MapaTalhoes, { type Marcador } from '../MapaTalhoes';
 import { fmt, fmtData } from '../util';
 import { useParametros } from '../parametros';
-import { usePermissoes } from '../permissoes';
+import { podeRemoverPonto, usePermissoes } from '../permissoes';
 import { codigoAmostra, ROTULO_STATUS_COLETA, statusColeta } from '../fluxo';
 
 export default function ColetaDetalhe() {
@@ -23,7 +23,8 @@ export default function ColetaDetalhe() {
   // Coleta ainda sem pontos: já abre a edição (marcar no mapa ou pelo GPS)
   const [editandoPontos, setEditandoPontos] = useState(() => !!dados && !dados.amostras.some((a) => a.coletaId === coletaId));
   const celular = useCelular();
-  const { podeExcluir } = usePermissoes();
+  const permissoes = usePermissoes();
+  const { podeExcluir } = permissoes;
 
   if (!dados) return null;
   const coleta = dados.coletas.find((c) => c.id === coletaId);
@@ -99,7 +100,7 @@ export default function ColetaDetalhe() {
     );
   };
   const botaoRemover = (a: Amostra) =>
-    podeExcluir ? (
+    podeRemoverPonto(permissoes, a) ? (
       <button className="perigo mini" aria-label={`Remover ponto ${a.ponto}`} title="Remover ponto" onClick={() => confirm(`Remover o ponto ${a.ponto}?`) && excluirAmostra(a.id)}><Icone nome="excluir" /></button>
     ) : null;
 
