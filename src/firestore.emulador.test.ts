@@ -131,7 +131,8 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
     await assertFails(deleteDoc(carga(bal)));
     await assertFails(updateDoc(talhao(bal), { capim: 'Mombaça' }));
     // colheita finalizada: só o e-mail em finalizadoresColheita() marca e desmarca
-    const outroAdmin = env.authenticatedContext('m', senha('maria.mesquita@fazendavertente.com.br', false)).firestore();
+    await assertSucceeds(setDoc(membro(admin, 'outra.admin@fazenda.com.br'), { nome: 'Outra', papel: 'admin' }));
+    const outroAdmin = env.authenticatedContext('m', senha('outra.admin@fazenda.com.br', false)).firestore();
     await assertFails(updateDoc(talhao(op), { colheitaFinalizadaEm: '2026-11-20' }));
     await assertFails(updateDoc(talhao(bal), { colheitaFinalizadaEm: '2026-11-20' }));
     await assertFails(updateDoc(talhao(tec), { colheitaFinalizadaEm: '2026-11-20' }));
@@ -155,7 +156,8 @@ describe.skipIf(!ativo)('regras do Firestore', () => {
 
   it('veículos: todos leem; só o gestor de veículos cadastra, edita e remove', async () => {
     const gestor = env.authenticatedContext('a', google(ADMIN)).firestore();
-    const outroAdmin = env.authenticatedContext('m', senha('maria.mesquita@fazendavertente.com.br', false)).firestore();
+    await assertSucceeds(setDoc(membro(gestor, 'outra.admin@fazenda.com.br'), { nome: 'Outra', papel: 'admin' }));
+    const outroAdmin = env.authenticatedContext('m', senha('outra.admin@fazenda.com.br', false)).firestore();
     await assertSucceeds(setDoc(membro(gestor, 'campo2@fazenda.com.br'), { nome: 'Campo', papel: 'operador' }));
     const op = env.authenticatedContext('o2', senha('campo2@fazenda.com.br', false)).firestore();
     const { deleteDoc, updateDoc, getDoc } = await import('firebase/firestore');

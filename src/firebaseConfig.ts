@@ -19,7 +19,7 @@ export const FAZENDA_ID = 'vertente';
  * E-mails administradores: sempre têm acesso e podem incluir outras pessoas (Config → Pessoas com acesso).
  * Mantenha igual à lista admins() em firestore.rules.
  */
-export const ADMINS: string[] = ['marialauragcardoso@gmail.com', 'maria.mesquita@fazendavertente.com.br'];
+export const ADMINS: string[] = ['marialauragcardoso@gmail.com'];
 
 /**
  * Quem vê o histórico de alterações (Config → Histórico) e pode desfazer exclusões/edições.

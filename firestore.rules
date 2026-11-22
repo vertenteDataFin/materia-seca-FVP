@@ -8,7 +8,7 @@ service cloud.firestore {
 
     // E-mails administradores (minúsculas). Mantenha igual a ADMINS em src/firebaseConfig.ts.
     function admins() {
-      return ['marialauragcardoso@gmail.com', 'maria.mesquita@fazendavertente.com.br'];
+      return ['marialauragcardoso@gmail.com'];
     }
 
     function logado() {
