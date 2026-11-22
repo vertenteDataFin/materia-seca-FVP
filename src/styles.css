@@ -887,6 +887,10 @@ th.ordenavel.ativa .seta { opacity: 1; }
 .ponto-campo.fora { border-color: #b3261e; }
 .ponto-n { flex: none; width: 2.2rem; height: 2.2rem; border-radius: 50%; background: var(--verde); color: white; font-weight: 700; display: grid; place-items: center; }
 .ponto-info { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+/* coleta pelo mapa: ponto escolhido para receber o próximo toque */
+.ponto-campo.alvo { background: var(--verde-claro); border-color: var(--verde); }
+.mapa-campo .alvo-ponto { margin: 0.1rem 0 0.5rem; }
+.mapa-campo .alvo-ponto.alvo-ativo { background: #fdf3d6; border-radius: 6px; padding: 0.3rem 0.5rem; }
 .ponto-peso { display: flex; align-items: center; gap: 0.3rem; flex: none; }
 .ponto-peso input { width: 5.5rem; font-size: 1.25rem; padding: 0.45rem; text-align: right; }
 .barra-campo { position: fixed; left: 0; right: 0; bottom: 0; z-index: 1000; display: grid; grid-template-columns: 2fr 1fr; gap: 0.5rem; padding: 0.6rem 1rem calc(0.6rem + env(safe-area-inset-bottom)); background: white; border-top: 1px solid var(--borda); box-shadow: 0 -2px 8px rgba(0,0,0,0.08); }
