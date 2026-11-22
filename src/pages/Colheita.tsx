@@ -16,6 +16,7 @@ import {
 } from '../colheita';
 import type { Carga } from '../tipos';
 import VeiculosCard from '../VeiculosCard';
+import { veiculoDaPlaca } from '../veiculos';
 import { SILOS } from '../silos';
 import ImportarBalanca from './ImportarBalanca';
 import { CampoNumero } from '../components';
@@ -35,6 +36,8 @@ export default function Colheita() {
   const [importando, setImportando] = useState(false);
   // cargas pesadas: só as de hoje; as anteriores aparecem pelo botão, em blocos de 60
   const [anteriores, setAnteriores] = useState(0);
+  // filtro das cargas pesadas por caminhão (placa normalizada); '' = todos
+  const [caminhao, setCaminhao] = useState('');
 
   const calc = useMemo(() => {
     if (!dados) return null;
@@ -70,8 +73,15 @@ export default function Colheita() {
   const diaHoje = hoje();
   const pesadasHoje = calc.pesadas.filter((c) => c.saidaEm.startsWith(diaHoje));
   const pesadasAntes = calc.pesadas.filter((c) => !c.saidaEm.startsWith(diaHoje));
-  const visiveis = [...pesadasHoje, ...pesadasAntes.slice(0, anteriores)];
-  const faltam = Math.max(0, pesadasAntes.length - anteriores);
+  // Caminhões com carga pesada, pelo nº do cadastro (sem nº, no fim, pela placa)
+  const caminhoes = [...new Set(calc.pesadas.map((c) => normalizarPlaca(c.placa)).filter(Boolean))]
+    .map((p) => ({ placa: p, v: veiculoDaPlaca(dados.veiculos, p), n: calc.pesadas.filter((c) => normalizarPlaca(c.placa) === p).length }))
+    .sort((a, b) => (a.v?.numero ?? Infinity) - (b.v?.numero ?? Infinity) || a.placa.localeCompare(b.placa));
+  // Com caminhão escolhido: todas as cargas dele (de todos os dias)
+  const doCaminhao = caminhao ? calc.pesadas.filter((c) => normalizarPlaca(c.placa) === caminhao) : [];
+  const tDoCaminhao = doCaminhao.reduce((s, c) => s + (liquidoKg(c) ?? 0), 0) / 1000;
+  const visiveis = caminhao ? doCaminhao : [...pesadasHoje, ...pesadasAntes.slice(0, anteriores)];
+  const faltam = caminhao ? 0 : Math.max(0, pesadasAntes.length - anteriores);
 
   return (
     <>
@@ -133,11 +143,34 @@ export default function Colheita() {
           <h2>Cargas pesadas</h2>
           <span className="mudo">{pesadasHoje.length} hoje · {calc.pesadas.length} no total</span>
         </div>
+        {caminhoes.length > 1 && (
+          <div className="filtro-caminhao">
+            <label>
+              Caminhão{' '}
+              <select value={caminhao} onChange={(e) => setCaminhao(e.target.value)}>
+                <option value="">Todos</option>
+                {caminhoes.map(({ placa, v, n }) => (
+                  <option key={placa} value={placa}>
+                    {v?.numero != null ? `${v.numero} – ` : ''}{placa}{v?.motorista ? ` · ${v.motorista}` : ''} ({n})
+                  </option>
+                ))}
+              </select>
+            </label>
+            {caminhao && (
+              <>
+                <span className="mudo">
+                  {doCaminhao.length} carga{doCaminhao.length === 1 ? '' : 's'} · {fmt(tDoCaminhao, 1)} t
+                </span>
+                <button type="button" className="link" onClick={() => setCaminhao('')}>limpar</button>
+              </>
+            )}
+          </div>
+        )}
         {!calc.pesadas.length ? (
           <p className="vazio">Nenhuma carga pesada ainda.</p>
         ) : (
           <>
-            {!visiveis.length && <p className="vazio">Nenhuma carga pesada hoje.</p>}
+            {!visiveis.length && <p className="vazio">{caminhao ? 'Nenhuma carga deste caminhão.' : 'Nenhuma carga pesada hoje.'}</p>}
             {visiveis.length > 0 && (
               <div className="rolagem">
                 <table className="tabela-cartoes lista-compacta tabela-pesadas">
@@ -167,7 +200,7 @@ export default function Colheita() {
                 </table>
               </div>
             )}
-            {(faltam > 0 || anteriores > 0) && (
+            {!caminhao && (faltam > 0 || anteriores > 0) && (
               <div className="acoes">
                 {faltam > 0 && (
                   <button type="button" onClick={() => setAnteriores((n) => n + 60)}>

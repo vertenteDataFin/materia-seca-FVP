@@ -911,3 +911,12 @@ tr.linha-grafico-ms > td { padding: 0.5rem 0.5rem 1rem; text-align: left; backgr
   .tabela-cartoes tr.linha-grafico-ms { background: #fff; padding: 0.5rem 0.6rem 0.6rem; }
   .tabela-cartoes tr.linha-grafico-ms > td { border: none; padding: 0; }
 }
+
+/* Colheita: filtro das cargas pesadas por caminhão */
+.filtro-caminhao { display: flex; flex-wrap: wrap; align-items: center; gap: 0.4rem 0.75rem; margin: 0 0 0.6rem; }
+.filtro-caminhao label { display: flex; flex-direction: row; align-items: center; gap: 0.5rem; margin: 0; font-size: 0.9rem; }
+.filtro-caminhao select { max-width: 100%; }
+@media (max-width: 700px) {
+  .filtro-caminhao label { flex: 1 1 100%; min-width: 0; display: grid; grid-template-columns: auto minmax(0, 1fr); }
+  .filtro-caminhao select { width: 100%; min-width: 0; }
+}
