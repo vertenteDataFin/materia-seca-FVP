@@ -87,6 +87,12 @@ export default function Colheita() {
   };
   const mediaCaminhao = caminhao ? mediaT(doCaminhao) : null;
   const mediaGeral = mediaT(calc.pesadas);
+  const tGeral = calc.pesadas.reduce((s, c) => s + (liquidoKg(c) ?? 0), 0) / 1000;
+  // Tabela por caminhão: cargas, total e média do líquido por carga
+  const porCaminhao = caminhoes.map((k) => {
+    const cs = calc.pesadas.filter((c) => normalizarPlaca(c.placa) === k.placa);
+    return { ...k, t: cs.reduce((s, c) => s + (liquidoKg(c) ?? 0), 0) / 1000, media: mediaT(cs) };
+  });
   const visiveis = caminhao ? doCaminhao : [...pesadasHoje, ...pesadasAntes.slice(0, anteriores)];
   const faltam = caminhao ? 0 : Math.max(0, pesadasAntes.length - anteriores);
 
@@ -145,7 +151,7 @@ export default function Colheita() {
         )}
       </div>
 
-      <div className="cartao">
+      <div className="cartao" id="cargas-pesadas">
         <div className="cabecalho-cartao cabecalho-cargas">
           <h2>Cargas pesadas</h2>
           {caminhoes.length > 1 && (
@@ -220,6 +226,62 @@ export default function Colheita() {
           </>
         )}
       </div>
+
+      {porCaminhao.length > 0 && (
+        <div className="cartao">
+          <div className="cabecalho-cartao">
+            <h2>Peso líquido por caminhão</h2>
+            <span className="mudo">média por carga</span>
+          </div>
+          <div className="rolagem">
+            <table className="lista-compacta tabela-caminhoes">
+              <thead>
+                <tr>
+                  <th>Caminhão</th>
+                  <th className="oculta-cel">Motorista</th>
+                  <th className="n">Cargas</th>
+                  <th className="n">Total t</th>
+                  <th className="n">Média t</th>
+                </tr>
+              </thead>
+              <tbody>
+                {porCaminhao.map(({ placa, v, n, t, media }) => (
+                  <tr key={placa} className={caminhao === placa ? 'selecionada' : undefined}>
+                    <td>
+                      <button
+                        type="button"
+                        className="link"
+                        title="Ver as cargas deste caminhão"
+                        onClick={() => {
+                          const escolher = caminhao !== placa;
+                          setCaminhao(escolher ? placa : '');
+                          if (escolher) document.getElementById('cargas-pesadas')?.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                        }}
+                      >
+                        {v?.numero != null ? `${v.numero} · ` : ''}{placa}
+                      </button>
+                    </td>
+                    <td className="oculta-cel">{v?.motorista ?? '—'}</td>
+                    <td className="n">{n}</td>
+                    <td className="n">{fmt(t, 1)}</td>
+                    <td className="n"><strong>{media != null ? fmt(media, 1) : '—'}</strong></td>
+                  </tr>
+                ))}
+              </tbody>
+              <tfoot>
+                <tr>
+                  <td>Todos</td>
+                  <td className="oculta-cel" />
+                  <td className="n">{calc.pesadas.length}</td>
+                  <td className="n">{fmt(tGeral, 1)}</td>
+                  <td className="n"><strong>{mediaGeral != null ? fmt(mediaGeral, 1) : '—'}</strong></td>
+                </tr>
+              </tfoot>
+            </table>
+          </div>
+          <p className="dica">Toque no caminhão para ver as cargas dele acima. Cargas sem peso líquido ficam fora da média.</p>
+        </div>
+      )}
 
       <VeiculosCard />
     </>
