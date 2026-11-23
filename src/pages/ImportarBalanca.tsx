@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { importarCargas, useDados } from '../dados';
 import { lerArquivoBalanca, sugerirTalhao, type LinhaBalanca } from '../relatorioBalanca';
 import { fmtSaida } from '../colheita';
-import { motoristaNaData, veiculoDaPlaca } from '../veiculos';
+import { motoristaNaData, placaCorrigida, veiculoDaPlaca } from '../veiculos';
 import { nomeComSigla } from '../MapaTalhoes';
 import { Icone } from '../Icone';
 import { fmt } from '../util';
@@ -83,7 +83,7 @@ export default function ImportarBalanca({ aoFechar }: { aoFechar: () => void }) 
       return {
         talhaoId: origens[origemDe(l)],
         saidaEm: l.pesadoEm,
-        placa: l.placa,
+        placa: placaCorrigida(l.placa),
         ...(motorista ? { motorista } : {}),
         ...(l.silo ? { silo: l.silo } : {}),
         pesoBrutoKg: l.totalKg,

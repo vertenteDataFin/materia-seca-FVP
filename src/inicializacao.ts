@@ -3,7 +3,7 @@ import { dadosAtuais, repositorio } from './dados';
 import { importarTalhoesFazenda } from './importarFazenda';
 import { migrarLegadoUmaVez } from './migracaoLegado';
 import type { Permissoes } from './permissoes';
-import { importarVeiculosIniciais } from './veiculos';
+import { corrigirPlacasRegistradas, importarVeiculosIniciais } from './veiculos';
 
 // Mude a versão para forçar uma nova sincronização com o KML embutido (edições do usuário são preservadas).
 // v10: Talhão 18 dividido em 18A e 18B (2026-11-17).
@@ -56,6 +56,14 @@ export async function inicializarDados(p: Permissoes): Promise<string[]> {
     } catch (e) {
       console.error('Falha ao carregar veículos iniciais', e);
     }
+  }
+
+  // Cargas/amostras com placa digitada errada (ex.: CHJ7E24 → CXJ7E24): qualquer membro acerta; idempotente.
+  try {
+    const n = corrigirPlacasRegistradas();
+    if (n) msgs.push(`${n} registro(s) da colheita passaram para a placa correta do caminhão.`);
+  } catch (e) {
+    console.error('Falha ao corrigir placas', e);
   }
 
   if (localStorage.getItem(CHAVE_COLETAS) !== '1' && dadosAtuais().talhoes.length) {

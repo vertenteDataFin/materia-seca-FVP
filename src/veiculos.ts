@@ -23,10 +23,36 @@ export const PLACAS_CORRIGIDAS: { de: string; para: string }[] = [
   { de: 'CHJ7E24', para: 'CXJ7E24' }, // Sebastião David (19/11/2026)
 ];
 
+/** Placa normalizada, já com as correções conhecidas (ex.: CHJ7E24, digitada errado, vira CXJ7E24). */
+export function placaCorrigida(placa?: string | null): string {
+  const p = normalizarPlaca(placa);
+  return PLACAS_CORRIGIDAS.find((x) => x.de === p)?.para ?? p;
+}
+
 /** Veículo cadastrado com esta placa (comparação sem hífen/espaço e sem diferenciar maiúsculas). */
 export function veiculoDaPlaca(veiculos: Veiculo[], placa?: string | null): Veiculo | undefined {
   const p = normalizarPlaca(placa);
-  return p ? veiculos.find((v) => normalizarPlaca(v.placa) === p) : undefined;
+  if (!p) return undefined;
+  const corrigida = placaCorrigida(p);
+  return veiculos.find((v) => normalizarPlaca(v.placa) === p) ?? veiculos.find((v) => normalizarPlaca(v.placa) === corrigida);
+}
+
+/**
+ * Cargas e amostras de colheita registradas com uma placa errada conhecida: passam para a placa certa
+ * e para o motorista do cadastro (titular ou substituto do dia). Idempotente. Devolve quantos mudaram.
+ */
+export function corrigirPlacasRegistradas(): number {
+  const { cargas, amostrasColheita, veiculos } = dadosAtuais();
+  const acerto = (placa: string | undefined, data: string) => {
+    const p = normalizarPlaca(placa), nova = placaCorrigida(p);
+    if (!p || nova === p) return null;
+    const v = veiculos.find((x) => normalizarPlaca(x.placa) === nova);
+    return { placa: nova, ...(v ? { motorista: motoristaNaData(v, data) } : {}) };
+  };
+  let n = 0;
+  for (const c of cargas) { const a = acerto(c.placa, c.saidaEm); if (a) { atualizarCarga(c.id, a); n++; } }
+  for (const x of amostrasColheita) { const a = acerto(x.placa, x.coletadaEm); if (a) { atualizarAmostraColheita(x.id, a); n++; } }
+  return n;
 }
 
 /** Substituição do motorista que vale nesta data ("AAAA-MM-DD…"), se houver. */

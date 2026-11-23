@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { definirRepositorio } from './dados';
 import { RepositorioMemoria } from './repositorio';
-import { acertarMotoristas, importarVeiculosIniciais, motoristaNaData, VEICULOS_INICIAIS } from './veiculos';
+import { acertarMotoristas, corrigirPlacasRegistradas, importarVeiculosIniciais, motoristaNaData, veiculoDaPlaca, VEICULOS_INICIAIS } from './veiculos';
 import type { Veiculo } from './tipos';
 
 let repo: RepositorioMemoria;
@@ -90,5 +90,21 @@ describe('substituição de motorista', () => {
     // sem a substituição, voltam para o titular
     expect(acertarMotoristas({ ...v, substituicoes: [] }, v.substituicoes!)).toBe(2);
     expect(mot(dentro)).toBe('Claudinei Marques');
+  });
+});
+
+describe('placa digitada errada', () => {
+  it('CHJ7E24 vira CXJ7E24 com o motorista do cadastro; o resto não muda; rodar de novo não muda nada', () => {
+    repo.adicionar('veiculos', { numero: 5, motorista: 'Sebastião David', placa: 'CXJ7E24' });
+    const errada = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-21T10:00', placa: 'CHJ-7E24', motorista: 'Sebastiao David Fernandes de Oliveira', pesoBrutoKg: 1, taraKg: 0 });
+    const certa = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-21T11:00', placa: 'CXJ7E24', motorista: 'Sebastião David', pesoBrutoKg: 1, taraKg: 0 });
+    expect(veiculoDaPlaca(repo.obter()!.veiculos, 'chj7e24')?.numero).toBe(5);
+    expect(corrigirPlacasRegistradas()).toBe(1);
+    const cs = repo.obter()!.cargas;
+    expect([errada, certa].map((id) => cs.find((c) => c.id === id)).map((c) => [c!.placa, c!.motorista])).toEqual([
+      ['CXJ7E24', 'Sebastião David'],
+      ['CXJ7E24', 'Sebastião David'],
+    ]);
+    expect(corrigirPlacasRegistradas()).toBe(0);
   });
 });
