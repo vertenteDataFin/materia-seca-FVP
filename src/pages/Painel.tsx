@@ -34,6 +34,9 @@ interface Linha {
   r: ResumoColeta | null;
   /** Andamento da colheita (só talhões que já tiveram carga). */
   a?: AndamentoTalhao;
+  /** Pontos de todas as coletas de campo do talhão. */
+  nPontos: number;
+  nColetas: number;
 }
 
 /** Valor da coluna para ordenar; null = sem valor (fica sempre no fim). */
@@ -43,7 +46,7 @@ function valorColuna(l: Linha, col: Coluna): string | number | null {
     case 'capim': return l.t.capim || null;
     case 'data': return l.c?.data ?? null;
     case 'area': return l.t.areaHa;
-    case 'amostras': return l.r?.nPontos ?? null;
+    case 'amostras': return l.nColetas ? l.nPontos : null;
     case 'colheita': return l.a ? progressoColheita(l.a) : null;
     default: return l.r?.[col] ?? null;
   }
@@ -101,7 +104,10 @@ export default function Painel() {
       const c = ultima.get(t.id);
       const r = c ? resumoColeta(c, porColeta.get(c.id) ?? []) : null;
       const e = r ? estimativaTalhao(t.areaHa, r, parametros) : null;
-      return { t, c, r, e, a: colheita.porTalhao.get(t.id) };
+      // Pontos = soma dos pontos de todas as coletas de campo do talhão (igual à página Talhões)
+      const coletasT = dados.coletas.filter((x) => x.talhaoId === t.id);
+      const nPontos = coletasT.reduce((s, x) => s + (porColeta.get(x.id)?.length ?? 0), 0);
+      return { t, c, r, e, a: colheita.porTalhao.get(t.id), nPontos, nColetas: coletasT.length };
     });
     return { linhas, colheita };
   }, [dados, parametros]);
@@ -383,7 +389,7 @@ export default function Painel() {
                   <td colSpan={9} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
                 </tr>
               )}
-              {filtradas.map(({ t, c, r, a }) => (
+              {filtradas.map(({ t, c, r, a, nPontos, nColetas }) => (
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
                     <Bolinha cor={semaforoDe(statusMS(r?.msPct ?? null, parametros))} />{' '}
@@ -399,7 +405,9 @@ export default function Painel() {
                   <td className="oculta-cel">{t.capim || '—'}</td>
                   <td className="oculta-cel">{c ? <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link> : <span className="mudo">sem coleta</span>}</td>
                   <td className="n oculta-cel">{fmt(t.areaHa, 1)}</td>
-                  <td className="n oculta-cel">{r ? r.nPontos : '—'}</td>
+                  <td className="n oculta-cel" title={nColetas ? `${nPontos} ponto(s) em ${nColetas} coleta(s); ${r?.nPontos ?? 0} na última` : undefined}>
+                    {nColetas ? nPontos : '—'}
+                  </td>
                   <td className="n" data-rotulo="MV t/ha">{fmt(r?.tMVha)}</td>
                   <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
                   <td className="n" data-rotulo="MS t/ha">{fmt(r?.tMSha)}</td>
