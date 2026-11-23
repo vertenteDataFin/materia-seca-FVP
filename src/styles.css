@@ -949,3 +949,6 @@ tr.linha-grafico-ms > td { padding: 0.5rem 0.5rem 1rem; text-align: left; backgr
   .form-substituto label { flex: 1 1 100%; }
 }
 
+.tabela-caminhoes tr.sub-motorista td { font-size: 0.9em; color: var(--texto-suave, #444); padding-top: 0.2rem; padding-bottom: 0.2rem; }
+.tabela-caminhoes tr.sub-motorista td:first-child { padding-left: 1.2rem; }
+

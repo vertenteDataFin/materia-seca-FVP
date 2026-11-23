@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
+import { Fragment, useEffect, useMemo, useRef, useState, type FormEvent } from 'react';
 import { amostrasPorColeta, atualizarCarga, atualizarTalhao, excluirCarga, useDados } from '../dados';
 import {
   agoraLocal,
@@ -91,7 +91,15 @@ export default function Colheita() {
   // Tabela por caminhão: cargas, total e média do líquido por carga
   const porCaminhao = caminhoes.map((k) => {
     const cs = calc.pesadas.filter((c) => normalizarPlaca(c.placa) === k.placa);
-    return { ...k, t: cs.reduce((s, c) => s + (liquidoKg(c) ?? 0), 0) / 1000, media: mediaT(cs) };
+    // Separado por motorista (o gravado em cada carga; sem nome, o titular do cadastro)
+    const nomes = [...new Set(cs.map((c) => c.motorista || k.v?.motorista || '—'))];
+    const motoristas = nomes
+      .map((m) => {
+        const dele = cs.filter((c) => (c.motorista || k.v?.motorista || '—') === m);
+        return { nome: m, n: dele.length, t: dele.reduce((s, c) => s + (liquidoKg(c) ?? 0), 0) / 1000, media: mediaT(dele), titular: m === k.v?.motorista };
+      })
+      .sort((a, b) => Number(b.titular) - Number(a.titular) || b.n - a.n);
+    return { ...k, t: cs.reduce((s, c) => s + (liquidoKg(c) ?? 0), 0) / 1000, media: mediaT(cs), motoristas };
   });
   const visiveis = caminhao ? doCaminhao : [...pesadasHoje, ...pesadasAntes.slice(0, anteriores)];
   const faltam = caminhao ? 0 : Math.max(0, pesadasAntes.length - anteriores);
@@ -245,8 +253,9 @@ export default function Colheita() {
                 </tr>
               </thead>
               <tbody>
-                {porCaminhao.map(({ placa, v, n, t, media }) => (
-                  <tr key={placa} className={caminhao === placa ? 'selecionada' : undefined}>
+                {porCaminhao.map(({ placa, v, n, t, media, motoristas }) => (
+                  <Fragment key={placa}>
+                  <tr className={caminhao === placa ? 'selecionada' : undefined}>
                     <td>
                       <button
                         type="button"
@@ -261,16 +270,28 @@ export default function Colheita() {
                         {v?.numero != null ? `${v.numero} · ` : ''}{placa}
                       </button>
                     </td>
-                    <td className="oculta-cel">
-                      {v?.motorista ?? '—'}
-                      {(v?.substituicoes ?? []).map((s, i) => (
-                        <div key={i} className="mudo"><small>{s.motorista} ({fmtData(s.de).slice(0, 5)} a {fmtData(s.ate).slice(0, 5)})</small></div>
-                      ))}
-                    </td>
+                    <td className="oculta-cel">{motoristas.length > 1 ? <span className="mudo">{motoristas.length} motoristas</span> : (motoristas[0]?.nome ?? v?.motorista ?? '—')}</td>
                     <td className="n">{n}</td>
                     <td className="n">{fmt(t, 1)}</td>
                     <td className="n"><strong>{media != null ? fmt(media, 1) : '—'}</strong></td>
                   </tr>
+                  {motoristas.length > 1 &&
+                    motoristas.map((m) => {
+                      const s = (v?.substituicoes ?? []).find((x) => x.motorista === m.nome);
+                      return (
+                        <tr key={placa + m.nome} className="sub-motorista">
+                          <td>
+                            ↳ {m.nome}
+                            {s && <div className="mudo"><small>{fmtData(s.de).slice(0, 5)} a {fmtData(s.ate).slice(0, 5)}</small></div>}
+                          </td>
+                          <td className="oculta-cel" />
+                          <td className="n">{m.n}</td>
+                          <td className="n">{fmt(m.t, 1)}</td>
+                          <td className="n">{m.media != null ? fmt(m.media, 1) : '—'}</td>
+                        </tr>
+                      );
+                    })}
+                  </Fragment>
                 ))}
               </tbody>
               <tfoot>
