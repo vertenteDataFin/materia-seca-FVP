@@ -2,7 +2,8 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { definirRepositorio } from './dados';
 import { RepositorioMemoria } from './repositorio';
-import { importarVeiculosIniciais, VEICULOS_INICIAIS } from './veiculos';
+import { acertarMotoristas, importarVeiculosIniciais, motoristaNaData, VEICULOS_INICIAIS } from './veiculos';
+import type { Veiculo } from './tipos';
 
 let repo: RepositorioMemoria;
 
@@ -62,5 +63,32 @@ describe('importarVeiculosIniciais', () => {
     expect(importarVeiculosIniciais()).toBe(1);
     const paulo = repo.obter()!.veiculos.filter((v) => v.placa === 'CKZ3D25');
     expect(paulo.map((v) => [v.numero, v.motorista])).toEqual([[8, 'Paulo Cesar Meneses']]);
+  });
+});
+describe('substituição de motorista', () => {
+  const v: Veiculo = { id: 'v4', numero: 4, motorista: 'Claudinei Marques', placa: 'CRY4H95', substituicoes: [{ motorista: 'José Cláudio', de: '2026-11-21', ate: '2026-11-27' }] };
+
+  it('vale nas datas do período, inclusive as pontas', () => {
+    expect(motoristaNaData(v, '2026-11-20T23:59')).toBe('Claudinei Marques');
+    expect(motoristaNaData(v, '2026-11-21T06:00')).toBe('José Cláudio');
+    expect(motoristaNaData(v, '2026-11-27T18:30')).toBe('José Cláudio');
+    expect(motoristaNaData(v, '2026-11-28')).toBe('Claudinei Marques');
+    expect(motoristaNaData({ motorista: 'X' }, '2026-11-22')).toBe('X');
+  });
+
+  it('acerta as cargas e amostras já registradas do caminhão no período, e só elas', () => {
+    const dentro = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-22T10:00', placa: 'CRY-4H95', motorista: 'Claudinei Marques', pesoBrutoKg: 1, taraKg: 0 });
+    const fora = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-20T10:00', placa: 'CRY4H95', motorista: 'Claudinei Marques', pesoBrutoKg: 1, taraKg: 0 });
+    const outro = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-22T10:00', placa: 'CPG0247', motorista: 'Vitor Alonso', pesoBrutoKg: 1, taraKg: 0 });
+    const am = repo.adicionar('amostrasColheita', { talhaoId: 't', coletadaEm: '2026-11-23T09:00', placa: 'CRY4H95', motorista: 'Claudinei Marques', silo: 'S', peneira19G: null, peneira8G: null, peneira4G: null, fundoG: null, pesoUmidoG: null, pesoSecoG: null });
+    expect(acertarMotoristas(v, v.substituicoes!)).toBe(2);
+    const mot = (id: string) => {
+      const d = repo.obter()!;
+      return [...d.cargas, ...d.amostrasColheita].find((x) => x.id === id)!.motorista;
+    };
+    expect([mot(dentro), mot(fora), mot(outro), mot(am)]).toEqual(['José Cláudio', 'Claudinei Marques', 'Vitor Alonso', 'José Cláudio']);
+    // sem a substituição, voltam para o titular
+    expect(acertarMotoristas({ ...v, substituicoes: [] }, v.substituicoes!)).toBe(2);
+    expect(mot(dentro)).toBe('Claudinei Marques');
   });
 });

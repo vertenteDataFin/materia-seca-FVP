@@ -49,7 +49,7 @@ const ROTULO_CAMPO: Record<string, string> = {
   areaKmlHa: 'área do KML (ha)', capimKml: 'capim do KML', geometria: 'contorno',
   saidaEm: 'saída', placa: 'placa', silo: 'silo', pesoBrutoKg: 'peso bruto (kg)', taraKg: 'tara (kg)', pesadoEm: 'pesagem',
   romaneio: 'romaneio', msPct: 'MS da carga (%)', colheitaFinalizadaEm: 'colheita finalizada', areaColhidaInformada: 'área colhida informada', historicoAreaColhida: 'histórico da área colhida',
-  motorista: 'motorista', numero: 'nº de cadastro',
+  motorista: 'motorista', numero: 'nº de cadastro', substituicoes: 'substituições de motorista',
   coletadaEm: 'amostrada em', fdnPct: 'FDN laboratório (%)', peneira19G: 'peneira 19 mm (g)', peneira8G: 'peneira 8 mm (g)', peneira4G: 'peneira 4 mm (g)', fundoG: 'fundo (g)',
 };
 

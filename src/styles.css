@@ -933,3 +933,19 @@ tr.linha-grafico-ms > td { padding: 0.5rem 0.5rem 1rem; text-align: left; backgr
 .tabela-caminhoes tr.selecionada td { background: #e8f5e9; }
 .tabela-caminhoes td .link { text-align: left; white-space: nowrap; }
 
+
+/* Veículos: motorista substituto por um período */
+.substituicao { display: flex; flex-wrap: wrap; align-items: center; gap: 0 0.5rem; color: var(--texto-suave, #555); }
+.substituicao .icone { width: 1em; height: 1em; vertical-align: -0.15em; }
+.substituicao .selo { margin-left: 0.3rem; }
+.form-substituto { display: flex; flex-wrap: wrap; align-items: flex-end; gap: 0.5rem 0.75rem; padding: 0.5rem 0; }
+.form-substituto > strong, .form-substituto > .dica, .form-substituto > .erro { flex: 1 1 100%; margin: 0; }
+.form-substituto label { flex: 1 1 10rem; }
+.tabela-veiculos tr.selecionada td { background: #e8f5e9; }
+
+@media (max-width: 700px) {
+  .tabela-veiculos tr.linha-substituto { display: table-row; }
+  .tabela-veiculos tr.linha-substituto > td { display: table-cell; padding: 0 0.5rem 0.5rem; background: var(--verde-claro); }
+  .form-substituto label { flex: 1 1 100%; }
+}
+

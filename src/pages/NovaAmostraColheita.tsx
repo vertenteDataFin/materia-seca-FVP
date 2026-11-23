@@ -3,7 +3,7 @@ import { SILOS } from '../silos';
 import { Link, useNavigate } from 'react-router-dom';
 import { adicionarAmostraColheita, adicionarVeiculo, useDados } from '../dados';
 import { agoraLocal, normalizarPlaca } from '../colheita';
-import { placaValida, proximoNumero, veiculoDaPlaca } from '../veiculos';
+import { motoristaNaData, placaValida, proximoNumero, veiculoDaPlaca } from '../veiculos';
 import { usePermissoes } from '../permissoes';
 import { PENEIRAS, pennState, proximoCodigoColheita, type CampoPeneira } from '../amostragemColheita';
 import { fmt, parseNum } from '../util';
@@ -69,8 +69,8 @@ export default function NovaAmostraColheita() {
     for (const pen of PENEIRAS) {
       if (pesos[pen.campo].trim() && (numeros[pen.campo] == null || numeros[pen.campo]! < 0)) return setErro(`Peso inválido na peneira ${pen.rotulo}.`);
     }
-    // Motorista: o do cadastro do caminhão; se o caminhão não está na lista, o digitado.
-    const nomeMotorista = v?.motorista ?? motorista.trim().replace(/\s+/g, ' ');
+    // Motorista: o do cadastro do caminhão (o substituto, se for o período dele); fora da lista, o digitado.
+    const nomeMotorista = v ? motoristaNaData(v, coletadaEm) : motorista.trim().replace(/\s+/g, ' ');
     // Caminhão novo: quem cadastra veículos pode já incluí-lo na lista.
     if (!v && podeCadastrarVeiculos && salvarNaLista && nomeMotorista && placaValida(p)) {
       adicionarVeiculo({ numero: proximoNumero(veiculos), motorista: nomeMotorista, placa: p });
@@ -120,7 +120,7 @@ export default function NovaAmostraColheita() {
             <select value={veiculoId} onChange={(e) => setVeiculoId(e.target.value)} required>
               <option value="">Escolha…</option>
               {veiculos.map((v) => (
-                <option key={v.id} value={v.id}>{v.numero != null ? `${v.numero} – ` : ''}{v.placa} · {v.motorista}</option>
+                <option key={v.id} value={v.id}>{v.numero != null ? `${v.numero} – ` : ''}{v.placa} · {motoristaNaData(v, coletadaEm)}</option>
               ))}
               <option value={OUTRO}>Outro (digitar placa e motorista)</option>
             </select>

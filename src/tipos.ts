@@ -103,7 +103,15 @@ export interface Veiculo {
   motorista: string;
   /** Placa em maiúsculas, sem hífen (ex.: "CPG0247"). */
   placa: string;
+  /** Motoristas que substituem o titular por um período (datas "AAAA-MM-DD", inclusive). */
+  substituicoes?: Substituicao[];
   criadoEm?: string;
+}
+
+export interface Substituicao {
+  motorista: string;
+  de: string;
+  ate: string;
 }
 
 /**

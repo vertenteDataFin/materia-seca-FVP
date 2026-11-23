@@ -2,7 +2,7 @@ import { useMemo, useRef, useState } from 'react';
 import { importarCargas, useDados } from '../dados';
 import { lerArquivoBalanca, sugerirTalhao, type LinhaBalanca } from '../relatorioBalanca';
 import { fmtSaida } from '../colheita';
-import { veiculoDaPlaca } from '../veiculos';
+import { motoristaNaData, veiculoDaPlaca } from '../veiculos';
 import { nomeComSigla } from '../MapaTalhoes';
 import { Icone } from '../Icone';
 import { fmt } from '../util';
@@ -78,7 +78,8 @@ export default function ImportarBalanca({ aoFechar }: { aoFechar: () => void }) 
     if (!aImportar.length) return;
     const cargas: Novo<Carga>[] = aImportar.map((l) => {
       const v = veiculoDaPlaca(dados!.veiculos, l.placa);
-      const motorista = v?.motorista || l.motoristaRelatorio;
+      // do cadastro (com o substituto do período, se houver); sem cadastro, o do relatório
+      const motorista = (v && motoristaNaData(v, l.pesadoEm)) || l.motoristaRelatorio;
       return {
         talhaoId: origens[origemDe(l)],
         saidaEm: l.pesadoEm,
@@ -179,7 +180,7 @@ export default function ImportarBalanca({ aoFechar }: { aoFechar: () => void }) 
                       <td>{l.pesadoEm ? fmtSaida(l.pesadoEm) : '—'}</td>
                       <td>
                         {l.placa}
-                        <div className="mudo"><small>{veiculoDaPlaca(dados.veiculos, l.placa)?.motorista || l.motoristaRelatorio || '—'}</small></div>
+                        <div className="mudo"><small>{(() => { const v = veiculoDaPlaca(dados.veiculos, l.placa); return (v && motoristaNaData(v, l.pesadoEm)) || l.motoristaRelatorio || '—'; })()}</small></div>
                       </td>
                       <td className="n">{l.completa ? fmt((l.liquidoKg ?? (l.totalKg! - l.taraKg!)) / 1000, 2) : '—'}</td>
                       <td className="oculta-cel">{l.silo || '—'}</td>

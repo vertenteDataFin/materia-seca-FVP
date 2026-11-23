@@ -1,7 +1,8 @@
-import { useState, type FormEvent } from 'react';
+import { Fragment, useState, type FormEvent } from 'react';
 import { adicionarVeiculo, atualizarVeiculo, excluirVeiculo, useDados } from './dados';
 import { normalizarPlaca } from './colheita';
-import { placaValida, proximoNumero, veiculoDaPlaca } from './veiculos';
+import { acertarMotoristas, placaValida, proximoNumero, substituicaoNaData, veiculoDaPlaca } from './veiculos';
+import { fmtData, hoje } from './util';
 import { usePermissoes } from './permissoes';
 import { Icone } from './Icone';
 import type { Veiculo } from './tipos';
@@ -18,9 +19,19 @@ export default function VeiculosCard() {
   const [erro, setErro] = useState('');
   const [ok, setOk] = useState('');
   const [editando, setEditando] = useState<string | null>(null);
+  const [substituindo, setSubstituindo] = useState<string | null>(null);
 
   if (!dados) return null;
   const veiculos = dados.veiculos;
+
+  function removerSubstituicao(v: Veiculo, i: number) {
+    const s = v.substituicoes![i];
+    if (!confirm(`Remover a substituição de ${v.motorista} por ${s.motorista} (${fmtData(s.de)} a ${fmtData(s.ate)})? As cargas e amostras do período voltam para ${v.motorista}.`)) return;
+    const resto = v.substituicoes!.filter((_, j) => j !== i);
+    atualizarVeiculo(v.id, { substituicoes: resto });
+    const n = acertarMotoristas({ ...v, substituicoes: resto }, [s]);
+    setOk(`Substituição removida${n ? `; ${n} registro(s) voltaram para ${v.motorista}` : ''}.`);
+  }
 
   /** Confere motorista e placa; devolve a mensagem de erro ou null. */
   function validar(m: string, p: string, ignorarId?: string): string | null {
@@ -72,12 +83,35 @@ export default function VeiculosCard() {
               editando === v.id ? (
                 <LinhaEdicao key={v.id} v={v} validar={validar} aoFechar={() => setEditando(null)} />
               ) : (
-                <tr key={v.id}>
+                <Fragment key={v.id}>
+                <tr className={substituindo === v.id ? 'selecionada' : undefined}>
                   <td className="n mudo">{v.numero ?? '—'}</td>
-                  <td><strong>{v.motorista}</strong></td>
+                  <td>
+                    <strong>{v.motorista}</strong>
+                    {(v.substituicoes ?? []).map((s, i) => (
+                      <div key={i} className="substituicao">
+                        <small>
+                          <Icone nome="trocar" /> {s.motorista} · {fmtData(s.de).slice(0, 5)} a {fmtData(s.ate).slice(0, 5)}
+                          {substituicaoNaData(v, hoje()) === s && <> <span className="selo">hoje</span></>}
+                        </small>
+                        {podeCadastrarVeiculos && (
+                          <button type="button" className="link" onClick={() => removerSubstituicao(v, i)}>remover</button>
+                        )}
+                      </div>
+                    ))}
+                  </td>
                   <td className="placa">{v.placa}</td>
                   {podeCadastrarVeiculos && (
                     <td className="acoes-veiculo">
+                      <button
+                        type="button"
+                        className="icone-acao"
+                        aria-label={`Motorista substituto de ${v.placa}`}
+                        title="Motorista substituto por um período"
+                        onClick={() => setSubstituindo(substituindo === v.id ? null : v.id)}
+                      >
+                        <Icone nome="trocar" />
+                      </button>
                       <button type="button" className="icone-acao" aria-label={`Editar ${v.placa}`} title="Editar" onClick={() => setEditando(v.id)}>
                         <Icone nome="editar" />
                       </button>
@@ -93,6 +127,10 @@ export default function VeiculosCard() {
                     </td>
                   )}
                 </tr>
+                {substituindo === v.id && podeCadastrarVeiculos && (
+                  <FormSubstituto v={v} aoFechar={() => setSubstituindo(null)} aoSalvar={setOk} />
+                )}
+                </Fragment>
               ),
             )}
           </tbody>
@@ -118,6 +156,62 @@ export default function VeiculosCard() {
         </form>
       )}
     </div>
+  );
+}
+
+/**
+ * Motorista substituto por um período: as cargas e amostras de colheita do caminhão nessas datas
+ * (as já registradas e as que entrarem depois) ficam com o nome do substituto.
+ */
+function FormSubstituto({ v, aoFechar, aoSalvar }: { v: Veiculo; aoFechar: () => void; aoSalvar: (msg: string) => void }) {
+  const [nome, setNome] = useState('');
+  const [de, setDe] = useState(hoje());
+  const [ate, setAte] = useState('');
+  const [erro, setErro] = useState('');
+
+  function salvar(e: FormEvent) {
+    e.preventDefault();
+    const m = nome.trim().replace(/\s+/g, ' ');
+    if (!m) return setErro('Informe o nome do motorista substituto.');
+    if (!de || !ate) return setErro('Informe o período (de e até).');
+    if (ate < de) return setErro('A data final é antes da inicial.');
+    const outras = v.substituicoes ?? [];
+    const sobre = outras.find((s) => s.de <= ate && de <= s.ate);
+    if (sobre) return setErro(`O período se sobrepõe à substituição por ${sobre.motorista} (${fmtData(sobre.de)} a ${fmtData(sobre.ate)}).`);
+    const nova = { motorista: m, de, ate };
+    const substituicoes = [...outras, nova].sort((a, b) => a.de.localeCompare(b.de));
+    atualizarVeiculo(v.id, { substituicoes });
+    const n = acertarMotoristas({ ...v, substituicoes }, [nova]);
+    aoSalvar(`${m} substitui ${v.motorista} no caminhão ${v.placa} de ${fmtData(de)} a ${fmtData(ate)}${n ? `; ${n} carga(s)/amostra(s) do período atualizada(s)` : ''}.`);
+    aoFechar();
+  }
+
+  return (
+    <tr className="linha-detalhe linha-substituto">
+      <td colSpan={4}>
+        <form className="form-substituto" onSubmit={salvar}>
+          <strong>Substituto de {v.motorista} ({v.placa})</strong>
+          <label>
+            Motorista substituto
+            <input value={nome} onChange={(e) => setNome(e.target.value)} placeholder="Nome do motorista" autoComplete="off" autoFocus />
+          </label>
+          <label>
+            De
+            <input type="date" value={de} onChange={(e) => setDe(e.target.value)} />
+          </label>
+          <label>
+            Até
+            <input type="date" value={ate} onChange={(e) => setAte(e.target.value)} />
+          </label>
+          <div className="acoes">
+            <button type="submit" className="primario mini">Salvar</button>
+            <button type="button" className="mini" onClick={aoFechar}>Cancelar</button>
+          </div>
+          {erro && <p className="erro">{erro}</p>}
+          <p className="dica">As cargas e amostras de colheita deste caminhão no período passam para o substituto, inclusive as já registradas.</p>
+        </form>
+      </td>
+    </tr>
   );
 }
 

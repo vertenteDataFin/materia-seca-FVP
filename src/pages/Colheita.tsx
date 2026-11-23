@@ -261,7 +261,12 @@ export default function Colheita() {
                         {v?.numero != null ? `${v.numero} · ` : ''}{placa}
                       </button>
                     </td>
-                    <td className="oculta-cel">{v?.motorista ?? '—'}</td>
+                    <td className="oculta-cel">
+                      {v?.motorista ?? '—'}
+                      {(v?.substituicoes ?? []).map((s, i) => (
+                        <div key={i} className="mudo"><small>{s.motorista} ({fmtData(s.de).slice(0, 5)} a {fmtData(s.ate).slice(0, 5)})</small></div>
+                      ))}
+                    </td>
                     <td className="n">{n}</td>
                     <td className="n">{fmt(t, 1)}</td>
                     <td className="n"><strong>{media != null ? fmt(media, 1) : '—'}</strong></td>

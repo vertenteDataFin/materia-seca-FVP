@@ -1,6 +1,6 @@
-import { adicionarVeiculo, atualizarVeiculo, dadosAtuais } from './dados';
+import { adicionarVeiculo, atualizarAmostraColheita, atualizarCarga, atualizarVeiculo, dadosAtuais } from './dados';
 import { normalizarPlaca } from './colheita';
-import type { Veiculo } from './tipos';
+import type { Substituicao, Veiculo } from './tipos';
 
 /**
  * Relação de veículos da silagem (planilha "RELAÇÃO DE VEÍCULOS SILAGEM.xlsx", versão de 19/11/2026).
@@ -27,6 +27,39 @@ export const PLACAS_CORRIGIDAS: { de: string; para: string }[] = [
 export function veiculoDaPlaca(veiculos: Veiculo[], placa?: string | null): Veiculo | undefined {
   const p = normalizarPlaca(placa);
   return p ? veiculos.find((v) => normalizarPlaca(v.placa) === p) : undefined;
+}
+
+/** Substituição do motorista que vale nesta data ("AAAA-MM-DD…"), se houver. */
+export function substituicaoNaData(v: Pick<Veiculo, 'substituicoes'>, data?: string | null): Substituicao | undefined {
+  const d = (data ?? '').slice(0, 10);
+  return d ? (v.substituicoes ?? []).find((s) => s.de <= d && d <= s.ate) : undefined;
+}
+
+/** Motorista do caminhão nesta data: o substituto do período, ou o titular. */
+export function motoristaNaData(v: Pick<Veiculo, 'motorista' | 'substituicoes'>, data?: string | null): string {
+  return substituicaoNaData(v, data)?.motorista ?? v.motorista;
+}
+
+/**
+ * Acerta o motorista das cargas e amostras de colheita do caminhão já registradas, conforme o
+ * titular e as substituições. Só olha os registros dos períodos indicados. Devolve quantos mudaram.
+ */
+export function acertarMotoristas(v: Veiculo, periodos: { de: string; ate: string }[]): number {
+  const { cargas, amostrasColheita } = dadosAtuais();
+  const p = normalizarPlaca(v.placa);
+  const noPeriodo = (data: string) => periodos.some((x) => x.de <= data.slice(0, 10) && data.slice(0, 10) <= x.ate);
+  let n = 0;
+  for (const c of cargas) {
+    if (normalizarPlaca(c.placa) !== p || !noPeriodo(c.saidaEm)) continue;
+    const m = motoristaNaData(v, c.saidaEm);
+    if (c.motorista !== m) { atualizarCarga(c.id, { motorista: m }); n++; }
+  }
+  for (const a of amostrasColheita) {
+    if (normalizarPlaca(a.placa) !== p || !noPeriodo(a.coletadaEm)) continue;
+    const m = motoristaNaData(v, a.coletadaEm);
+    if (a.motorista !== m) { atualizarAmostraColheita(a.id, { motorista: m }); n++; }
+  }
+  return n;
 }
 
 /** Placa válida: 7 caracteres (antiga ABC1234 ou Mercosul ABC1D23), já normalizada. */
