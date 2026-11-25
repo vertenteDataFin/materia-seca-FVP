@@ -109,6 +109,11 @@ describe('colheita', () => {
     const a = andamentoTalhao(talhao, [carga('k1', '2026-11-14T07:00', 40000, 15000), carga('k2', '2026-11-15T07:00', 45000, 15000)], ref, msCol);
     expect(a.tMS).toBeCloseTo(19.4);
     expect(a.areaColhidaHa).toBeCloseTo(1.94);
+    expect(a.tMVcomMSdoDia).toBeCloseTo(55);
+    // dia 16 sem análise: entra com a média do talhão e não conta como "análise do dia"
+    const b = andamentoTalhao(talhao, [carga('k1', '2026-11-14T07:00', 40000, 15000), carga('k3', '2026-11-16T07:00', 35000, 15000)], ref, msCol);
+    expect(b.tMS).toBeCloseTo(25 * 0.32 + 20 * 0.34);
+    expect(b.tMVcomMSdoDia).toBeCloseTo(25);
   });
 
   it('resumo: MS da colheita ponderada pelo peso; sem cargas, média das amostras de caminhão', () => {

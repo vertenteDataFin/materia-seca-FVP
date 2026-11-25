@@ -616,7 +616,8 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .progresso-mini .progresso-texto { font-variant-numeric: tabular-nums; white-space: nowrap; }
 .progresso-mini.finalizado .progresso-texto { color: var(--verde); font-weight: 600; }
 .andamento-area { margin: 0 0 0.5rem; font-size: 0.95rem; }
-.andamento-numeros { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 0.5rem; }
+.andamento-numeros { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5rem; }
+.andamento-numeros .ms-entregue { display: block; font-style: normal; font-size: 0.72rem; color: var(--mudo); }
 .andamento-numeros > div { background: var(--fundo); border-radius: 8px; padding: 0.35rem 0.5rem; min-width: 0; }
 .andamento-numeros span { display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); }
 .andamento-numeros strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }

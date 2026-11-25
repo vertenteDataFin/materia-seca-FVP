@@ -102,6 +102,8 @@ export interface AndamentoTalhao {
   tMV: number;
   /** Matéria seca entregue (t); null sem MS (nem da carga nem da amostragem). */
   tMS: number | null;
+  /** Massa verde (t) cuja MS veio das amostras de caminhão do mesmo dia. */
+  tMVcomMSdoDia: number;
   ref: ReferenciaAmostragem | null;
   /** Área colhida estimada (ha); null sem amostragem de referência. */
   areaColhidaHa: number | null;
@@ -178,10 +180,12 @@ export function andamentoTalhao(
 
   // MS entregue: MS dos caminhões amostrados (colheita); a amostragem de campo só na falta deles.
   let tMS: number | null = 0;
+  let tMVcomMSdoDia = 0;
   for (const c of pesadas) {
     const ms = msDaCarga(c, msColheita, ref);
     if (ms == null) { tMS = null; break; }
     tMS += (liquidoKg(c)! / 1000) * (ms / 100);
+    if (c.msPct == null && msColheita?.porDia.has(c.saidaEm.slice(0, 10))) tMVcomMSdoDia += liquidoKg(c)! / 1000;
   }
 
   // Área colhida informada pelo setor agrícola: a produtividade real (entregue até aquela data ÷ ha)
@@ -236,6 +240,7 @@ export function andamentoTalhao(
     pesadas: pesadas.length,
     tMV,
     tMS: pesadas.length ? tMS : null,
+    tMVcomMSdoDia,
     ref,
     areaColhidaHa,
     pctColhida,

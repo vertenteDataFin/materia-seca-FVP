@@ -572,6 +572,21 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
       </p>
       <div className="andamento-numeros">
         <div><span>Entregue</span><strong>{fmt(a.tMV, 1)} t</strong></div>
+        <div
+          title={
+            a.tMS != null && a.tMV > 0
+              ? `MS de cada dia (amostras dos caminhões) × cargas do mesmo dia. ${fmt((a.tMVcomMSdoDia / a.tMV) * 100, 0)}% da massa com análise do próprio dia; o resto usa a média do talhão.`
+              : 'Sem MS: falta análise das amostras dos caminhões.'
+          }
+        >
+          <span>MS entregue</span>
+          <strong>{a.tMS != null ? `${fmt(a.tMS, 1)} t` : '—'}</strong>
+          {a.tMS != null && a.tMV > 0 && (
+            <em className="ms-entregue">
+              {fmt((a.tMS / a.tMV) * 100, 1)}% MS{a.tMVcomMSdoDia < a.tMV - 0.05 ? ` · ${fmt((a.tMVcomMSdoDia / a.tMV) * 100, 0)}% c/ análise do dia` : ''}
+            </em>
+          )}
+        </div>
         <div><span>Cargas</span><strong>{a.pesadas}{a.pendentes ? <small> +{a.pendentes} na balança</small> : null}</strong></div>
         <div><span>Ritmo</span><strong>{a.ritmoTdia != null ? `${fmt(a.ritmoTdia, 0)} t/dia` : '—'}</strong></div>
         {a.finalizada ? (
