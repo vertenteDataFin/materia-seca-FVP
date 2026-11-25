@@ -559,15 +559,24 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
         {a.areaColhidaHa == null ? (
           <span className="mudo">Sem amostragem com produção neste talhão: não dá para estimar a área colhida.</span>
         ) : (
-          <>
-            <strong>{fmt(pct, 0)}%</strong> colhido · {fmt(a.areaColhidaHa, 1)} de {fmt(a.talhao.areaHa, 1)} ha
-            {a.informada && (
+          a.informada && !a.finalizada && a.areaColhidaHa - a.informada.ha > 0.05 ? (
+            // área informada + extrapolação pelas cargas que vieram depois: separa o confirmado do estimado
+            <>
+              <strong>{fmt((a.informada.ha / a.talhao.areaHa) * 100, 0)}%</strong> confirmado · {fmt(a.informada.ha, 1)} de {fmt(a.talhao.areaHa, 1)} ha
+              informados pelo agrícola até {fmtData(a.informada.data).slice(0, 5)}
               <span className="mudo">
-                {' '}· {fmt(a.informada.ha, 1)} ha informados pelo agrícola em {fmtData(a.informada.data).slice(0, 5)}
-                {a.areaColhidaHa - a.informada.ha > 0.05 ? ' + entregas depois' : ''}
+                {' '}· ~{fmt(pct, 0)}% ({fmt(a.areaColhidaHa, 1)} ha) estimado com as cargas depois, na produtividade de {fmt(a.tMVhaColhido, 1)} t/ha
               </span>
-            )}
-          </>
+              {a.informada.data < hoje() && (
+                <small className="aviso-area"> Estimativa provisória: informe a área colhida de hoje para acertar.</small>
+              )}
+            </>
+          ) : (
+            <>
+              <strong>{fmt(pct, 0)}%</strong> colhido · {fmt(a.areaColhidaHa, 1)} de {fmt(a.talhao.areaHa, 1)} ha
+              {a.informada && <span className="mudo"> · informados pelo agrícola até {fmtData(a.informada.data).slice(0, 5)}</span>}
+            </>
+          )
         )}
       </p>
       <div className="andamento-numeros">
