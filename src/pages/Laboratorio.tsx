@@ -9,6 +9,7 @@ import { lancarSeco, resumoColeta, teorMS, UMIDO_PADRAO_G } from '../calc';
 import { CampoNumero } from '../components';
 import { codigoAmostra, pendenteLab, statusColeta } from '../fluxo';
 import { fmt, fmtData } from '../util';
+import { veiculoDaPlaca } from '../veiculos';
 
 interface Grupo {
   c: Coleta;
@@ -97,7 +98,11 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
               <div key={a.id} id={`ac-${a.id}`} className={`lab-linha pendente${a.id === destaqueColheita ? ' destaque' : ''}`}>
                 <span>
                   {a.codigo && <><code className="codigo">{a.codigo}</code> </>}
-                  <strong>{a.placa}</strong> <span className="mudo"><small>{nomeTalhao(a.talhaoId)} · {fmtSaida(a.coletadaEm)}</small></span>
+                  {(() => {
+                    const n = veiculoDaPlaca(dados?.veiculos ?? [], a.placa)?.numero;
+                    return <strong>{n != null ? `Caminhão ${n} · ` : ''}{a.placa}</strong>;
+                  })()}{' '}
+                  <span className="mudo"><small>{nomeTalhao(a.talhaoId)} · {fmtSaida(a.coletadaEm)}</small></span>
                 </span>
                 <span className="mv" data-rotulo="Silo">{a.silo}</span>
                 <CampoNumero
