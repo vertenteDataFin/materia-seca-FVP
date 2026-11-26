@@ -36,7 +36,8 @@ export default function NovaAmostraMilho() {
   const { nomeUsuario } = usePermissoes();
   const [coletadaEm, setColetadaEm] = useState(agoraLocal());
   const [silo, setSilo] = useState(lembrar(CHAVE_SILO));
-  const [responsavel, setResponsavel] = useState(nomeUsuario.trim() || lembrar(CHAVE_RESPONSAVEL));
+  const [responsavelDigitado, setResponsavel] = useState(lembrar(CHAVE_RESPONSAVEL));
+  const responsavel = nomeUsuario.trim() || responsavelDigitado;
   const [pesos, setPesos] = useState(PESOS_VAZIOS);
   const [umido, setUmido] = useState(String(UMIDO_PADRAO_MILHO_G));
   const [seco, setSeco] = useState('');
@@ -92,10 +93,18 @@ export default function NovaAmostraMilho() {
           Data e hora
           <input type="datetime-local" value={coletadaEm} onChange={(e) => setColetadaEm(e.target.value)} required />
         </label>
-        <label>
-          Responsável (opcional)
-          <input value={responsavel} onChange={(e) => setResponsavel(e.target.value)} />
-        </label>
+        {nomeUsuario.trim() ? (
+          // quem está logado: identificado pela conta, não se digita
+          <label>
+            Responsável
+            <input value={nomeUsuario.trim()} readOnly className="somente-leitura" title="Identificado pela conta logada" />
+          </label>
+        ) : (
+          <label>
+            Responsável (opcional)
+            <input value={responsavel} onChange={(e) => setResponsavel(e.target.value)} />
+          </label>
+        )}
 
         <fieldset className="largo penn-state">
           <legend>Granulometria: peso em cada peneira (g)</legend>

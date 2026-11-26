@@ -551,6 +551,7 @@ th.th-fdnfe { text-transform: none; }
 .metas-milho { font-variant-numeric: tabular-nums; }
 .metas-milho > span { white-space: nowrap; }
 .ver-todas { margin: 0.5rem 0 0; }
+input.somente-leitura { background: var(--fundo); color: var(--mudo); cursor: default; }
 .opcao-coleta { border: 1px solid var(--borda); border-radius: 10px; padding: 0.7rem 0.8rem; background: var(--fundo); display: flex; flex-direction: column; }
 .opcao-coleta h2 { margin: 0 0 0.2rem; font-size: 1.05rem; display: flex; align-items: center; gap: 0.4rem; }
 .opcao-coleta h2 .mi { color: var(--verde); }
