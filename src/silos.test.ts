@@ -3,7 +3,7 @@ import { nomeSilo, SILOS } from './silos';
 
 describe('silos', () => {
   it('lista fixa: Trincheira 1 a 5', () => {
-    expect(SILOS).toEqual(['Trincheira 1', 'Trincheira 2', 'Trincheira 3', 'Trincheira 4', 'Trincheira 5']);
+    expect(SILOS).toEqual(['Trincheira 1', 'Trincheira 2', 'Trincheira 3', 'Trincheira 4', 'Trincheira 5', 'Trincheira 6', 'Trincheira 7']);
   });
 
   it('padroniza o nome que vem da balança ou de registros antigos', () => {
