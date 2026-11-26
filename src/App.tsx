@@ -19,6 +19,7 @@ import Talhoes from './pages/Talhoes';
 import Coletas from './pages/Coletas';
 import NovaColeta from './pages/NovaColeta';
 import NovaAmostraColheita from './pages/NovaAmostraColheita';
+import NovaAmostraMilho from './pages/NovaAmostraMilho';
 import ColetaDetalhe from './pages/ColetaDetalhe';
 import ColetaPontos from './pages/ColetaPontos';
 import ColetaRapida from './pages/ColetaRapida';
@@ -223,6 +224,7 @@ function Casca({ repo, usuario, permissoes }: { repo: Repositorio; usuario?: Use
             <Route path="/coletas" element={<Coletas />} />
             <Route path="/coletas/nova" element={<NovaColeta />} />
             <Route path="/coletas/colheita/nova" element={<NovaAmostraColheita />} />
+            <Route path="/coletas/milho/nova" element={<NovaAmostraMilho />} />
             <Route path="/coletas/rapida" element={<ColetaRapida />} />
             <Route path="/coletas/:id/campo" element={<ColetaCampo />} />
             <Route path="/coletas/:id/pontos" element={<ColetaPontos />} />

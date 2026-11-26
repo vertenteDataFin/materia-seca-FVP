@@ -3,6 +3,7 @@ import { Link, useNavigate, useSearchParams } from 'react-router-dom';
 import { FilaMS } from './Laboratorio';
 import { FilaPesagem } from './FilaPesagem';
 import AmostrasColheitaCard from './AmostrasColheita';
+import AmostrasMilhoCard from './AmostrasMilho';
 import { amostrasPorColeta, useDados } from '../dados';
 import { compararColetasDesc } from '../tipos';
 import { resumoColeta, statusMS } from '../calc';
@@ -32,18 +33,25 @@ export default function Coletas() {
   const nFiltros = (filtro ? 1 : 0) + (de || ate ? 1 : 0);
   const limparFiltros = () => { setFiltro(''); setDe(''); setAte(''); };
 
-  const linhas = useMemo(() => {
-    if (!dados) return [];
+  const [verTodas, setVerTodas] = useState(false);
+  // Sem filtro: só os últimos 7 dias (hoje e os 6 anteriores), para a tela não ficar carregada.
+  const recentes = !nFiltros && !verTodas;
+  const desde = new Date(Date.now() - 6 * 86400000).toLocaleDateString('sv-SE');
+
+  const { linhas, ocultas } = useMemo(() => {
+    if (!dados) return { linhas: [], ocultas: 0 };
     const porColeta = amostrasPorColeta(dados.amostras);
     const nomes = new Map(dados.talhoes.map((t) => [t.id, t.nome]));
-    return dados.coletas
-      .filter((c) => (!filtro || c.talhaoId === filtro) && (!de || c.data >= de) && (!ate || c.data <= ate))
+    const filtradas = dados.coletas.filter((c) => (!filtro || c.talhaoId === filtro) && (!de || c.data >= de) && (!ate || c.data <= ate));
+    const visiveis = recentes ? filtradas.filter((c) => c.data >= desde) : filtradas;
+    const linhas = visiveis
       .sort(compararColetasDesc)
       .map((c) => {
         const amostras = porColeta.get(c.id) ?? [];
         return { c, talhao: nomes.get(c.talhaoId) ?? '?', r: resumoColeta(c, amostras), status: statusColeta(amostras), nPontos: amostras.length };
       });
-  }, [dados, filtro, de, ate]);
+    return { linhas, ocultas: filtradas.length - visiveis.length };
+  }, [dados, filtro, de, ate, recentes, desde]);
 
   if (!dados) return null;
 
@@ -72,6 +80,13 @@ export default function Coletas() {
             <p className="dica">Amostra do caminhão: talhão de origem, silo de destino, Penn State na hora e MS depois.</p>
             <div className="acoes">
               <Link className="botao primario" to="/coletas/colheita/nova">Amostrar caminhão</Link>
+            </div>
+          </div>
+          <div className="opcao-coleta">
+            <h2><Icone nome="lab" /> Milho reidratado</h2>
+            <p className="dica">Amostra da silagem de milho reidratado: silo, granulometria (6 · 3,25 · 2 · 1,25 mm e fundo) e MS.</p>
+            <div className="acoes">
+              <Link className="botao primario" to="/coletas/milho/nova">Amostrar milho</Link>
             </div>
           </div>
         </div>
@@ -123,7 +138,7 @@ export default function Coletas() {
           </div>
         )}
         {!linhas.length ? (
-          <p className="vazio">{nFiltros ? 'Nenhuma coleta com esses filtros.' : 'Nenhuma coleta registrada.'}</p>
+          <p className="vazio">{nFiltros ? 'Nenhuma coleta com esses filtros.' : ocultas ? 'Nenhuma coleta nos últimos 7 dias.' : 'Nenhuma coleta registrada.'}</p>
         ) : (
           <div className="rolagem">
             <table className="tabela-cartoes lista-compacta">
@@ -171,9 +186,21 @@ export default function Coletas() {
             </table>
           </div>
         )}
+        {recentes && ocultas > 0 && (
+          <p className="dica ver-todas">
+            Mostrando os últimos 7 dias.{' '}
+            <button type="button" className="link" onClick={() => setVerTodas(true)}>Ver todas ({ocultas} mais antiga{ocultas === 1 ? '' : 's'})</button>
+          </p>
+        )}
+        {verTodas && !nFiltros && (
+          <p className="dica ver-todas">
+            <button type="button" className="link" onClick={() => setVerTodas(false)}>Mostrar só os últimos 7 dias</button>
+          </p>
+        )}
       </div>
 
       <AmostrasColheitaCard destaque={params.get('colheita')} />
+      <AmostrasMilhoCard destaque={params.get('milho')} />
     </>
   );
 }

@@ -65,7 +65,7 @@ export class RepositorioFirestore extends RepositorioMemoria {
         },
         (e) => {
           // Coleção nova (cargas, veículos) com regras antigas publicadas: segue sem ela em vez de travar o app inteiro.
-          if ((colecao === 'cargas' || colecao === 'veiculos' || colecao === 'amostrasColheita') && (e as { code?: string }).code === 'permission-denied') {
+          if ((colecao === 'cargas' || colecao === 'veiculos' || colecao === 'amostrasColheita' || colecao === 'amostrasMilho') && (e as { code?: string }).code === 'permission-denied') {
             console.warn(`${colecao} indisponível: publique as regras do Firestore (npm run regras).`);
             this.parciais[colecao] = [];
             this.confirmadas.add(colecao);

@@ -146,6 +146,29 @@ export interface AmostraColheita {
   criadoEm?: string;
 }
 
+/**
+ * Amostra de silagem de milho reidratado: granulometria (peneiras de 6 · 3,25 · 2 · 1,25 mm e fundo, peso em g)
+ * e MS (úmido/seco). Não tem talhão nem caminhão: identifica-se pelo silo e pela data.
+ */
+export interface AmostraMilho {
+  id: string;
+  /** Código automático da etiqueta: "MR-2611-1" (dia/mês e sequência do dia). */
+  codigo?: string;
+  /** Data e hora local da amostragem ("AAAA-MM-DDTHH:mm"). */
+  coletadaEm: string;
+  silo: string;
+  responsavel?: string;
+  peneira6G: number | null;
+  peneira325G: number | null;
+  peneira2G: number | null;
+  peneira125G: number | null;
+  fundoG: number | null;
+  pesoUmidoG: number | null;
+  pesoSecoG: number | null;
+  observacoes?: string;
+  criadoEm?: string;
+}
+
 /** Registro ainda sem id (antes de gravar). */
 export type Novo<T extends { id: string }> = Omit<T, 'id'>;
 
@@ -156,16 +179,17 @@ export interface Dados {
   cargas: Carga[];
   veiculos: Veiculo[];
   amostrasColheita: AmostraColheita[];
+  amostrasMilho: AmostraMilho[];
 }
 
 export type Colecao = keyof Dados;
 export type Entidade<C extends Colecao> = Dados[C][number];
 
-export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos', 'amostrasColheita'];
+export const COLECOES: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos', 'amostrasColheita', 'amostrasMilho'];
 
 /** Estado vazio (todas as coleções). */
 export function dadosVazios(): Dados {
-  return { talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [], amostrasColheita: [] };
+  return { talhoes: [], coletas: [], amostras: [], cargas: [], veiculos: [], amostrasColheita: [], amostrasMilho: [] };
 }
 
 /** Completa um estado salvo antes de existirem coleções novas (ex.: cargas). */

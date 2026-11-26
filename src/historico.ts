@@ -2,7 +2,7 @@ import { useEffect, useState } from 'react';
 import { collection, doc, limit, onSnapshot, orderBy, query, setDoc, updateDoc, type Firestore } from 'firebase/firestore';
 import type { Operacao } from './repositorio';
 import { gerarId } from './repositorio';
-import type { Amostra, AmostraColheita, Carga, Colecao, Coleta, Dados, Talhao, Veiculo } from './tipos';
+import type { Amostra, AmostraColheita, AmostraMilho, Carga, Colecao, Coleta, Dados, Talhao, Veiculo } from './tipos';
 import { fmtData } from './util';
 
 /**
@@ -51,10 +51,11 @@ const ROTULO_CAMPO: Record<string, string> = {
   romaneio: 'romaneio', msPct: 'MS da carga (%)', colheitaFinalizadaEm: 'colheita finalizada', areaColhidaInformada: 'área colhida informada', historicoAreaColhida: 'histórico da área colhida',
   motorista: 'motorista', numero: 'nº de cadastro', substituicoes: 'substituições de motorista',
   coletadaEm: 'amostrada em', fdnPct: 'FDN laboratório (%)', peneira19G: 'peneira 19 mm (g)', peneira8G: 'peneira 8 mm (g)', peneira4G: 'peneira 4 mm (g)', fundoG: 'fundo (g)',
+  peneira6G: 'peneira 6 mm (g)', peneira325G: 'peneira 3,25 mm (g)', peneira2G: 'peneira 2 mm (g)', peneira125G: 'peneira 1,25 mm (g)',
 };
 
 /** Ordem das coleções nas descrições e na restauração (pais antes dos filhos). */
-const ORDEM: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos', 'amostrasColheita'];
+const ORDEM: Colecao[] = ['talhoes', 'coletas', 'amostras', 'cargas', 'veiculos', 'amostrasColheita', 'amostrasMilho'];
 
 /** Campos descritos só pelo nome, sem os valores (posição, contorno: valores longos e ilegíveis). */
 const SO_ROTULO: Record<string, string> = { 'posição': 'posição alterada', contorno: 'contorno alterado' };
@@ -94,6 +95,7 @@ function nomes(d: Dados) {
     cargas: (c: Carga) => `carga ${talhao(c.talhaoId)} · ${fmtDataHora(c.saidaEm)}${c.placa ? ` · ${c.placa}` : ''}`,
     veiculos: (v: Veiculo) => `veículo ${v.placa} · ${v.motorista}`,
     amostrasColheita: (a: AmostraColheita) => `amostra de colheita ${a.codigo ? `${a.codigo} · ` : ''}${talhao(a.talhaoId)} · ${fmtDataHora(a.coletadaEm)} · ${a.placa}`,
+    amostrasMilho: (a: AmostraMilho) => `amostra de milho reidratado ${a.codigo ? `${a.codigo} · ` : ''}${a.silo} · ${fmtDataHora(a.coletadaEm)}`,
   };
 }
 
@@ -107,6 +109,7 @@ const PLURAL: Record<Colecao, [string, string]> = {
   talhoes: ['talhão', 'talhões'], coletas: ['coleta', 'coletas'], amostras: ['amostra', 'amostras'], cargas: ['carga', 'cargas'],
   veiculos: ['veículo', 'veículos'],
   amostrasColheita: ['amostra de colheita', 'amostras de colheita'],
+  amostrasMilho: ['amostra de milho reidratado', 'amostras de milho reidratado'],
 };
 
 function contagem(porColecao: Partial<Record<Colecao, unknown[]>>): string {
@@ -183,6 +186,7 @@ export function descreverLote(ops: Operacao[], anterior: Dados, rotulo?: RotuloL
       cargas: anterior.cargas ?? [],
       veiculos: anterior.veiculos ?? [],
       amostrasColheita: anterior.amostrasColheita ?? [],
+      amostrasMilho: anterior.amostrasMilho ?? [],
     };
     const nc = nomes(estadoComCriados);
     const total = Object.values(criados).reduce((s, l) => s + (l?.length ?? 0), 0);

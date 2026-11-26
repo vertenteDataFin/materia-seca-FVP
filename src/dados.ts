@@ -2,7 +2,7 @@ import { useMemo, useSyncExternalStore } from 'react';
 import type { Repositorio } from './repositorio';
 import { nomeSilo } from './silos';
 import { marcarTalhaoExcluido } from './talhoesExcluidos';
-import { compararNomes, completarDados, type Amostra, type AmostraColheita, type Carga, type Coleta, type Dados, type Novo, type Talhao, type Veiculo } from './tipos';
+import { compararNomes, completarDados, type Amostra, type AmostraColheita, type AmostraMilho, type Carga, type Coleta, type Dados, type Novo, type Talhao, type Veiculo } from './tipos';
 
 let atual: Repositorio | null = null;
 
@@ -50,6 +50,10 @@ export function useDados(): Dados | undefined {
         .sort((a, b) => b.saidaEm.localeCompare(a.saidaEm) || b.id.localeCompare(a.id)),
       // mais recente primeiro
       amostrasColheita: (bruto.amostrasColheita ?? [])
+        .map((a) => (a.silo !== nomeSilo(a.silo) ? { ...a, silo: nomeSilo(a.silo) } : a))
+        .sort((a, b) => b.coletadaEm.localeCompare(a.coletadaEm) || b.id.localeCompare(a.id)),
+      // mais recente primeiro
+      amostrasMilho: (bruto.amostrasMilho ?? [])
         .map((a) => (a.silo !== nomeSilo(a.silo) ? { ...a, silo: nomeSilo(a.silo) } : a))
         .sort((a, b) => b.coletadaEm.localeCompare(a.coletadaEm) || b.id.localeCompare(a.id)),
       // pelo nº de cadastro; sem número, no fim por motorista
@@ -142,6 +146,20 @@ export function atualizarAmostraColheita(id: string, campos: Partial<Novo<Amostr
 
 export function excluirAmostraColheita(id: string) {
   repositorio().remover('amostrasColheita', id);
+}
+
+// ---- Amostras de milho reidratado ----
+
+export function adicionarAmostraMilho(a: Novo<AmostraMilho>): string {
+  return repositorio().adicionar('amostrasMilho', { ...a, criadoEm: a.criadoEm ?? new Date().toISOString() });
+}
+
+export function atualizarAmostraMilho(id: string, campos: Partial<Novo<AmostraMilho>>) {
+  repositorio().atualizar('amostrasMilho', id, campos);
+}
+
+export function excluirAmostraMilho(id: string) {
+  repositorio().remover('amostrasMilho', id);
 }
 
 // ---- Veículos (colheita) ----
