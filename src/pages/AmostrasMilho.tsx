@@ -1,7 +1,6 @@
 import { Fragment, useState } from 'react';
 import { atualizarAmostraMilho, excluirAmostraMilho, useDados } from '../dados';
-import { granulometriaMilho, msMilho, PENEIRAS_MILHO } from '../milhoReidratado';
-import { lancarSeco, UMIDO_PADRAO_G } from '../calc';
+import { granulometriaMilho, lancarSecoMilho, msMilho, PENEIRAS_MILHO, UMIDO_PADRAO_MILHO_G } from '../milhoReidratado';
 import { fmtSaida } from '../colheita';
 import { CampoNumero } from '../components';
 import { usePermissoes } from '../permissoes';
@@ -96,8 +95,8 @@ function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: 
           </label>
         ))}
         <label>
-          Seco (g) de {a.pesoUmidoG ?? UMIDO_PADRAO_G} g
-          <CampoNumero valor={a.pesoSecoG} ariaLabel="Peso seco" placeholder="seco (g)" aoSalvar={(v) => atualizarAmostraMilho(a.id, lancarSeco(a, v))} />
+          Seco (g) de {a.pesoUmidoG ?? UMIDO_PADRAO_MILHO_G} g
+          <CampoNumero valor={a.pesoSecoG} ariaLabel="Peso seco" placeholder="seco (g)" aoSalvar={(v) => atualizarAmostraMilho(a.id, lancarSecoMilho(a, v))} />
           <small className="mudo">MS {fmt(msMilho(a))} %</small>
         </label>
       </div>

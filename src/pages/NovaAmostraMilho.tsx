@@ -4,8 +4,7 @@ import { SILOS } from '../silos';
 import { adicionarAmostraMilho, useDados } from '../dados';
 import { agoraLocal } from '../colheita';
 import { usePermissoes } from '../permissoes';
-import { UMIDO_PADRAO_G } from '../calc';
-import { granulometriaMilho, msMilho, PENEIRAS_MILHO, proximoCodigoMilho, type CampoPeneiraMilho } from '../milhoReidratado';
+import { granulometriaMilho, msMilho, PENEIRAS_MILHO, proximoCodigoMilho, UMIDO_PADRAO_MILHO_G, type CampoPeneiraMilho } from '../milhoReidratado';
 import { MetasMilho, PctPeneiraMilho } from '../MetasMilho';
 import { fmt, parseNum } from '../util';
 
@@ -39,7 +38,7 @@ export default function NovaAmostraMilho() {
   const [silo, setSilo] = useState(lembrar(CHAVE_SILO));
   const [responsavel, setResponsavel] = useState(nomeUsuario.trim() || lembrar(CHAVE_RESPONSAVEL));
   const [pesos, setPesos] = useState(PESOS_VAZIOS);
-  const [umido, setUmido] = useState(String(UMIDO_PADRAO_G));
+  const [umido, setUmido] = useState(String(UMIDO_PADRAO_MILHO_G));
   const [seco, setSeco] = useState('');
   const [observacoes, setObservacoes] = useState('');
   const [erro, setErro] = useState('');

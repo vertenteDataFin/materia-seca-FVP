@@ -52,6 +52,14 @@ export function granulometriaMilho(a: Pick<AmostraMilho, CampoPeneiraMilho>): Gr
   return { totalG, pct, metas };
 }
 
+/** Peso úmido padrão da aferição de MS do milho reidratado (g). */
+export const UMIDO_PADRAO_MILHO_G = 200;
+
+/** Campos a gravar ao lançar o peso seco: sem úmido ainda, usa o padrão de 200 g. */
+export function lancarSecoMilho(a: Pick<AmostraMilho, 'pesoUmidoG'>, secoG: number | null): Partial<Pick<AmostraMilho, 'pesoUmidoG' | 'pesoSecoG'>> {
+  return secoG != null && a.pesoUmidoG == null ? { pesoSecoG: secoG, pesoUmidoG: UMIDO_PADRAO_MILHO_G } : { pesoSecoG: secoG };
+}
+
 /** MS (%) da amostra: seco ÷ úmido. */
 export function msMilho(a: Pick<AmostraMilho, 'pesoUmidoG' | 'pesoSecoG'>): number | null {
   return teorMS(a);

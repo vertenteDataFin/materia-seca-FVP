@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { granulometriaMilho, msMilho, proximoCodigoMilho } from './milhoReidratado';
+import { granulometriaMilho, lancarSecoMilho, msMilho, proximoCodigoMilho } from './milhoReidratado';
 
 const pesos = (p6: number | null, p325: number, p2: number, p125: number, f: number) => ({
   peneira6G: p6, peneira325G: p325, peneira2G: p2, peneira125G: p125, fundoG: f,
@@ -23,6 +23,10 @@ describe('milho reidratado', () => {
   it('sem todos os pesos não calcula; MS e código do dia', () => {
     expect(granulometriaMilho(pesos(null, 40, 40, 15, 5))).toBeNull();
     expect(msMilho({ pesoUmidoG: 100, pesoSecoG: 64 })).toBe(64);
+    // seco lançado sem úmido: vale o padrão de 200 g
+    const campos = lancarSecoMilho({ pesoUmidoG: null }, 128);
+    expect(campos).toEqual({ pesoSecoG: 128, pesoUmidoG: 200 });
+    expect(msMilho(campos as { pesoUmidoG: number; pesoSecoG: number })).toBe(64);
     expect(proximoCodigoMilho('2026-11-26T08:00', [{ codigo: 'MR-2611-1' }, { codigo: 'MR-2611-3' }, { codigo: 'MR-2511-9' }])).toBe('MR-2611-4');
     expect(proximoCodigoMilho('2026-11-27T08:00', [{ codigo: 'MR-2611-1' }])).toBe('MR-2711-1');
   });
