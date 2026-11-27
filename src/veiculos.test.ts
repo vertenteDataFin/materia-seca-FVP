@@ -2,7 +2,7 @@
 import { beforeEach, describe, expect, it } from 'vitest';
 import { definirRepositorio } from './dados';
 import { RepositorioMemoria } from './repositorio';
-import { acertarMotoristas, corrigirPlacasRegistradas, importarVeiculosIniciais, motoristaNaData, veiculoDaPlaca, VEICULOS_INICIAIS } from './veiculos';
+import { acertarMotoristas, corrigirPlacasRegistradas, importarVeiculosIniciais, motoristaNaData, veiculoDaCarga, veiculoDaPlaca, VEICULOS_INICIAIS } from './veiculos';
 import type { Veiculo } from './tipos';
 
 let repo: RepositorioMemoria;
@@ -104,6 +104,29 @@ describe('placa digitada errada', () => {
     expect([errada, certa].map((id) => cs.find((c) => c.id === id)).map((c) => [c!.placa, c!.motorista])).toEqual([
       ['CXJ7E24', 'Sebastião David'],
       ['CXJ7E24', 'Sebastião David'],
+    ]);
+    expect(corrigirPlacasRegistradas()).toBe(0);
+  });
+
+  it('carga "SEM PLACA": caminhão pelo "MOTORISTA N" da observação; placa real não cadastrada não muda', () => {
+    repo.adicionar('veiculos', { numero: 2, motorista: 'Fernando Alonso', placa: 'BXF7877' });
+    repo.adicionar('veiculos', { numero: 4, motorista: 'Claudinei Marques', placa: 'CRY4H95', substituicoes: [{ motorista: 'José Cláudio', de: '2026-11-25', ate: '2026-11-25' }] });
+    const obs = (n: number) => `Balança: TRINCHEIRA 01-CAU TALHÃO 02-MOTORISTA ${n}`;
+    const sem2 = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-25T15:02', placa: 'SEMPLACA', pesoBrutoKg: 1, taraKg: 0, observacoes: obs(2) });
+    const sem4 = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-25T15:10', placa: 'SEMPLACA', pesoBrutoKg: 1, taraKg: 0, observacoes: obs(4) });
+    const semObs = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-25T16:00', placa: 'SEMPLACA', pesoBrutoKg: 1, taraKg: 0 });
+    const nova = repo.adicionar('cargas', { talhaoId: 't', saidaEm: '2026-11-25T16:00', placa: 'ABC1D23', pesoBrutoKg: 1, taraKg: 0, observacoes: obs(2) });
+    const vs = repo.obter()!.veiculos;
+    expect(veiculoDaCarga(vs, 'SEM PLACA', 'TRINCHEIRA 01-MOTORISTA 4')?.placa).toBe('CRY4H95');
+    expect(veiculoDaCarga(vs, '', 'MOTORISTA 02')?.placa).toBe('BXF7877');
+    expect(veiculoDaCarga(vs, 'ABC1D23', 'MOTORISTA 2')).toBeUndefined();
+    expect(corrigirPlacasRegistradas()).toBe(2);
+    const c = (id: string) => repo.obter()!.cargas.find((x) => x.id === id)!;
+    expect([sem2, sem4, semObs, nova].map((id) => [c(id).placa, c(id).motorista ?? null])).toEqual([
+      ['BXF7877', 'Fernando Alonso'],
+      ['CRY4H95', 'José Cláudio'], // substituto no dia
+      ['SEMPLACA', null],
+      ['ABC1D23', null],
     ]);
     expect(corrigirPlacasRegistradas()).toBe(0);
   });

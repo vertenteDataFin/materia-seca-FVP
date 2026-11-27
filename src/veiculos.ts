@@ -1,5 +1,6 @@
 import { adicionarVeiculo, atualizarAmostraColheita, atualizarCarga, atualizarVeiculo, dadosAtuais } from './dados';
 import { normalizarPlaca } from './colheita';
+import { numeroMotoristaDaObs } from './relatorioBalanca';
 import type { Substituicao, Veiculo } from './tipos';
 
 /**
@@ -38,8 +39,22 @@ export function veiculoDaPlaca(veiculos: Veiculo[], placa?: string | null): Veic
 }
 
 /**
+ * Caminhão da carga: pela placa; se a balança não registrou uma placa válida (vazia, "SEM PLACA"),
+ * pelo "MOTORISTA N" da observação, que é o nº de cadastro na relação de veículos.
+ */
+export function veiculoDaCarga(veiculos: Veiculo[], placa?: string | null, obs?: string | null): Veiculo | undefined {
+  const v = veiculoDaPlaca(veiculos, placa);
+  if (v) return v;
+  if (placaValida(placaCorrigida(placa))) return undefined; // placa de verdade, só não cadastrada
+  const n = numeroMotoristaDaObs(obs);
+  return n == null ? undefined : veiculos.find((x) => x.numero === n);
+}
+
+/**
  * Cargas e amostras de colheita registradas com uma placa errada conhecida: passam para a placa certa
- * e para o motorista do cadastro (titular ou substituto do dia). Idempotente. Devolve quantos mudaram.
+ * e para o motorista do cadastro (titular ou substituto do dia). Cargas sem placa válida ("SEM PLACA")
+ * ganham a placa e o motorista do caminhão indicado na observação da balança ("MOTORISTA 4").
+ * Idempotente. Devolve quantos mudaram.
  */
 export function corrigirPlacasRegistradas(): number {
   const { cargas, amostrasColheita, veiculos } = dadosAtuais();
@@ -49,8 +64,13 @@ export function corrigirPlacasRegistradas(): number {
     const v = veiculos.find((x) => normalizarPlaca(x.placa) === nova);
     return { placa: nova, ...(v ? { motorista: motoristaNaData(v, data) } : {}) };
   };
+  const pelaObs = (c: (typeof cargas)[number]) => {
+    if (veiculoDaPlaca(veiculos, c.placa) || placaValida(placaCorrigida(c.placa))) return null;
+    const v = veiculoDaCarga(veiculos, c.placa, c.observacoes);
+    return v ? { placa: normalizarPlaca(v.placa), motorista: motoristaNaData(v, c.saidaEm) } : null;
+  };
   let n = 0;
-  for (const c of cargas) { const a = acerto(c.placa, c.saidaEm); if (a) { atualizarCarga(c.id, a); n++; } }
+  for (const c of cargas) { const a = acerto(c.placa, c.saidaEm) ?? pelaObs(c); if (a) { atualizarCarga(c.id, a); n++; } }
   for (const x of amostrasColheita) { const a = acerto(x.placa, x.coletadaEm); if (a) { atualizarAmostraColheita(x.id, a); n++; } }
   return n;
 }

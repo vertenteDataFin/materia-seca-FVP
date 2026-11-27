@@ -1,8 +1,8 @@
 import { useMemo, useRef, useState } from 'react';
 import { importarCargas, useDados } from '../dados';
 import { lerArquivoBalanca, sugerirTalhao, type LinhaBalanca } from '../relatorioBalanca';
-import { fmtSaida } from '../colheita';
-import { motoristaNaData, placaCorrigida, veiculoDaPlaca } from '../veiculos';
+import { fmtSaida, normalizarPlaca } from '../colheita';
+import { motoristaNaData, placaCorrigida, veiculoDaCarga, veiculoDaPlaca } from '../veiculos';
 import { nomeComSigla } from '../MapaTalhoes';
 import { Icone } from '../Icone';
 import { fmt } from '../util';
@@ -77,13 +77,14 @@ export default function ImportarBalanca({ aoFechar }: { aoFechar: () => void }) 
   function importar() {
     if (!aImportar.length) return;
     const cargas: Novo<Carga>[] = aImportar.map((l) => {
-      const v = veiculoDaPlaca(dados!.veiculos, l.placa);
+      // pela placa; sem placa ("SEM PLACA"), pelo "MOTORISTA N" da observação
+      const v = veiculoDaCarga(dados!.veiculos, l.placa, l.obs);
       // do cadastro (com o substituto do período, se houver); sem cadastro, o do relatório
       const motorista = (v && motoristaNaData(v, l.pesadoEm)) || l.motoristaRelatorio;
       return {
         talhaoId: origens[origemDe(l)],
         saidaEm: l.pesadoEm,
-        placa: placaCorrigida(l.placa),
+        placa: v ? normalizarPlaca(v.placa) : placaCorrigida(l.placa),
         ...(motorista ? { motorista } : {}),
         ...(l.silo ? { silo: l.silo } : {}),
         pesoBrutoKg: l.totalKg,
@@ -178,10 +179,17 @@ export default function ImportarBalanca({ aoFechar }: { aoFechar: () => void }) 
                     <tr key={l.romaneio} className={s !== 'nova' ? 'ignorada' : ''}>
                       <td><strong>{l.romaneio}</strong></td>
                       <td>{l.pesadoEm ? fmtSaida(l.pesadoEm) : '—'}</td>
-                      <td>
-                        {l.placa}
-                        <div className="mudo"><small>{(() => { const v = veiculoDaPlaca(dados.veiculos, l.placa); return (v && motoristaNaData(v, l.pesadoEm)) || l.motoristaRelatorio || '—'; })()}</small></div>
-                      </td>
+                      {(() => {
+                        const v = veiculoDaCarga(dados.veiculos, l.placa, l.obs);
+                        const pelaObs = v && !veiculoDaPlaca(dados.veiculos, l.placa);
+                        return (
+                          <td title={pelaObs ? `Sem placa na balança: caminhão ${v.numero} pela observação` : undefined}>
+                            {v ? normalizarPlaca(v.placa) : l.placa || '—'}
+                            {pelaObs && <small className="mudo"> (obs.)</small>}
+                            <div className="mudo"><small>{(v && motoristaNaData(v, l.pesadoEm)) || l.motoristaRelatorio || '—'}</small></div>
+                          </td>
+                        );
+                      })()}
                       <td className="n">{l.completa ? fmt((l.liquidoKg ?? (l.totalKg! - l.taraKg!)) / 1000, 2) : '—'}</td>
                       <td className="oculta-cel">{l.silo || '—'}</td>
                       <td>

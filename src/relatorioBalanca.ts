@@ -66,6 +66,12 @@ export function lerObs(obs: string): { silo: string; textoTalhao: string } {
   };
 }
 
+/** "TRINCHEIRA 01-CAU TALHÃO 02-MOTORISTA 4" → 4 (nº de cadastro do caminhão na relação de veículos). */
+export function numeroMotoristaDaObs(obs?: string | null): number | null {
+  const m = (obs ?? '').match(/MOTORISTA\s*0*(\d+)/i);
+  return m ? Number(m[1]) : null;
+}
+
 /** "FERNANDO ALONSO 04161226128" → "Fernando Alonso" (sem CPF/números). */
 export function nomeMotorista(bruto: string): string {
   const s = bruto.replace(/[\d.\-/]+/g, ' ').replace(/\s+/g, ' ').trim();
