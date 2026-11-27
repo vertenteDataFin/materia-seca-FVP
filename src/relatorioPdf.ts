@@ -60,7 +60,7 @@ function montarColheita(d: Dados): Relatorio['colheita'] {
   const nAmostras = linhas.reduce((s, l) => s + l.nComMS, 0);
   const msMedia = nAmostras ? linhas.reduce((s, l) => s + (l.msColheita ?? 0) * l.nComMS, 0) / nAmostras : null;
   return {
-    cabecalho: ['Talhão', 'Amostras de caminhão', 'MS colheita (%)', 'Penn State médio (19 · 8 · 4 · fundo %)', 'Cargas', 'MV entregue (t)', 'MS entregue (t)', 'Área colhida (ha)', 'Colhido'],
+    cabecalho: ['Talhão', 'Amostras de caminhão', 'MS colheita (%)', 'Penn State médio (19 · 8 · 4 · fundo %)', 'Cargas', 'MN entregue (t)', 'MS entregue (t)', 'Área colhida (ha)', 'Colhido'],
     linhas: linhas.map((l) => [
       nomeComSigla(l.talhao.nome, l.talhao.fazenda),
       String(l.nAmostras),
@@ -85,7 +85,7 @@ function montarColheita(d: Dados): Relatorio['colheita'] {
     ],
     notas: [
       'MS da colheita = média das amostras dos caminhões do talhão; a MS entregue usa, em cada carga, a média dos caminhões amostrados no mesmo dia (sem amostra no dia, a média do talhão; sem amostragem de colheita, a da amostragem de campo).',
-      'Área colhida = MS entregue ÷ t MS/ha da amostragem de campo mais recente (a massa verde por hectare vem sempre da amostragem de campo); talhão finalizado conta a área toda.',
+      'Área colhida = MS entregue ÷ t MS/ha da amostragem de campo mais recente (a matéria natural por hectare vem sempre da amostragem de campo); talhão finalizado conta a área toda.',
     ],
   };
 }
@@ -163,7 +163,7 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
   const leitura: string[] = [];
   const melhor = [...resumos].filter((x) => x.r.tMSha != null).sort((a, b) => b.r.tMSha! - a.r.tMSha!)[0];
   for (const { t, c, r, e } of resumos) {
-    const partes = [`${fmt(r.tMVha, 1)} t MV/ha em ${pontos(r.nPontos)}`];
+    const partes = [`${fmt(r.tMVha, 1)} t MN/ha em ${pontos(r.nPontos)}`];
     if (r.nPontos > 1 && r.cvPct != null) partes[0] += ` (CV ${fmt(r.cvPct, 0)} %${r.cvPct > CV_LIMITE ? ', variação alta' : r.cvPct <= 15 ? ', amostras consistentes' : ''})`;
     if (r.msPct != null) {
       const s = statusMS(r.msPct, p);
@@ -177,7 +177,7 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
     const contorno = areaContornoHa(t);
     if (contorno && Math.abs(contorno / t.areaHa - 1) > 0.1) {
       const fator = contorno / t.areaHa;
-      frase += ` Atenção à área: o contorno no mapa mede ${fmt(contorno, 1)} ha contra ${fmt(t.areaHa, 1)} ha em uso — com ${fmt(contorno, 1)} ha os totais ${fator < 1 ? 'caem' : 'sobem'} para ${milhar((e.tMVtotal ?? 0) * fator)} t MV e ~${milhar((e.tMStotal ?? 0) * fator)} t MS.`;
+      frase += ` Atenção à área: o contorno no mapa mede ${fmt(contorno, 1)} ha contra ${fmt(t.areaHa, 1)} ha em uso — com ${fmt(contorno, 1)} ha os totais ${fator < 1 ? 'caem' : 'sobem'} para ${milhar((e.tMVtotal ?? 0) * fator)} t MN e ~${milhar((e.tMStotal ?? 0) * fator)} t MS.`;
     }
     leitura.push(frase);
   }
@@ -216,19 +216,19 @@ export function montarRelatorio(d: Dados = dadosAtuais(), p: Parametros = lerPar
     subtitulo: `${fazendas.length ? `Fazenda ${fazendas.join(' / ')} · ` : ''}${filtrado ? `período ${descreverPeriodo(periodo)} · ` : ''}coletas de ${descreverDatas(coletas.map((c) => c.data))} · emitido em ${fmtData(hoje())}`,
     premissas: [
       quadros.length === 1
-        ? `Quadro de amostragem de ${fmt(quadros[0], 2)} m². Massa verde (MV) de cada amostra em kg/m².`
-        : `Quadros de amostragem de ${quadros.map((q) => fmt(q, 2)).join(' e ')} m²; MV convertida para kg/m².`,
-      'Teor de MS = massa seca ÷ massa úmida da subamostra × 100 (média das subamostras da coleta).',
+        ? `Quadro de amostragem de ${fmt(quadros[0], 2)} m². Matéria natural (MN) de cada amostra em kg/m².`
+        : `Quadros de amostragem de ${quadros.map((q) => fmt(q, 2)).join(' e ')} m²; MN convertida para kg/m².`,
+      'Teor de MS = massa seca ÷ matéria natural da subamostra × 100 (média das subamostras da coleta).',
       'Áreas: área em uso de cada talhão conforme o cadastro do app (conferir tamanhos).',
       // só caracteres do WinAnsi (fontes padrão do PDF): hífen no lugar do sinal de menos
-      `Produção: t MV/ha = kg/m² × 10; t MS/ha = t MV/ha × MS ÷ 100. Silagem = MV total - ${fmt(p.perdasPct, 0)} % de perdas; volume de silo a ${fmt(p.densidadeKgM3, 0)} kg/m³. Faixa ideal de MS: ${fmt(p.msMin, 0)}–${fmt(p.msMax, 0)} %.`,
+      `Produção: t MN/ha = kg/m² × 10; t MS/ha = t MN/ha × MS ÷ 100. Silagem = MN total - ${fmt(p.perdasPct, 0)} % de perdas; volume de silo a ${fmt(p.densidadeKgM3, 0)} kg/m³. Faixa ideal de MS: ${fmt(p.msMin, 0)}–${fmt(p.msMax, 0)} %.`,
       filtrado
         ? `Só as coletas ${descreverPeriodo(periodo)}; resultados por talhão usam a coleta mais recente de cada talhão no período.`
         : 'Resultados por talhão usam a coleta mais recente de cada talhão.',
     ],
-    amostras: { cabecalho: ['Talhão', 'Capim', 'Data da coleta', 'Amostra', 'MV (kg/m²)', 'MV (t/ha)', 'MS (%)', 'MS (t/ha)'], linhas: linhasAmostras },
+    amostras: { cabecalho: ['Talhão', 'Capim', 'Data da coleta', 'Amostra', 'MN (kg/m²)', 'MN (t/ha)', 'MS (%)', 'MS (t/ha)'], linhas: linhasAmostras },
     talhoes: {
-      cabecalho: ['Talhão', 'Área usada (ha)', 'MV média (t/ha)', 'CV entre pontos', 'MS média (%)', 'MS (t/ha)', 'MV total (t)', 'MS total (t)', 'Silagem est. (t)', 'Silo (m³)', 'Situação'],
+      cabecalho: ['Talhão', 'Área usada (ha)', 'MN média (t/ha)', 'CV entre pontos', 'MS média (%)', 'MS (t/ha)', 'MN total (t)', 'MS total (t)', 'Silagem est. (t)', 'Silo (m³)', 'Situação'],
       linhas: linhasTalhoes,
       total,
       notas,

@@ -64,7 +64,7 @@ export function FilaPesagem({ destaque }: { destaque: string | null }) {
         <span className="selo selo-alto">{total} ponto{total === 1 ? '' : 's'}</span>
       </div>
       <p className="dica">
-        Pontos marcados em campo, ainda sem o peso verde. Pese cada saco (kg, quadro inteiro) e lance pelo código da etiqueta.
+        Pontos marcados em campo, ainda sem o peso de MN. Pese cada saco (kg, quadro inteiro) e lance pelo código da etiqueta.
         A coleta sai daqui quando todos os pontos estiverem pesados e vai para <strong>Aguardando MS</strong>.
       </p>
       {grupos.map((g) => (
@@ -92,7 +92,7 @@ function GrupoPesagem({ g, aberto, alternar }: { g: Grupo; aberto: boolean; alte
             <div className="lab-linha lab-titulo">
               <span>Amostra</span>
               <span>Posição</span>
-              <span>Peso verde (kg)</span>
+              <span>Peso de MN (kg)</span>
               <span className="n">kg/m²</span>
             </div>
             {amostras.map((a) => {
@@ -105,7 +105,7 @@ function GrupoPesagem({ g, aberto, alternar }: { g: Grupo; aberto: boolean; alte
                   <span className="mv mudo" data-rotulo="Posição">
                     <small>{a.lat == null ? 'sem posição' : origemPosicao(a) === 'gps' ? `GPS${a.precisaoM != null ? ` ±${a.precisaoM} m` : ''}` : 'no mapa'}</small>
                   </span>
-                  <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} placeholder="peso (kg)" aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
+                  <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso de MN ponto ${a.ponto}`} placeholder="peso (kg)" aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
                   <span className="n ms" data-rotulo="kg/m²">{kg == null ? '—' : fmt(kg, 2)}</span>
                 </div>
               );

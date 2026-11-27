@@ -163,8 +163,8 @@ export default function ColetaDetalhe() {
                       <tr>
                         <th>Ponto</th>
                         <th className="oculta-cel">Posição</th>
-                        <th className="n">MV (kg/m²)</th>
-                        <th className="n">t MV/ha</th>
+                        <th className="n">MN (kg/m²)</th>
+                        <th className="n">t MN/ha</th>
                         <th className="n">MS %</th>
                         <th className="n">t MS/ha</th>
                       </tr>
@@ -204,7 +204,7 @@ export default function ColetaDetalhe() {
                 {r.umidadePct != null && <span>Umidade: <strong>{fmt(r.umidadePct, 1)}%</strong></span>}
                 {talhao && est && est.tMVtotal != null && (
                   <span>
-                    No talhão ({fmt(talhao.areaHa, 1)} ha): <strong>{fmt(est.tMVtotal, 0)} t MV</strong>
+                    No talhão ({fmt(talhao.areaHa, 1)} ha): <strong>{fmt(est.tMVtotal, 0)} t MN</strong>
                     {est.tMStotal != null && <> · <strong>{fmt(est.tMStotal, 0)} t MS</strong></>}
                     {est.silagemT != null && <> · silagem {fmt(est.silagemT, 0)} t (−{fmt(parametros.perdasPct, 0)}%)</>}
                   </span>
@@ -227,9 +227,9 @@ export default function ColetaDetalhe() {
           </span>
         </div>
         <p className="dica">
-          Peso verde = massa cortada no quadro de 1 m² (campo);
+          Peso de MN = massa cortada no quadro de 1 m² (campo);
           o seco da subamostra de {UMIDO_PADRAO_G} g (já sem a tara) dá a MS e normalmente é lançado em <Link to={`/coletas?coleta=${coletaId}`}>Aguardando MS (Amostragem)</Link>, mas
-          úmido e seco também podem ser editados aqui (o úmido fica em {UMIDO_PADRAO_G} g se não for informado). <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
+          MN e seco também podem ser editados aqui (a MN fica em {UMIDO_PADRAO_G} g se não for informada). <strong>Novo ponto aqui</strong> cria um ponto na sua posição GPS.
         </p>
         {erroGps && <p className="aviso">{erroGps} — o ponto foi criado sem posição; use o botão <Icone nome="atualizar" titulo="atualizar posição" /> do ponto para tentar de novo.</p>}
         {nFora > 0 && <p className="aviso">{nFora} ponto(s) com GPS fora do contorno do talhão (marcados em vermelho). Confira o talhão da coleta.</p>}
@@ -251,12 +251,12 @@ export default function ColetaDetalhe() {
                   </div>
                   <div className="ponto-campos">
                     <label>
-                      Peso verde (kg)
-                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
+                      Peso de MN (kg)
+                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso de MN ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
                     </label>
                     <label>
-                      Úmido (g)
-                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
+                      MN (g)
+                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso MN ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
                     </label>
                     <label>
                       Seco (g)
@@ -264,8 +264,8 @@ export default function ColetaDetalhe() {
                     </label>
                   </div>
                   <div className="ponto-resultado">
-                    <span><span className="mudo">MV</span> <strong>{fmt(producaoPonto(a, coleta.areaAmostralM2), 2)}</strong> kg/m²</span>
-                    <span className={invalido ? 'erro' : ''}><span className="mudo">MS</span> <strong>{invalido ? 'seco > úmido' : fmt(ms)}</strong>{!invalido && ' %'}</span>
+                    <span><span className="mudo">MN</span> <strong>{fmt(producaoPonto(a, coleta.areaAmostralM2), 2)}</strong> kg/m²</span>
+                    <span className={invalido ? 'erro' : ''}><span className="mudo">MS</span> <strong>{invalido ? 'seco > MN' : fmt(ms)}</strong>{!invalido && ' %'}</span>
                     <span><span className="mudo">Umidade</span> <strong>{fmt(teorUmidade(a))}</strong> %</span>
                   </div>
                 </div>
@@ -279,9 +279,9 @@ export default function ColetaDetalhe() {
               <tr>
                 <th>Ponto</th>
                 <th>GPS</th>
-                <th className="n">Peso verde (kg)</th>
+                <th className="n">Peso de MN (kg)</th>
                 <th className="n">kg/m²</th>
-                <th className="n">Úmido (g)</th>
+                <th className="n">MN (g)</th>
                 <th className="n">Seco (g)</th>
                 <th className="n">MS %</th>
                 <th className="n">Umidade %</th>
@@ -297,16 +297,16 @@ export default function ColetaDetalhe() {
                     <td><strong>{a.ponto}</strong> <code className="codigo">{codigoAmostra(talhao?.nome ?? '', coleta.data, a.ponto)}</code></td>
                     <td>{statusGps(a)} {botaoGps(a)}</td>
                     <td className="n">
-                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
+                      <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso de MN ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoVerdeKg: v })} />
                     </td>
                     <td className="n">{fmt(producaoPonto(a, coleta.areaAmostralM2), 2)}</td>
                     <td className="n">
-                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso úmido ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
+                      <CampoNumero valor={a.pesoUmidoG} ariaLabel={`Peso MN ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, { pesoUmidoG: v })} />
                     </td>
                     <td className="n">
                       <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} aoSalvar={(v) => atualizarAmostra(a.id, lancarSeco(a, v))} />
                     </td>
-                    <td className={`n ${invalido ? 'erro' : ''}`}>{invalido ? 'seco > úmido' : fmt(ms)}</td>
+                    <td className={`n ${invalido ? 'erro' : ''}`}>{invalido ? 'seco > MN' : fmt(ms)}</td>
                     <td className="n">{fmt(teorUmidade(a))}</td>
                     <td className="acoes-linha">{botaoRemover(a)}</td>
                   </tr>

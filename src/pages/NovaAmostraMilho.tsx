@@ -58,7 +58,7 @@ export default function NovaAmostraMilho() {
     for (const pen of PENEIRAS_MILHO) {
       if (pesos[pen.campo].trim() && (numeros[pen.campo] == null || numeros[pen.campo]! < 0)) return setErro(`Peso inválido na peneira ${pen.rotulo}.`);
     }
-    if (seco.trim() && ms == null) return setErro('Confira os pesos úmido e seco da MS (o seco não pode passar do úmido).');
+    if (seco.trim() && ms == null) return setErro('Confira os pesos de MN e seco da MS (o seco não pode passar da MN).');
     const id = adicionarAmostraMilho({
       codigo,
       coletadaEm,
@@ -125,7 +125,7 @@ export default function NovaAmostraMilho() {
           <legend>MS (opcional agora)</legend>
           <div className="peneiras">
             <label>
-              Úmido (g)
+              MN (g)
               <input inputMode="decimal" value={umido} onChange={(e) => setUmido(e.target.value)} />
             </label>
             <label>

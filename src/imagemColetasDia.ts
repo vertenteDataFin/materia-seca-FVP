@@ -131,7 +131,7 @@ function desenhar(ctx: CanvasRenderingContext2D, data: string, coletas: ColetaDo
     const msFundo = c.status == null ? COR.amareloClaro : c.status === 'ideal' ? COR.verdeClaro : COR.vermelhoClaro;
     const msSub = c.status == null ? 'a aferir' : c.status === 'ideal' ? 'na faixa ideal' : c.status === 'baixo' ? 'abaixo da faixa' : 'acima da faixa';
     const kpis: { rotulo: string; valor: string; sub: string; cor?: string; fundo?: string }[] = [
-      { rotulo: 'Massa verde', valor: num(c.r.tMVha), sub: 't MV/ha' },
+      { rotulo: 'Matéria natural', valor: num(c.r.tMVha), sub: 't MN/ha' },
       { rotulo: 'MS', valor: c.r.msPct == null ? '—' : `${num(c.r.msPct)}%`, sub: msSub, cor: msCor, fundo: msFundo },
       { rotulo: 'Matéria seca', valor: num(c.r.tMSha), sub: 't MS/ha' },
       { rotulo: 'CV entre pontos', valor: c.r.cvPct == null ? '—' : `${num(c.r.cvPct, 0)}%`, sub: c.r.cvPct == null ? 'só 1 ponto' : c.r.cvPct > 25 ? 'variação alta' : 'variação ok' },
@@ -148,7 +148,7 @@ function desenhar(ctx: CanvasRenderingContext2D, data: string, coletas: ColetaDo
     // Pontos
     const yt = yk + hKpi + 28;
     const cols = [x0 + 10, x0 + w0 * 0.36, x0 + w0 * 0.66, x0 + w0 - 10];
-    const cab = ['Ponto', 'kg/m²', 't MV/ha', 'MS (%)'];
+    const cab = ['Ponto', 'kg/m²', 't MN/ha', 'MS (%)'];
     cab.forEach((s, i) => texto(ctx, s, cols[i], yt + 26, 22, COR.mudo, 700, i ? 'right' : 'left'));
     c.pontos.forEach((pt, i) => {
       const yl = yt + 44 + i * hLinha;
@@ -165,7 +165,7 @@ function desenhar(ctx: CanvasRenderingContext2D, data: string, coletas: ColetaDo
 
   // Rodapé
   y += 20;
-  texto(ctx, `Faixa ideal de MS: ${num(p.msMin, 0)}–${num(p.msMax, 0)}% · t MV/ha = kg/m² × 10 · t MS/ha = t MV/ha × MS`, MARGEM, y, 22, COR.mudo, 400, 'left', interno);
+  texto(ctx, `Faixa ideal de MS: ${num(p.msMin, 0)}–${num(p.msMax, 0)}% · t MN/ha = kg/m² × 10 · t MS/ha = t MN/ha × MS`, MARGEM, y, 22, COR.mudo, 400, 'left', interno);
   return y + MARGEM;
 }
 

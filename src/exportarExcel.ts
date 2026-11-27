@@ -66,10 +66,10 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
     colunas: [
       { titulo: 'ID coleta', largura: 10 }, { titulo: 'Talhão', largura: 10 }, { titulo: 'Data', largura: 11, formato: 'dd/mm/yyyy' },
       { titulo: 'Responsável', largura: 16 }, { titulo: 'Quadro (m²)', largura: 9, formato: '0.00' }, { titulo: 'Observações', largura: 30 },
-      { titulo: 'Nº amostras', largura: 9 }, { titulo: 'MV média (kg/m²)', largura: 10, formato: '0.00' }, { titulo: 'MV (t/ha)', largura: 9, formato: '0.0' },
+      { titulo: 'Nº amostras', largura: 9 }, { titulo: 'MN média (kg/m²)', largura: 10, formato: '0.00' }, { titulo: 'MN (t/ha)', largura: 9, formato: '0.0' },
       { titulo: 'Desvio padrão (kg/m²)', largura: 10, formato: '0.00' }, { titulo: 'CV (%)', largura: 8, formato: '0' },
       { titulo: 'MS média (%)', largura: 9, formato: '0.0' }, { titulo: 'MS (t/ha)', largura: 9, formato: '0.0' }, { titulo: 'Área (ha)', largura: 9, formato: '0.0' },
-      { titulo: 'MV total (t)', largura: 10, formato: '#,##0' }, { titulo: 'MS total (t)', largura: 10, formato: '#,##0' },
+      { titulo: 'MN total (t)', largura: 10, formato: '#,##0' }, { titulo: 'MS total (t)', largura: 10, formato: '#,##0' },
       { titulo: 'Silagem est. (t)', largura: 10, formato: '#,##0' }, { titulo: 'Silo (m³)', largura: 10, formato: '#,##0' }, { titulo: 'Situação', largura: 24 },
     ],
     linhas: coletas.map((c) => {
@@ -88,10 +88,10 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
     nome: 'Amostras',
     colunas: [
       { titulo: 'ID coleta', largura: 10 }, { titulo: 'Talhão', largura: 10 }, { titulo: 'Data', largura: 11, formato: 'dd/mm/yyyy' }, { titulo: 'Amostra nº', largura: 9 },
-      { titulo: 'Peso verde do quadro (kg)', largura: 12, formato: '0.00' }, { titulo: 'Subamostra úmida (g)', largura: 11, formato: '0' },
+      { titulo: 'MN do quadro (kg)', largura: 12, formato: '0.00' }, { titulo: 'Subamostra MN (g)', largura: 11, formato: '0' },
       { titulo: 'Subamostra seca (g)', largura: 11, formato: '0' }, { titulo: 'Latitude', largura: 12, formato: '0.000000' }, { titulo: 'Longitude', largura: 12, formato: '0.000000' },
       { titulo: 'Precisão GPS (m)', largura: 10, formato: '0' }, { titulo: 'Origem da posição', largura: 16 }, { titulo: 'Capturado em', largura: 18 }, { titulo: 'Observações', largura: 28 },
-      { titulo: 'Quadro (m²)', largura: 9, formato: '0.00' }, { titulo: 'MV (kg/m²)', largura: 9, formato: '0.00' }, { titulo: 'MV (t/ha)', largura: 9, formato: '0.0' },
+      { titulo: 'Quadro (m²)', largura: 9, formato: '0.00' }, { titulo: 'MN (kg/m²)', largura: 9, formato: '0.00' }, { titulo: 'MN (t/ha)', largura: 9, formato: '0.0' },
       { titulo: 'MS (%)', largura: 8, formato: '0.0' }, { titulo: 'Umidade (%)', largura: 9, formato: '0.0' }, { titulo: 'MS (t/ha)', largura: 9, formato: '0.0' },
     ],
     linhas: coletas.flatMap((c) =>
@@ -137,7 +137,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
         { titulo: 'Peneira 19 mm (g)', largura: 10, formato: '0' }, { titulo: 'Peneira 8 mm (g)', largura: 10, formato: '0' },
         { titulo: 'Peneira 4 mm (g)', largura: 10, formato: '0' }, { titulo: 'Fundo (g)', largura: 10, formato: '0' },
         { titulo: '19 mm (%)', largura: 8, formato: '0.0' }, { titulo: '8 mm (%)', largura: 8, formato: '0.0' }, { titulo: '4 mm (%)', largura: 8, formato: '0.0' },
-        { titulo: 'Fundo (%)', largura: 8, formato: '0.0' }, { titulo: 'Subamostra úmida (g)', largura: 10, formato: '0' }, { titulo: 'Subamostra seca (g)', largura: 10, formato: '0' },
+        { titulo: 'Fundo (%)', largura: 8, formato: '0.0' }, { titulo: 'Subamostra MN (g)', largura: 10, formato: '0' }, { titulo: 'Subamostra seca (g)', largura: 10, formato: '0' },
         { titulo: 'MS (%)', largura: 8, formato: '0.0' },
         { titulo: 'FDN usada (% MS)', largura: 10, formato: '0.0' }, { titulo: 'Origem da FDN', largura: 14 },
         { titulo: 'pef > 8 mm', largura: 8, formato: '0.00' }, { titulo: 'pef > 4 mm', largura: 8, formato: '0.00' },
@@ -182,7 +182,7 @@ export function montarPlanilhas(d: Dados = dadosAtuais(), p: Parametros = lerPar
         { titulo: 'Talhão', largura: 10 }, { titulo: 'Amostras de caminhão', largura: 10 }, { titulo: 'MS colheita (%)', largura: 10, formato: '0.0' },
         { titulo: 'Penn State 19 mm (%)', largura: 10, formato: '0.0' }, { titulo: 'Penn State 8 mm (%)', largura: 10, formato: '0.0' },
         { titulo: 'Penn State 4 mm (%)', largura: 10, formato: '0.0' }, { titulo: 'Penn State fundo (%)', largura: 10, formato: '0.0' },
-        { titulo: 'Cargas', largura: 8 }, { titulo: 'MV entregue (t)', largura: 11, formato: '#,##0.0' }, { titulo: 'MS entregue (t)', largura: 11, formato: '#,##0.0' },
+        { titulo: 'Cargas', largura: 8 }, { titulo: 'MN entregue (t)', largura: 11, formato: '#,##0.0' }, { titulo: 'MS entregue (t)', largura: 11, formato: '#,##0.0' },
         { titulo: 'Área colhida (ha)', largura: 11, formato: '0.0' }, { titulo: 'Colhido (%)', largura: 9, formato: '0' }, { titulo: 'Situação', largura: 14 },
       ],
       linhas: porTalhaoColheita.map((l) => [

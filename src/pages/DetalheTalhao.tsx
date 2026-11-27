@@ -211,7 +211,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar, embutido 
                 <th>Data</th>
                 <th className="oculta-cel">Responsável</th>
                 <th className="n col-pts">Pts.</th>
-                <th className="n col-mv">MV t/ha</th>
+                <th className="n col-mv">MN t/ha</th>
                 <th className="n col-ms">% MS</th>
                 <th className="n oculta-cel">MS t/ha</th>
                 <th className="oculta-cel">Situação</th>
@@ -234,7 +234,7 @@ export default function DetalheTalhao({ talhao: t, aoFechar, aoEditar, embutido 
                   </td>
                   <td className="oculta-cel">{c.responsavel || '—'}</td>
                   <td className="n col-pts" data-rotulo="Pts.">{r.nPontos}</td>
-                  <td className="n col-mv" data-rotulo="MV t/ha">{fmt(r.tMVha)}</td>
+                  <td className="n col-mv" data-rotulo="MN t/ha">{fmt(r.tMVha)}</td>
                   <td className="n col-ms" data-rotulo="% MS">
                     {fmt(r.msPct)}
                     {r.msPct != null && <span className="so-cel selo-ms"><SeloMS status={statusMS(r.msPct, parametros)} curto /></span>}

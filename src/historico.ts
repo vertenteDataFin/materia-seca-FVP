@@ -44,7 +44,7 @@ export interface RotuloLote {
 const ROTULO_CAMPO: Record<string, string> = {
   nome: 'nome', areaHa: 'área (ha)', capim: 'capim', observacoes: 'observações', fazenda: 'fazenda',
   data: 'data', responsavel: 'responsável', areaAmostralM2: 'quadro (m²)',
-  ponto: 'nº do ponto', pesoVerdeKg: 'peso verde (kg)', pesoUmidoG: 'úmido (g)', pesoSecoG: 'seco (g)',
+  ponto: 'nº do ponto', pesoVerdeKg: 'peso de MN (kg)', pesoUmidoG: 'MN (g)', pesoSecoG: 'seco (g)',
   lat: 'posição', lng: 'posição', precisaoM: 'precisão GPS', capturadoEm: 'posição', origemPos: 'origem da posição',
   areaKmlHa: 'área do KML (ha)', capimKml: 'capim do KML', geometria: 'contorno',
   saidaEm: 'saída', placa: 'placa', silo: 'silo', pesoBrutoKg: 'peso bruto (kg)', taraKg: 'tara (kg)', pesadoEm: 'pesagem',

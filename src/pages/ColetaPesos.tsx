@@ -40,10 +40,10 @@ export default function ColetaPesos() {
 
       <div className="cartao">
         <div className="cabecalho-cartao">
-          <h2>Peso verde por ponto</h2>
+          <h2>Peso de MN por ponto</h2>
         </div>
         <p className="dica">
-          Pese o capim cortado dentro do quadro de 1 m² em cada ponto: o peso em kg já é a massa verde em kg/m².{' '}
+          Pese o capim cortado dentro do quadro de 1 m² em cada ponto: o peso em kg já é a matéria natural em kg/m².{' '}
           Separe a subamostra para MS e etiquete o saco com o <strong>código</strong> do ponto.
         </p>
         <AvisoQuadro coleta={coleta} />
@@ -62,8 +62,8 @@ export default function ColetaPesos() {
                   <div className="mudo"><small>{a.lat != null && a.lng != null ? fmtCoord(a.lat, a.lng) : 'sem posição'}{fora(a) ? ' · fora do talhão' : ''}</small></div>
                 </div>
                 <label>
-                  Peso verde (kg)
-                  <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso verde ponto ${a.ponto}`} aoSalvar={(v) => salvarPeso(a, v)} />
+                  Peso de MN (kg)
+                  <CampoNumero valor={a.pesoVerdeKg} ariaLabel={`Peso de MN ponto ${a.ponto}`} aoSalvar={(v) => salvarPeso(a, v)} />
                 </label>
                 <div className="n">
                   <strong>{fmt(producaoPonto(a, quadro), 2)}</strong> <small className="mudo">kg/m²</small>
@@ -84,8 +84,8 @@ export default function ColetaPesos() {
           <h2>Parcial</h2>
           <div className="indicadores">
             <Indicador rotulo="Pontos pesados" valor={`${r.nPontos} de ${amostras.length}`} />
-            <Indicador rotulo="Massa verde média" valor={fmt(r.mvKgM2, 2)} unidade="kg/m²" />
-            <Indicador rotulo="Produção verde" valor={fmt(r.tMVha)} unidade="t MV/ha" />
+            <Indicador rotulo="Matéria natural média" valor={fmt(r.mvKgM2, 2)} unidade="kg/m²" />
+            <Indicador rotulo="Produção de MN" valor={fmt(r.tMVha)} unidade="t MN/ha" />
             <Indicador rotulo="CV entre pontos" valor={fmt(r.cvPct)} unidade="%" />
           </div>
           {r.cvPct != null && r.cvPct > 25 && <p className="aviso">Variação alta entre pontos (CV &gt; 25 %): vale marcar e pesar mais pontos.</p>}
@@ -97,7 +97,7 @@ export default function ColetaPesos() {
         <Link className="botao primario" to="/coletas">Concluir coleta de campo</Link>
         <Link className="botao" to={`/coletas?coleta=${coletaId}`}>Lançar MS agora</Link>
       </div>
-      <p className="dica">A MS (peso úmido e seco da subamostra) é lançada depois, no quadro "Aguardando MS" no topo de Amostragem. O resultado completo fica na lista de coletas.</p>
+      <p className="dica">A MS (peso de MN e seco da subamostra) é lançada depois, no quadro "Aguardando MS" no topo de Amostragem. O resultado completo fica na lista de coletas.</p>
     </>
   );
 }

@@ -25,7 +25,7 @@ const LIMPAR_FILTRO: Partial<Record<Coluna, Partial<{ busca: string; capim: stri
 
 const ROTULO_COLUNA: Record<Coluna, string> = {
   nome: 'talhão', capim: 'capim', data: 'última coleta', area: 'área (ha)', amostras: 'amostras',
-  tMVha: 'MV (t/ha)', msPct: 'MS (%)', tMSha: 'MS (t/ha)', colheita: 'colheita (%)',
+  tMVha: 'MN (t/ha)', msPct: 'MS (%)', tMSha: 'MS (t/ha)', colheita: 'colheita (%)',
 };
 
 interface Linha {
@@ -256,10 +256,10 @@ export default function Painel() {
           </small>
         </h3>
         <div className="indicadores grade-kpi">
-          <div className="kpi-ha"><Indicador rotulo="Massa verde" valor={fmt(mvTHa, 1)} unidade="t/ha" /></div>
+          <div className="kpi-ha"><Indicador rotulo="Matéria natural" valor={fmt(mvTHa, 1)} unidade="t/ha" /></div>
           <div className="kpi-ha"><Indicador rotulo="Matéria seca" valor={fmt(msTHa, 1)} unidade="t MS/ha" /></div>
           <div className="kpi-ha"><Indicador rotulo="Silagem" valor={fmt(silagemTHa, 1)} unidade="t/ha" /></div>
-          <Indicador rotulo="Massa verde total" valor={fmt(mvTotal)} unidade="t" />
+          <Indicador rotulo="Matéria natural total" valor={fmt(mvTotal)} unidade="t" />
           <Indicador rotulo="Matéria seca total" valor={fmt(msTotal)} unidade="t" />
           <Indicador rotulo="Silagem total" valor={fmt(silagemTotal)} unidade="t" />
           <Indicador rotulo="Área amostrada" valor={fmt(areaComMV, 2)} unidade="ha" />
@@ -275,7 +275,7 @@ export default function Painel() {
           </small>
         </h3>
         <div className="indicadores grade-kpi kpi-estimativa">
-          <Indicador rotulo="Massa verde total" valor={fmt(mvTotalFazenda)} unidade="t" />
+          <Indicador rotulo="Matéria natural total" valor={fmt(mvTotalFazenda)} unidade="t" />
           <Indicador rotulo="Matéria seca total" valor={fmt(msTotalFazenda)} unidade="t" />
           <Indicador rotulo="Silagem total" valor={fmt(silagemTotalFazenda)} unidade="t" />
           <Indicador rotulo="Área total" valor={fmt(areaTotal, 2)} unidade="ha" />
@@ -286,7 +286,7 @@ export default function Painel() {
         <p className="dica">
           <strong>Área amostrada:</strong> só talhões com coleta, pela coleta mais recente de cada um (t/ha = média ponderada pela área desses talhões).{' '}
           <strong>Área total:</strong> os talhões amostrados pelo valor medido e os sem coleta pelo t/ha médio da área amostrada; é uma extrapolação,
-          tanto menos confiável quanto menor a área amostrada. Silagem = massa verde menos as perdas. Perdas: {fmt(parametros.perdasPct, 0)}% ·
+          tanto menos confiável quanto menor a área amostrada. Silagem = matéria natural menos as perdas. Perdas: {fmt(parametros.perdasPct, 0)}% ·
           Densidade: {fmt(parametros.densidadeKgM3, 0)} kg/m³ · Faixa ideal de MS: {fmt(parametros.msMin, 0)}–{fmt(parametros.msMax, 0)}% (
           <Link to="/config">alterar</Link>)
         </p>
@@ -307,7 +307,7 @@ export default function Painel() {
                 <Indicador rotulo="Colhido" valor={fmt(pctColhidoFazenda, pctColhidoFazenda != null && pctColhidoFazenda < 10 ? 1 : 0)} unidade="% da área" />
               </div>
               <div className="kpi-ha"><Indicador rotulo="Ritmo" valor={fmt(colheita.ritmoTdia, 0)} unidade="t/dia" /></div>
-              <Indicador rotulo="Massa verde entregue" valor={fmt(colheita.tMV)} unidade="t" />
+              <Indicador rotulo="Matéria natural entregue" valor={fmt(colheita.tMV)} unidade="t" />
               <Indicador rotulo="Matéria seca entregue" valor={fmt(colheita.tMS)} unidade="t" />
               <Indicador rotulo="MS da colheita" valor={fmt(colheita.msColheitaPct)} unidade="% (caminhões)" />
             </div>
@@ -316,7 +316,7 @@ export default function Painel() {
               {colheita.diasAtivos === 1 ? '' : 's'} · {colheita.emColheita} talhão(ões) em colheita, {colheita.finalizados} finalizado(s) ·{' '}
               {colheita.nAmostrasColheita} amostra(s) de caminhão com MS
               {colheita.pendentes > 0 && <> · <strong>{colheita.pendentes} aguardando pesagem</strong></>}. A MS da colheita vem dos caminhões amostrados
-              (média do talhão no dia da carga); só na falta deles, da amostragem de campo. A massa verde por hectare vem sempre da amostragem de campo.
+              (média do talhão no dia da carga); só na falta deles, da amostragem de campo. A matéria natural por hectare vem sempre da amostragem de campo.
               Talhão com colheita finalizada conta a área toda.
               {colheita.semReferencia > 0 && <> {colheita.semReferencia} talhão(ões) com carga sem amostragem de campo ficam fora da área colhida.</>}
             </p>
@@ -377,7 +377,7 @@ export default function Painel() {
                 {cab('data', 'Última coleta', 'oculta-cel', campoData, !!filtro.data)}
                 {cab('area', 'Área (ha)', 'n')}
                 {cab('amostras', 'Amostras', 'n')}
-                {cab('tMVha', 'MV (t/ha)', 'n')}
+                {cab('tMVha', 'MN (t/ha)', 'n')}
                 {cab('msPct', 'MS (%)', 'n', campoMS, !!filtro.semaforo)}
                 {cab('tMSha', 'MS (t/ha)', 'n')}
                 {cab('colheita', 'Colheita', 'n col-colheita')}
@@ -408,7 +408,7 @@ export default function Painel() {
                   <td className="n oculta-cel" title={nColetas ? `${nPontos} ponto(s) em ${nColetas} coleta(s); ${r?.nPontos ?? 0} na última` : undefined}>
                     {nColetas ? nPontos : '—'}
                   </td>
-                  <td className="n" data-rotulo="MV t/ha">{fmt(r?.tMVha)}</td>
+                  <td className="n" data-rotulo="MN t/ha">{fmt(r?.tMVha)}</td>
                   <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
                   <td className="n" data-rotulo="MS t/ha">{fmt(r?.tMSha)}</td>
                   <td className="n col-colheita" data-rotulo="Colheita">

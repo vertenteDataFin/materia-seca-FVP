@@ -19,7 +19,7 @@ import FdnCard from '../FdnCard';
 
 const CAMPOS: { chave: keyof Parametros; rotulo: string; ajuda: string }[] = [
   { chave: 'perdasPct', rotulo: 'Perdas estimadas (%)', ajuda: 'Colheita, fermentação e descarte. Típico: 10–20%.' },
-  { chave: 'densidadeKgM3', rotulo: 'Densidade da silagem (kg MV/m³)', ajuda: 'Compactação esperada no silo. Típico: 550–700.' },
+  { chave: 'densidadeKgM3', rotulo: 'Densidade da silagem (kg MN/m³)', ajuda: 'Compactação esperada no silo. Típico: 550–700.' },
   { chave: 'msMin', rotulo: 'MS mínima ideal (%)', ajuda: 'Abaixo disso há risco de efluente e fermentação indesejada.' },
   { chave: 'msMax', rotulo: 'MS máxima ideal (%)', ajuda: 'Acima disso a compactação fica difícil.' },
 ];
@@ -114,7 +114,7 @@ export default function Config({ usuario }: { usuario?: User }) {
     const n = (v: number | null | undefined) => (v == null ? '' : String(Math.round(v * 1000) / 1000).replace('.', ','));
     const s = (v: string | undefined) => `"${(v ?? '').replace(/"/g, '""')}"`;
     const linhas = [
-      ['Talhão', 'Fazenda', 'Capim', 'Área talhão (ha)', 'Data', 'Responsável', 'Área quadro (m²)', 'Ponto', 'Peso verde (kg)', 'MV (kg/m²)', 'Peso úmido (g)', 'Peso seco (g)', 'MS (%)', 'Umidade (%)', 'Latitude', 'Longitude', 'Precisão GPS (m)', 'Origem da posição', 'Capturado em'].join(';'),
+      ['Talhão', 'Fazenda', 'Capim', 'Área talhão (ha)', 'Data', 'Responsável', 'Área quadro (m²)', 'Ponto', 'Peso de MN (kg)', 'MN (kg/m²)', 'Peso MN (g)', 'Peso seco (g)', 'MS (%)', 'Umidade (%)', 'Latitude', 'Longitude', 'Precisão GPS (m)', 'Origem da posição', 'Capturado em'].join(';'),
     ];
     for (const a of amostras) {
       const col = c.get(a.coletaId);
@@ -230,12 +230,12 @@ export default function Config({ usuario }: { usuario?: User }) {
       <div className="cartao">
         <h2>Como os cálculos são feitos</h2>
         <ul className="formulas">
-          <li><strong>MV (kg/m²)</strong> = peso verde do ponto ÷ área do quadro</li>
-          <li><strong>t MV/ha</strong> = média dos pontos (kg/m²) × 10</li>
+          <li><strong>MN (kg/m²)</strong> = peso de MN do ponto ÷ área do quadro</li>
+          <li><strong>t MN/ha</strong> = média dos pontos (kg/m²) × 10</li>
           <li><strong>MS (%)</strong> = peso seco ÷ peso úmido × 100 (média das subamostras) · <strong>Umidade</strong> = 100 − MS</li>
-          <li><strong>t MS/ha</strong> = t MV/ha × MS ÷ 100</li>
+          <li><strong>t MS/ha</strong> = t MN/ha × MS ÷ 100</li>
           <li><strong>Produção do talhão</strong> = t/ha × área do talhão (ha)</li>
-          <li><strong>Silagem (t)</strong> = MV total × (1 − perdas) · <strong>Volume (m³)</strong> = silagem × 1000 ÷ densidade</li>
+          <li><strong>Silagem (t)</strong> = MN total × (1 − perdas) · <strong>Volume (m³)</strong> = silagem × 1000 ÷ densidade</li>
           <li><strong>CV (%)</strong> = desvio padrão ÷ média dos pontos × 100</li>
         </ul>
       </div>

@@ -100,7 +100,7 @@ export default function ImportarBalanca({ aoFechar }: { aoFechar: () => void }) 
       /* sem armazenamento: só não lembra */
     }
     const t = cargas.reduce((s, c) => s + ((c.pesoBrutoKg ?? 0) - (c.taraKg ?? 0)), 0) / 1000;
-    setFeito(`${cargas.length} carga(s) importada(s), ${fmt(t, 1)} t de massa verde.`);
+    setFeito(`${cargas.length} carga(s) importada(s), ${fmt(t, 1)} t de matéria natural.`);
     setLinhas(null);
   }
 

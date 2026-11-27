@@ -111,6 +111,8 @@ export interface AndamentoTalhao {
   pctColhida: number | null;
   /** Dias com carga pesada. */
   diasAtivos: number;
+  /** Duração da colheita em dias corridos, do 1º ao último dia com carga pesada (contando os dois). */
+  duracaoDias: number | null;
   /** Massa verde por dia de colheita (t/dia). */
   ritmoTdia: number | null;
   /** Dias de colheita que faltam, no ritmo atual. */
@@ -231,6 +233,10 @@ export function andamentoTalhao(
     diasRestantes = Math.max(0, (talhao.areaHa - areaColhidaHa) / haPorDia);
   }
   const datas = minhas.map((c) => c.saidaEm).sort();
+  const diasOrdenados = [...dias].sort();
+  const duracaoDias = diasOrdenados.length
+    ? Math.round((Date.parse(diasOrdenados[diasOrdenados.length - 1]) - Date.parse(diasOrdenados[0])) / 86_400_000) + 1
+    : null;
 
   return {
     talhao,
@@ -245,6 +251,7 @@ export function andamentoTalhao(
     areaColhidaHa,
     pctColhida,
     diasAtivos,
+    duracaoDias,
     ritmoTdia,
     diasRestantes,
     inicio: datas[0] ?? null,

@@ -104,7 +104,7 @@ describe('relatório em PDF', () => {
     expect(r.talhoes.total[1]).toBe('240,9');
     expect(r.talhoes.notas).toEqual(['TL 21 - Conf: Talhão desuniforme']);
     // 4 e 5
-    expect(r.leitura.find((l) => l.startsWith('TL 18 - PD — '))).toContain('16,7 t MV/ha em 6 pontos (CV 33 %, variação alta), MS média de 24 % (abaixo da faixa ideal), 3,9 t MS/ha e ~465 t de MS no talhão');
+    expect(r.leitura.find((l) => l.startsWith('TL 18 - PD — '))).toContain('16,7 t MN/ha em 6 pontos (CV 33 %, variação alta), MS média de 24 % (abaixo da faixa ideal), 3,9 t MS/ha e ~465 t de MS no talhão');
     expect(r.leitura.find((l) => l.startsWith('TL 23 - Conf — '))).toContain('MS ainda a aferir (coleta de 10/11/2026)');
     expect(r.leitura[r.leitura.length - 1]).toMatch(/^Todos os talhões com MS média entre 21 e 24 %, abaixo da faixa ideal/);
     expect(r.pendencias).toEqual([

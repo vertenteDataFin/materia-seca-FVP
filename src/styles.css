@@ -622,6 +622,8 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .andamento-area { margin: 0 0 0.5rem; font-size: 0.95rem; }
 .andamento-numeros { display: grid; grid-template-columns: repeat(5, minmax(0, 1fr)); gap: 0.5rem; }
 .andamento-area .aviso-area { display: block; color: var(--alerta); }
+.andamento-resumo { margin: 0 0 0.5rem; padding: 0.4rem 0.6rem; border-radius: 8px; background: var(--fundo); font-size: 0.95rem; display: flex; flex-wrap: wrap; align-items: center; gap: 0.25rem; }
+.andamento-resumo svg { color: var(--verde); }
 .andamento-numeros .ms-entregue { display: block; font-style: normal; font-size: 0.72rem; color: var(--mudo); }
 .andamento-numeros > div { background: var(--fundo); border-radius: 8px; padding: 0.35rem 0.5rem; min-width: 0; }
 .andamento-numeros span { display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); }

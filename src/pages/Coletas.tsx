@@ -68,7 +68,7 @@ export default function Coletas() {
           <div className="opcao-coleta">
             <h2><Icone nome="campo" /> Amostragem de campo</h2>
             <p className="dica">
-              Em campo, só marque os pontos no GPS e etiquete os sacos; o peso verde é lançado depois, em <strong>Aguardando pesagem</strong>.
+              Em campo, só marque os pontos no GPS e etiquete os sacos; o peso de MN é lançado depois, em <strong>Aguardando pesagem</strong>.
             </p>
             <div className="acoes">
               <Link className="botao primario" to="/coletas/rapida"><Icone nome="gps" /> Começar pelo GPS</Link>
@@ -149,7 +149,7 @@ export default function Coletas() {
                   <th className="oculta-cel">Responsável</th>
                   <th className="oculta-cel">Situação</th>
                   <th className="n col-pts">Pts.</th>
-                  <th className="n col-mv">MV t/ha</th>
+                  <th className="n col-mv">MN t/ha</th>
                   <th className="n col-ms">% MS</th>
                 </tr>
               </thead>
@@ -175,7 +175,7 @@ export default function Coletas() {
                     <td className="oculta-cel">{c.responsavel || '—'}</td>
                     <td className="oculta-cel"><span className={`selo status-coleta ${CLASSE_STATUS[status]}`}>{ROTULO_STATUS_COLETA[status]}</span></td>
                     <td className="n col-pts" data-rotulo="Pts.">{nPontos}</td>
-                    <td className="n col-mv" data-rotulo="MV t/ha">{fmt(r.tMVha)}</td>
+                    <td className="n col-mv" data-rotulo="MN t/ha">{fmt(r.tMVha)}</td>
                     <td className="n col-ms" data-rotulo="% MS">
                       {fmt(r.msPct)}
                       {r.msPct != null && <span className="so-cel selo-ms"><SeloMS status={statusMS(r.msPct, parametros)} curto /></span>}

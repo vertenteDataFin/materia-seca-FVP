@@ -391,6 +391,10 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
   const emToneladas = escala > 0 && (teto != null || nova != null);
   const posicao = (t: number) => Math.min(100, (t / escala) * 100);
   const barra = emToneladas ? posicao(a.tMV) : pct == null ? 0 : Math.min(100, pct);
+  // Colheita concluída: finalizada, ou o agrícola já informou a área toda do talhão.
+  const concluida = a.finalizada || (a.informada != null && a.talhao.areaHa > 0 && a.informada.ha >= a.talhao.areaHa - 0.05);
+  const diasCarga = a.cargas.filter(cargaPesada).map((c) => c.saidaEm.slice(0, 10)).sort();
+  const nDias = (n: number) => `${fmt(n, 0)} dia${n === 1 ? '' : 's'}`;
   const [haInformado, setHaInformado] = useState(a.informada ? String(a.informada.ha).replace('.', ',') : '');
   const [dataInformada, setDataInformada] = useState(a.informada?.data ?? hoje());
   const salvarArea = (e: FormEvent) => {
@@ -440,7 +444,7 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
                     <p>
                       <strong>Estimativa da amostragem de {fmtData(a.ref.data)}:</strong>
                       <br />
-                      {fmt(a.ref.tMVha, 1)} t MV/ha
+                      {fmt(a.ref.tMVha, 1)} t MN/ha
                       {a.ref.msPct != null ? ` · MS ${fmt(a.ref.msPct, 1)}% (${fmt(a.ref.tMSha, 1)} t MS/ha)` : ' · sem MS aferida'}
                       {desvio != null && ` · real ${desvio >= 0 ? '+' : ''}${fmt(desvio, 0)}% em relação à estimativa`}
                     </p>
@@ -550,7 +554,7 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
       </div>
       {emToneladas && (
         <p className="andamento-legenda">
-          <span><i className="leg entregue" />Entregue {fmt(a.tMV, 0)} t</span>
+          <span><i className="leg entregue" />MN entregue {fmt(a.tMV, 0)} t</span>
           {nova != null && <span><i className="leg estimada" />Nova estimativa {fmt(nova, 0)} t ({fmt(a.tMVhaColhido, 1)} t/ha)</span>}
           {teto != null && a.ref && <span><i className="leg teto" />Amostragem {fmt(teto, 0)} t ({fmt(a.ref.tMVha, 1)} t/ha)</span>}
         </p>
@@ -579,12 +583,22 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
           )
         )}
       </p>
+      {concluida && a.duracaoDias != null && diasCarga.length > 0 && (
+        <p className="andamento-resumo">
+          <Icone nome="ok" /> Colheita {a.finalizada ? 'finalizada' : 'concluída'} em <strong>{nDias(a.duracaoDias)}</strong>
+          <span className="mudo">
+            {' '}({fmtData(diasCarga[0]).slice(0, 5)} a {fmtData(diasCarga[diasCarga.length - 1]).slice(0, 5)}
+            {a.diasAtivos < a.duracaoDias ? `, ${nDias(a.diasAtivos)} com carga` : ''})
+          </span>{' '}
+          · <strong>{fmt(a.tMV, 1)} t</strong> de matéria natural entregue
+        </p>
+      )}
       <div className="andamento-numeros">
-        <div><span>Entregue</span><strong>{fmt(a.tMV, 1)} t</strong></div>
+        <div><span>MN entregue</span><strong>{fmt(a.tMV, 1)} t</strong></div>
         <div
           title={
             a.tMS != null && a.tMV > 0
-              ? `MS de cada dia (amostras dos caminhões) × cargas do mesmo dia. ${fmt((a.tMVcomMSdoDia / a.tMV) * 100, 0)}% da massa com análise do próprio dia; o resto usa a média do talhão.`
+              ? `MS de cada dia (amostras dos caminhões) × cargas do mesmo dia. ${fmt((a.tMVcomMSdoDia / a.tMV) * 100, 0)}% da matéria natural com análise do próprio dia; o resto usa a média do talhão.`
               : 'Sem MS: falta análise das amostras dos caminhões.'
           }
         >
@@ -600,6 +614,8 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
         <div><span>Ritmo</span><strong>{a.ritmoTdia != null ? `${fmt(a.ritmoTdia, 0)} t/dia` : '—'}</strong></div>
         {a.finalizada ? (
           <div><span>Real</span><strong>{fmt(a.tMVhaReal, 1)} t/ha</strong></div>
+        ) : concluida && a.duracaoDias != null ? (
+          <div><span>Duração</span><strong>{nDias(a.duracaoDias)}</strong></div>
         ) : (
           <div><span>Faltam</span><strong>{a.diasRestantes != null ? `~${fmt(Math.ceil(a.diasRestantes), 0)} dia${Math.ceil(a.diasRestantes) === 1 ? '' : 's'}` : '—'}</strong></div>
         )}

@@ -73,7 +73,7 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
         <span className="selo selo-alto">{total} amostra{total === 1 ? '' : 's'}</span>
       </div>
       <p className="dica">
-        Pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra úmida e lance o peso <strong>seco</strong> (g, sem a tara): o seco em gramas já é a MS em %.
+        Pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra de MN e lance o peso <strong>seco</strong> (g, sem a tara): o seco em gramas já é a MS em %.
         Confira o código da etiqueta do saco. A coleta sai daqui quando todos os pontos estiverem aferidos; a amostra do caminhão, quando o seco for lançado.
       </p>
       {pendentes.map((g) => (
@@ -139,7 +139,7 @@ function GrupoLab({ g, aberto, alternar }: { g: Grupo; aberto: boolean; alternar
           <div className="lab-linhas">
             <div className="lab-linha lab-titulo">
               <span>Amostra</span>
-              <span className="n">MV total (kg)</span>
+              <span className="n">MN total (kg)</span>
               <span>Seco (g) de {UMIDO_PADRAO_G} g</span>
               <span className="n">MS %</span>
             </div>
@@ -153,11 +153,11 @@ function GrupoLab({ g, aberto, alternar }: { g: Grupo; aberto: boolean; alternar
                   <span>
                     <strong>P{a.ponto}</strong> <code className="codigo">{codigoAmostra(nome, c.data, a.ponto)}</code>
                   </span>
-                  <span className="n mv" data-rotulo="MV total (kg)">{fmt(a.pesoVerdeKg, 2)}</span>
+                  <span className="n mv" data-rotulo="MN total (kg)">{fmt(a.pesoVerdeKg, 2)}</span>
                   <CampoNumero valor={a.pesoSecoG} ariaLabel={`Peso seco ponto ${a.ponto}`} placeholder="seco (g)" aoSalvar={(v) => atualizarAmostra(a.id, lancarSeco(a, v))} />
                   <span className={`n ms ${invalido ? 'erro' : ''}`} data-rotulo="MS %">
-                    {invalido ? 'seco > úmido' : ms == null ? '—' : fmt(ms)}
-                    {umidoDiferente && <small className="mudo"> (úmido {fmt(a.pesoUmidoG, 0)} g)</small>}
+                    {invalido ? 'seco > MN' : ms == null ? '—' : fmt(ms)}
+                    {umidoDiferente && <small className="mudo"> (MN {fmt(a.pesoUmidoG, 0)} g)</small>}
                   </span>
                 </div>
               );

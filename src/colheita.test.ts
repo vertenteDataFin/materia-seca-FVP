@@ -114,6 +114,10 @@ describe('colheita', () => {
     const b = andamentoTalhao(talhao, [carga('k1', '2026-11-14T07:00', 40000, 15000), carga('k3', '2026-11-16T07:00', 35000, 15000)], ref, msCol);
     expect(b.tMS).toBeCloseTo(25 * 0.32 + 20 * 0.34);
     expect(b.tMVcomMSdoDia).toBeCloseTo(25);
+    // duração: do dia 14 ao 16 = 3 dias corridos, 2 com carga
+    expect(b.duracaoDias).toBe(3);
+    expect(b.diasAtivos).toBe(2);
+    expect(andamentoTalhao(talhao, [], ref).duracaoDias).toBeNull();
   });
 
   it('resumo: MS da colheita ponderada pelo peso; sem cargas, média das amostras de caminhão', () => {
@@ -141,7 +145,7 @@ describe('colheita', () => {
   });
 
   it('área colhida informada pelo agrícola: produtividade real, nova estimativa e teto da amostragem', () => {
-    const ref = referenciaDoTalhao('t1', coletas, amostrasPorColeta(amostras)); // 40 t MV/ha
+    const ref = referenciaDoTalhao('t1', coletas, amostrasPorColeta(amostras)); // 40 t MN/ha
     const cargas = [
       carga('k1', '2026-11-14T07:00', 40000, 15000), // 25 t
       carga('k2', '2026-11-15T07:00', 40000, 15000), // 25 t (até 15/11: 50 t)

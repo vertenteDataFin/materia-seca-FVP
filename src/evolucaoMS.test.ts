@@ -27,7 +27,7 @@ describe('evolução da MS', () => {
       ['2026-11-13', 30, 1],
     ]);
     expect(s[0].pontos).toEqual([{ coletaId: 'c3', data: '2026-11-07', msPct: 24, nPontos: 2, nPontosMS: 1, origem: 'campo', link: '/coletas/c3' }]);
-    expect(s[1].pontos).toEqual([{ coletaId: 'c4', data: '2026-11-08', msPct: null, nPontos: 1, nPontosMS: 0, origem: 'campo', link: '/coletas/c4' }]); // só peso verde
+    expect(s[1].pontos).toEqual([{ coletaId: 'c4', data: '2026-11-08', msPct: null, nPontos: 1, nPontosMS: 0, origem: 'campo', link: '/coletas/c4' }]); // só peso de MN
     expect(seriesMS(talhoes, [], [])).toEqual([]);
   });
 

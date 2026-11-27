@@ -52,7 +52,7 @@ describe('histórico de alterações', () => {
   it('descreve edições com antes → depois e permite voltar aos valores anteriores', () => {
     const e = descreverLote([{ tipo: 'atualizar', colecao: 'amostras', id: 'a1', dados: { pesoVerdeKg: 2.5, pesoSecoG: 22 } }], dados)!;
     expect(e.acao).toBe('editou');
-    expect(e.descricao).toBe('ponto 1 da coleta Talhão 18 - PD · 07/11/2026 — peso verde (kg): 2,02 → 2,5');
+    expect(e.descricao).toBe('ponto 1 da coleta Talhão 18 - PD · 07/11/2026 — peso de MN (kg): 2,02 → 2,5');
     const ops = opsDeRestauracao({ id: 'h', em: '', quem: '', ...e }, dados);
     expect(ops).toEqual([{ tipo: 'atualizar', colecao: 'amostras', id: 'a1', dados: { pesoVerdeKg: 2.02 } }]);
   });
