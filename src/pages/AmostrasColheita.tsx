@@ -5,7 +5,7 @@ import { lancarSeco, UMIDO_PADRAO_G } from '../calc';
 import { fmtSaida } from '../colheita';
 import { CampoNumero } from '../components';
 import { usePermissoes } from '../permissoes';
-import { fmt } from '../util';
+import { fmt, fmtData } from '../util';
 import type { AmostraColheita } from '../tipos';
 import { faltaPeFdn, peFdnDaAmostra, rotuloPeFdn, textoFonteFdn, textoPeFdn, useConfigFdn } from '../fdn';
 import { LegendaPenn, PctPeneira, PercentuaisPenn } from '../PennState';
@@ -23,16 +23,27 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
   const { podeExcluir } = usePermissoes();
   const cfgFdn = useConfigFdn();
   const [aberta, setAberta] = useState<string | null>(null);
+  const [diaEscolhido, setDia] = useState<string | null>(null);
   if (!dados || !dados.amostrasColheita.length) return null;
   const nomes = new Map(dados.talhoes.map((t) => [t.id, t.nome]));
   const capins = new Map(dados.talhoes.map((t) => [t.id, t.capim]));
-  const lista = dados.amostrasColheita.slice(0, LIMITE);
+  // Um dia por vez: o escolhido; senão o da amostra em destaque; senão o mais recente.
+  const porDia = new Map<string, number>();
+  for (const a of dados.amostrasColheita) porDia.set(a.coletadaEm.slice(0, 10), (porDia.get(a.coletadaEm.slice(0, 10)) ?? 0) + 1);
+  const dias = [...porDia.keys()].sort().reverse();
+  const doDestaque = dados.amostrasColheita.find((a) => a.id === destaque)?.coletadaEm.slice(0, 10);
+  const dia = diaEscolhido && porDia.has(diaEscolhido) ? diaEscolhido : doDestaque ?? dias[0];
+  const lista = dados.amostrasColheita.filter((a) => a.coletadaEm.startsWith(dia)).slice(0, LIMITE);
 
   return (
     <div className="cartao amostras-colheita">
       <div className="cabecalho-cartao">
         <h2>Amostragem de colheita</h2>
-        <span className="mudo">{dados.amostrasColheita.length}</span>
+        <select value={dia} onChange={(e) => { setDia(e.target.value); setAberta(null); }} aria-label="Dia das amostras">
+          {dias.map((d) => (
+            <option key={d} value={d}>{fmtData(d)} ({porDia.get(d)})</option>
+          ))}
+        </select>
       </div>
       <p className="dica">
         <LegendaPenn />
@@ -94,7 +105,7 @@ export default function AmostrasColheitaCard({ destaque }: { destaque: string | 
           </tbody>
         </table>
       </div>
-      {dados.amostrasColheita.length > LIMITE && <p className="dica">Mostrando as {LIMITE} mais recentes.</p>}
+      <p className="dica">{dados.amostrasColheita.length} amostras no total; escolha o dia acima para ver as outras.</p>
     </div>
   );
 }
