@@ -1,8 +1,9 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Icone } from '../Icone';
 import { Link } from 'react-router-dom';
-import { amostrasPorColeta, atualizarAmostra, atualizarAmostraColheita, useDados } from '../dados';
+import { amostrasPorColeta, atualizarAmostra, atualizarAmostraColheita, atualizarAmostraMilho, useDados } from '../dados';
 import { aguardandoMSColheita } from '../amostragemColheita';
+import { lancarSecoMilho, UMIDO_PADRAO_MILHO_G } from '../milhoReidratado';
 import { fmtSaida } from '../colheita';
 import { compararColetasDesc, type Amostra, type Coleta, type Talhao } from '../tipos';
 import { lancarSeco, resumoColeta, teorMS, UMIDO_PADRAO_G } from '../calc';
@@ -30,6 +31,11 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
     () => (dados ? dados.amostrasColheita.filter(aguardandoMSColheita).sort((a, b) => a.coletadaEm.localeCompare(b.coletadaEm)) : []),
     [dados],
   );
+  // Amostras de milho reidratado ainda sem o peso seco.
+  const milho = useMemo(
+    () => (dados ? (dados.amostrasMilho ?? []).filter((a) => a.pesoSecoG == null).sort((a, b) => a.coletadaEm.localeCompare(b.coletadaEm)) : []),
+    [dados],
+  );
 
   const pendentes = useMemo(() => {
     if (!dados) return [] as Grupo[];
@@ -55,7 +61,7 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
     if (destaqueColheita) document.getElementById(`ac-${destaqueColheita}`)?.scrollIntoView({ behavior: 'smooth', block: 'center' });
   }, [destaqueColheita, dados != null]); // eslint-disable-line react-hooks/exhaustive-deps
 
-  if (!dados || (!pendentes.length && !colheita.length)) return null;
+  if (!dados || (!pendentes.length && !colheita.length && !milho.length)) return null;
   const nomeTalhao = (id: string) => dados.talhoes.find((t) => t.id === id)?.nome ?? 'talhão removido';
   const alternar = (id: string) =>
     setAbertos((s) => {
@@ -64,7 +70,7 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
       else n.add(id);
       return n;
     });
-  const total = pendentes.reduce((s, g) => s + g.pendentes, 0) + colheita.length;
+  const total = pendentes.reduce((s, g) => s + g.pendentes, 0) + colheita.length + milho.length;
 
   return (
     <div className="cartao fila-ms">
@@ -74,11 +80,45 @@ export function FilaMS({ destaque, destaqueColheita }: { destaque: string | null
       </div>
       <p className="dica">
         Pese <strong>{UMIDO_PADRAO_G} g</strong> da subamostra de MN e lance o peso <strong>seco</strong> (g, sem a tara): o seco em gramas já é a MS em %.
-        Confira o código da etiqueta do saco. A coleta sai daqui quando todos os pontos estiverem aferidos; a amostra do caminhão, quando o seco for lançado.
+        Confira o código da etiqueta do saco. A coleta sai daqui quando todos os pontos estiverem aferidos; a amostra do caminhão, quando o seco for lançado. No milho reidratado a subamostra é de <strong>{UMIDO_PADRAO_MILHO_G} g</strong>: o app calcula a MS.
       </p>
       {pendentes.map((g) => (
-        <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || (pendentes.length === 1 && !colheita.length)} alternar={() => alternar(g.c.id)} />
+        <GrupoLab key={g.c.id} g={g} aberto={abertos.has(g.c.id) || (pendentes.length === 1 && !colheita.length && !milho.length)} alternar={() => alternar(g.c.id)} />
       ))}
+      {milho.length > 0 && (
+        <div className="lab-grupo">
+          <div className="lab-cabecalho estatico">
+            <Icone nome="colheita" />
+            <strong>Milho reidratado</strong>
+            <span className="espaco" />
+            <span className="selo selo-alto">{milho.length} sem MS</span>
+          </div>
+          <div className="lab-linhas">
+            <div className="lab-linha lab-titulo">
+              <span>Amostra</span>
+              <span>Silo</span>
+              <span>Seco (g)</span>
+              <span className="n">MS %</span>
+            </div>
+            {milho.map((a) => (
+              <div key={a.id} className="lab-linha pendente">
+                <span>
+                  {a.codigo && <><code className="codigo">{a.codigo}</code> </>}
+                  <span className="mudo"><small>{fmtSaida(a.coletadaEm)}{a.responsavel ? ` · ${a.responsavel}` : ''}</small></span>
+                </span>
+                <span className="mv" data-rotulo="Silo">{a.silo}</span>
+                <CampoNumero
+                  valor={a.pesoSecoG}
+                  ariaLabel={`Peso seco da amostra de milho ${a.codigo ?? a.silo} (de ${a.pesoUmidoG ?? UMIDO_PADRAO_MILHO_G} g de MN)`}
+                  placeholder={`seco de ${fmt(a.pesoUmidoG ?? UMIDO_PADRAO_MILHO_G, 0)} g`}
+                  aoSalvar={(v) => atualizarAmostraMilho(a.id, lancarSecoMilho(a, v))}
+                />
+                <span className="n ms oculta-cel" data-rotulo="MS %">—</span>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
       {colheita.length > 0 && (
         <div className="lab-grupo">
           <div className="lab-cabecalho estatico">
