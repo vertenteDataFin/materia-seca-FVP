@@ -2,6 +2,7 @@ import { useEffect, useState } from 'react';
 import { HashRouter, Navigate, NavLink, Route, Routes, useLocation } from 'react-router-dom';
 import type { User } from 'firebase/auth';
 import { definirRepositorio } from './dados';
+import { limparFotosAntigas } from './fotosMilho';
 import { FIREBASE_ATIVO, obterFirebase } from './firebase';
 import { ADMINS, FAZENDA_ID } from './firebaseConfig';
 import { inicializarDados } from './inicializacao';
@@ -96,6 +97,8 @@ function CascaNuvem({ repo, usuario }: { repo: Repositorio; usuario: User }) {
     setIniciado(true);
     const pararParametros = assinarParametrosNuvem(obterFirebase().firestore, FAZENDA_ID);
     const pararFdn = assinarConfigFdnNuvem(obterFirebase().firestore, FAZENDA_ID);
+    // Fotos de milho reidratado ficam só 7 dias.
+    void limparFotosAntigas();
     return () => {
       repo.parar();
       pararParametros();

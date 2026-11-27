@@ -9,10 +9,8 @@ import type { AmostraMilho } from '../tipos';
 import { LegendaMilho, MetasMilho, PctPeneiraMilho } from '../MetasMilho';
 import { gerarImagemAmostraMilho } from '../imagemAmostraMilho';
 import { compartilharOuBaixarImagem } from '../imagemAmostraColheita';
-import { BotaoFoto, MiniaturasFotos, type FotoPrint } from '../FotosAmostraMilho';
-
-/** Fotos no print: até 4 (com mais, o print fica comprido demais). */
-const MAX_FOTOS = 4;
+import { BotaoFoto, MAX_FOTOS, MiniaturasFotos } from '../FotosAmostraMilho';
+import { DIAS_FOTO, excluirFotosDaAmostra, imagemDaFoto, useFotosMilho } from '../fotosMilho';
 
 const LIMITE = 40;
 
@@ -84,17 +82,13 @@ export default function AmostrasMilhoCard({ destaque }: { destaque: string | nul
 function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: boolean }) {
   const g = granulometriaMilho(a);
   const [gerando, setGerando] = useState(false);
-  // Fotos só para o print: não são gravadas; somem ao fechar a amostra.
-  const [fotos, setFotos] = useState<FotoPrint[]>([]);
-  function tirarFoto(id: string) {
-    const f = fotos.find((x) => x.id === id);
-    if (f) URL.revokeObjectURL(f.url);
-    setFotos(fotos.filter((x) => x.id !== id));
-  }
+  // Fotos gravadas (ficam 7 dias): baixadas só quando a amostra é aberta.
+  const fotos = useFotosMilho(a.id) ?? [];
   async function exportarImagem() {
     setGerando(true);
     try {
-      const blob = await gerarImagemAmostraMilho(a, fotos.map((f) => f.imagem));
+      const imagens = await Promise.all(fotos.slice(0, MAX_FOTOS).map((f) => imagemDaFoto(f.dataUrl)));
+      const blob = await gerarImagemAmostraMilho(a, imagens);
       const nome = `milho-${(a.codigo ?? a.silo).replace(/[^\w-]+/g, '_')}.png`;
       await compartilharOuBaixarImagem(blob, nome, `Milho reidratado ${a.codigo ?? a.silo}`);
     } catch (e) {
@@ -127,9 +121,10 @@ function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: 
         </label>
       </div>
       {g && <p className="resumo-pefdn"><strong>Metas:</strong> <MetasMilho g={g} /></p>}
-      <MiniaturasFotos fotos={fotos} aoTirar={tirarFoto} />
+      <MiniaturasFotos fotos={fotos} podeExcluir={podeExcluir} />
+      {fotos.length > 0 && <p className="mudo"><small>As fotos ficam guardadas por {DIAS_FOTO} dias e depois são apagadas.</small></p>}
       <div className="acoes">
-        {fotos.length < MAX_FOTOS && <BotaoFoto aoEscolher={(novas) => setFotos((atuais) => [...atuais, ...novas].slice(0, MAX_FOTOS))} />}
+        {fotos.length < MAX_FOTOS && <BotaoFoto amostraId={a.id} vagas={MAX_FOTOS - fotos.length} />}
         <button type="button" className="primario" disabled={gerando} onClick={exportarImagem}>
           {gerando ? 'Gerando relatório…' : 'Compartilhar relatório'}
         </button>
@@ -137,7 +132,7 @@ function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: 
           <button
             type="button"
             className="perigo"
-            onClick={() => confirm(`Excluir a amostra ${a.codigo ?? ''} de milho reidratado (${a.silo}, ${fmtSaida(a.coletadaEm)})?`) && excluirAmostraMilho(a.id)}
+            onClick={() => confirm(`Excluir a amostra ${a.codigo ?? ''} de milho reidratado (${a.silo}, ${fmtSaida(a.coletadaEm)})?`) && (excluirFotosDaAmostra(a.id), excluirAmostraMilho(a.id))}
           >
             Excluir amostra
           </button>

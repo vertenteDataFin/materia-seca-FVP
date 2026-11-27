@@ -155,6 +155,22 @@ service cloud.firestore {
       allow delete: if ehMembro(fid) && email() in gestoresVeiculos();
     }
 
+    // Fotos das amostras de milho reidratado (reduzidas no celular, ficam 7 dias): todo membro lê e envia;
+    // excluem administrador e membro, quem enviou e, depois dos 7 dias, qualquer membro (limpeza automática do app).
+    match /fazendas/{fid}/fotosMilho/{id} {
+      allow read: if ehMembro(fid);
+      allow create: if ehMembro(fid)
+        && request.resource.data.keys().hasOnly(['amostraId', 'dataUrl', 'criadoEm', 'autor'])
+        && request.resource.data.amostraId is string
+        && request.resource.data.dataUrl is string
+        && request.resource.data.dataUrl.size() < 900000
+        && request.resource.data.criadoEm is timestamp
+        && request.resource.data.autor == email();
+      allow update: if false;
+      allow delete: if podeExcluir(fid)
+        || (ehMembro(fid) && (resource.data.autor == email() || resource.data.criadoEm < request.time - duration.value(7, 'd')));
+    }
+
     // Coletas e amostras (de campo, de colheita e de milho reidratado): todo membro registra e edita; administrador e membro excluem.
     // Operador e balanceiro só excluem ponto de campo ainda sem o peso de MV (marcado por engano na coleta).
     match /fazendas/{fid}/{col}/{id} {
