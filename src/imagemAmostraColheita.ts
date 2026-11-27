@@ -138,7 +138,7 @@ function desenhar(ctx: CanvasRenderingContext2D, d: DadosImagemAmostra): number 
   const h3 = 210;
   const fonte = textoFonteFdn(d.pe, d.capim);
   const valores: { rotulo: string; valor: string; sub: string; destaque?: boolean }[] = [
-    { rotulo: 'MS', valor: ms == null ? '—' : `${num(ms)}%`, sub: ms == null ? 'aguardando o laboratório' : `seco ${num(a.pesoSecoG, 0)} g de ${num(a.pesoUmidoG, 0)} g` },
+    { rotulo: 'MS', valor: ms == null ? '—' : `${num(ms)}%`, sub: ms == null ? 'aguardando o laboratório' : `seco ${num(a.pesoSecoG, 0)} g de ${num(a.pesoUmidoG, 0)} g de MN` },
     { rotulo: 'FDN', valor: d.pe.fdnPct == null ? '—' : `${num(d.pe.fdnPct)}%`, sub: d.pe.fdnPct == null ? 'sem FDN' : `% da MS · ${fonte}` },
   ];
   const pef8 = d.pe.pef8 == null ? null : d.pe.pef8 * 100;

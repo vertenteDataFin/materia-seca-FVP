@@ -140,7 +140,7 @@ function desenhar(ctx: CanvasRenderingContext2D, a: AmostraMilho): number {
   texto(ctx, ms == null ? '—' : `${num(ms)}%`, LARGURA / 2, y + 128, 64, COR.amareloTexto, 800, 'center');
   texto(
     ctx,
-    ms == null ? 'aguardando a aferição' : `seco ${num(a.pesoSecoG, 0)} g de ${num(a.pesoUmidoG, 0)} g`,
+    ms == null ? 'aguardando a aferição' : `seco ${num(a.pesoSecoG, 0)} g de ${num(a.pesoUmidoG, 0)} g de MN`,
     LARGURA / 2,
     y + 172,
     24,
