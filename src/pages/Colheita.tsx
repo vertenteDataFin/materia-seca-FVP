@@ -602,11 +602,12 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
           )}
         </div>
         <div><span>Cargas</span><strong>{a.pesadas}{a.pendentes ? <small> +{a.pendentes} na balança</small> : null}</strong></div>
-        <div><span>Ritmo</span><strong>{a.ritmoTdia != null ? `${fmt(a.ritmoTdia, 0)} t/dia` : '—'}</strong></div>
-        {a.finalizada ? (
-          <div><span>Real</span><strong>{fmt(a.tMVhaReal, 1)} t/ha</strong></div>
-        ) : concluida && a.duracaoDias != null ? (
-          <div title={a.diasAtivos < a.duracaoDias ? `${nDias(a.diasAtivos)} com carga` : undefined}>
+        {concluida && a.duracaoDias != null ? (
+          // colheita concluída (ou finalizada): no lugar do ritmo, quantos dias durou, do 1º ao último dia de carga
+          <div
+            className="destaque-duracao"
+            title={[a.diasAtivos < a.duracaoDias ? `${nDias(a.diasAtivos)} com carga` : '', a.ritmoTdia != null ? `ritmo ${fmt(a.ritmoTdia, 0)} t/dia` : ''].filter(Boolean).join(' · ') || undefined}
+          >
             <span>Duração</span>
             <strong>{nDias(a.duracaoDias)}</strong>
             {diasCarga.length > 0 && (
@@ -615,6 +616,13 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
               </em>
             )}
           </div>
+        ) : (
+          <div><span>Ritmo</span><strong>{a.ritmoTdia != null ? `${fmt(a.ritmoTdia, 0)} t/dia` : '—'}</strong></div>
+        )}
+        {a.finalizada ? (
+          <div><span>Real</span><strong>{fmt(a.tMVhaReal, 1)} t/ha</strong></div>
+        ) : concluida ? (
+          <div><span>Ritmo</span><strong>{a.ritmoTdia != null ? `${fmt(a.ritmoTdia, 0)} t/dia` : '—'}</strong></div>
         ) : (
           <div><span>Faltam</span><strong>{a.diasRestantes != null ? `~${fmt(Math.ceil(a.diasRestantes), 0)} dia${Math.ceil(a.diasRestantes) === 1 ? '' : 's'}` : '—'}</strong></div>
         )}

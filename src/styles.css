@@ -626,6 +626,9 @@ tr.linha-edicao-amostra > td { background: var(--verde-claro); }
 .andamento-numeros > div { background: var(--fundo); border-radius: 8px; padding: 0.35rem 0.5rem; min-width: 0; }
 .andamento-numeros span { display: block; font-size: 0.66rem; text-transform: uppercase; letter-spacing: 0.03em; color: var(--mudo); }
 .andamento-numeros strong { font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.andamento-numeros .destaque-duracao { background: #e3f1dc; }
+.andamento-numeros .destaque-duracao strong { color: var(--verde); }
+.andamento-numeros .destaque-duracao em { color: var(--texto, inherit); font-weight: 600; }
 .andamento-numeros small { font-weight: 500; color: var(--alerta); font-size: 0.72rem; }
 .andamento-ref { margin: 0.5rem 0; }
 .andamento-nome { display: flex; align-items: center; gap: 0.3rem; min-width: 0; }
