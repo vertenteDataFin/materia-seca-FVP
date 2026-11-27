@@ -7,6 +7,8 @@ import { usePermissoes } from '../permissoes';
 import { fmt } from '../util';
 import type { AmostraMilho } from '../tipos';
 import { LegendaMilho, MetasMilho, PctPeneiraMilho } from '../MetasMilho';
+import { gerarImagemAmostraMilho } from '../imagemAmostraMilho';
+import { compartilharOuBaixarImagem } from '../imagemAmostraColheita';
 
 const LIMITE = 40;
 
@@ -77,6 +79,19 @@ export default function AmostrasMilhoCard({ destaque }: { destaque: string | nul
 
 function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: boolean }) {
   const g = granulometriaMilho(a);
+  const [gerando, setGerando] = useState(false);
+  async function exportarImagem() {
+    setGerando(true);
+    try {
+      const blob = await gerarImagemAmostraMilho(a);
+      const nome = `milho-${(a.codigo ?? a.silo).replace(/[^\w-]+/g, '_')}.png`;
+      await compartilharOuBaixarImagem(blob, nome, `Milho reidratado ${a.codigo ?? a.silo}`);
+    } catch (e) {
+      alert(`Não deu para gerar a imagem: ${(e as Error).message}`);
+    } finally {
+      setGerando(false);
+    }
+  }
   return (
     <div className="edicao-amostra-colheita">
       <p className="mudo">
@@ -101,8 +116,11 @@ function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: 
         </label>
       </div>
       {g && <p className="resumo-pefdn"><strong>Metas:</strong> <MetasMilho g={g} /></p>}
-      {podeExcluir && (
-        <div className="acoes">
+      <div className="acoes">
+        <button type="button" className="primario" disabled={gerando} onClick={exportarImagem}>
+          {gerando ? 'Gerando print…' : 'Compartilhar print da coleta'}
+        </button>
+        {podeExcluir && (
           <button
             type="button"
             className="perigo"
@@ -110,8 +128,8 @@ function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: 
           >
             Excluir amostra
           </button>
-        </div>
-      )}
+        )}
+      </div>
     </div>
   );
 }
