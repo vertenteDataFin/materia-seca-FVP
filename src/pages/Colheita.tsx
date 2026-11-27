@@ -583,16 +583,6 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
           )
         )}
       </p>
-      {concluida && a.duracaoDias != null && diasCarga.length > 0 && (
-        <p className="andamento-resumo">
-          <Icone nome="ok" /> Colheita {a.finalizada ? 'finalizada' : 'concluída'} em <strong>{nDias(a.duracaoDias)}</strong>
-          <span className="mudo">
-            {' '}({fmtData(diasCarga[0]).slice(0, 5)} a {fmtData(diasCarga[diasCarga.length - 1]).slice(0, 5)}
-            {a.diasAtivos < a.duracaoDias ? `, ${nDias(a.diasAtivos)} com carga` : ''})
-          </span>{' '}
-          · <strong>{fmt(a.tMV, 1)} t</strong> de matéria natural entregue
-        </p>
-      )}
       <div className="andamento-numeros">
         <div><span>MN entregue</span><strong>{fmt(a.tMV, 1)} t</strong></div>
         <div
@@ -615,7 +605,15 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
         {a.finalizada ? (
           <div><span>Real</span><strong>{fmt(a.tMVhaReal, 1)} t/ha</strong></div>
         ) : concluida && a.duracaoDias != null ? (
-          <div><span>Duração</span><strong>{nDias(a.duracaoDias)}</strong></div>
+          <div title={a.diasAtivos < a.duracaoDias ? `${nDias(a.diasAtivos)} com carga` : undefined}>
+            <span>Duração</span>
+            <strong>{nDias(a.duracaoDias)}</strong>
+            {diasCarga.length > 0 && (
+              <em className="ms-entregue">
+                {fmtData(diasCarga[0]).slice(0, 5)} a {fmtData(diasCarga[diasCarga.length - 1]).slice(0, 5)}
+              </em>
+            )}
+          </div>
         ) : (
           <div><span>Faltam</span><strong>{a.diasRestantes != null ? `~${fmt(Math.ceil(a.diasRestantes), 0)} dia${Math.ceil(a.diasRestantes) === 1 ? '' : 's'}` : '—'}</strong></div>
         )}
