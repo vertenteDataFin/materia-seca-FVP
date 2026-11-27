@@ -958,3 +958,11 @@ tr.linha-grafico-ms > td { padding: 0.5rem 0.5rem 1rem; text-align: left; backgr
 .tabela-caminhoes tr.sub-motorista td { font-size: 0.9em; color: var(--texto-suave, #444); padding-top: 0.2rem; padding-bottom: 0.2rem; }
 .tabela-caminhoes tr.sub-motorista td:first-child { padding-left: 1.2rem; }
 
+
+/* Fotos da amostra de milho (só para o print) */
+.miniaturas-fotos { display: flex; flex-wrap: wrap; gap: 0.5rem; margin: 0.5rem 0; }
+.miniatura-foto { position: relative; width: 5.5rem; height: 5.5rem; }
+.miniatura-foto img { width: 100%; height: 100%; object-fit: cover; border-radius: 8px; display: block; }
+.miniatura-foto .excluir-foto { position: absolute; top: -0.4rem; right: -0.4rem; width: 1.6rem; height: 1.6rem; min-height: 0; padding: 0; border-radius: 50%; line-height: 1; font-size: 1.1rem; background: var(--perigo); color: #fff; border: 2px solid #fff; }
+.botao-foto { cursor: pointer; }
+.botao-foto.desativado { opacity: 0.6; pointer-events: none; }

@@ -5,10 +5,11 @@ import type { AmostraMilho } from './tipos';
 /**
  * "Print" de uma amostra de silagem de milho reidratado, em PNG, para mandar pelo WhatsApp.
  * Mesmo modelo do print da amostra de caminhão (capim), com o cabeçalho e o destaque em amarelo:
- * % retida em cada peneira, as 3 metas (verde dentro / vermelho fora) e a MS.
+ * % retida em cada peneira, as 3 metas (verde dentro / vermelho fora), a MS e as fotos escolhidas na hora.
  */
 const LARGURA = 1080;
 const MARGEM = 48;
+const ALTURA_MAX_FOTO = 1300;
 const FONTE = '"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 const COR = {
   fundo: '#f6f5ef',
@@ -48,14 +49,14 @@ function texto(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, t
 }
 
 /** Desenha a imagem e devolve a altura usada (a 1ª passada só mede). */
-function desenhar(ctx: CanvasRenderingContext2D, a: AmostraMilho): number {
+function desenhar(ctx: CanvasRenderingContext2D, a: AmostraMilho, fotos: ImageBitmap[]): number {
   const g = granulometriaMilho(a);
   const ms = msMilho(a);
   const interno = LARGURA - 2 * MARGEM;
   const gap = 20;
 
   ctx.fillStyle = COR.fundo;
-  ctx.fillRect(0, 0, LARGURA, 4000);
+  ctx.fillRect(0, 0, LARGURA, ctx.canvas.height);
 
   // Cabeçalho amarelo
   retangulo(ctx, 0, 0, LARGURA, 170, 0, COR.amarelo);
@@ -146,18 +147,40 @@ function desenhar(ctx: CanvasRenderingContext2D, a: AmostraMilho): number {
     500,
     'center',
   );
-  return y + hMs + MARGEM;
+  y += hMs;
+
+  // Fotos da amostra (só no print; não ficam gravadas): uma por linha, na largura toda, com altura limitada.
+  if (fotos.length) {
+    y += 64;
+    texto(ctx, fotos.length === 1 ? 'FOTO DA AMOSTRA' : 'FOTOS DA AMOSTRA', MARGEM, y, 26, COR.mudo, 700);
+    y += 24;
+    for (const foto of fotos) {
+      const escala = Math.min(interno / foto.width, ALTURA_MAX_FOTO / foto.height);
+      const w = foto.width * escala;
+      const h = foto.height * escala;
+      const x = MARGEM + (interno - w) / 2;
+      ctx.save();
+      ctx.beginPath();
+      ctx.roundRect(x, y, w, h, 18);
+      ctx.clip();
+      ctx.drawImage(foto, x, y, w, h);
+      ctx.restore();
+      y += h + gap;
+    }
+    y -= gap;
+  }
+  return y + MARGEM;
 }
 
-export async function gerarImagemAmostraMilho(a: AmostraMilho): Promise<Blob> {
+export async function gerarImagemAmostraMilho(a: AmostraMilho, fotos: ImageBitmap[] = []): Promise<Blob> {
   const medida = document.createElement('canvas').getContext('2d');
   if (!medida) throw new Error('Este navegador não gera imagens.');
   medida.canvas.width = LARGURA;
   medida.canvas.height = 4000;
-  const altura = Math.ceil(desenhar(medida, a));
+  const altura = Math.ceil(desenhar(medida, a, fotos));
   const canvas = document.createElement('canvas');
   canvas.width = LARGURA;
   canvas.height = altura;
-  desenhar(canvas.getContext('2d')!, a);
+  desenhar(canvas.getContext('2d')!, a, fotos);
   return new Promise((ok, falha) => canvas.toBlob((b) => (b ? ok(b) : falha(new Error('Falha ao gerar a imagem.'))), 'image/png'));
 }

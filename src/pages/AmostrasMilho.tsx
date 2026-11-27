@@ -9,6 +9,10 @@ import type { AmostraMilho } from '../tipos';
 import { LegendaMilho, MetasMilho, PctPeneiraMilho } from '../MetasMilho';
 import { gerarImagemAmostraMilho } from '../imagemAmostraMilho';
 import { compartilharOuBaixarImagem } from '../imagemAmostraColheita';
+import { BotaoFoto, MiniaturasFotos, type FotoPrint } from '../FotosAmostraMilho';
+
+/** Fotos no print: até 4 (com mais, o print fica comprido demais). */
+const MAX_FOTOS = 4;
 
 const LIMITE = 40;
 
@@ -80,10 +84,17 @@ export default function AmostrasMilhoCard({ destaque }: { destaque: string | nul
 function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: boolean }) {
   const g = granulometriaMilho(a);
   const [gerando, setGerando] = useState(false);
+  // Fotos só para o print: não são gravadas; somem ao fechar a amostra.
+  const [fotos, setFotos] = useState<FotoPrint[]>([]);
+  function tirarFoto(id: string) {
+    const f = fotos.find((x) => x.id === id);
+    if (f) URL.revokeObjectURL(f.url);
+    setFotos(fotos.filter((x) => x.id !== id));
+  }
   async function exportarImagem() {
     setGerando(true);
     try {
-      const blob = await gerarImagemAmostraMilho(a);
+      const blob = await gerarImagemAmostraMilho(a, fotos.map((f) => f.imagem));
       const nome = `milho-${(a.codigo ?? a.silo).replace(/[^\w-]+/g, '_')}.png`;
       await compartilharOuBaixarImagem(blob, nome, `Milho reidratado ${a.codigo ?? a.silo}`);
     } catch (e) {
@@ -116,9 +127,11 @@ function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: 
         </label>
       </div>
       {g && <p className="resumo-pefdn"><strong>Metas:</strong> <MetasMilho g={g} /></p>}
+      <MiniaturasFotos fotos={fotos} aoTirar={tirarFoto} />
       <div className="acoes">
+        {fotos.length < MAX_FOTOS && <BotaoFoto aoEscolher={(novas) => setFotos((atuais) => [...atuais, ...novas].slice(0, MAX_FOTOS))} />}
         <button type="button" className="primario" disabled={gerando} onClick={exportarImagem}>
-          {gerando ? 'Gerando print…' : 'Compartilhar print da coleta'}
+          {gerando ? 'Gerando print…' : fotos.length ? `Compartilhar print com ${fotos.length === 1 ? 'a foto' : `as ${fotos.length} fotos`}` : 'Compartilhar print da coleta'}
         </button>
         {podeExcluir && (
           <button
