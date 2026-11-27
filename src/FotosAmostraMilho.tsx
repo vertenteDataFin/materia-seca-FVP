@@ -45,7 +45,7 @@ export function BotaoFoto({ aoEscolher }: { aoEscolher: (fotos: FotoPrint[]) => 
   }
   return (
     <label className={`botao botao-foto${processando ? ' desativado' : ''}`}>
-      {processando ? 'Preparando foto…' : 'Adicionar foto ao print'}
+      {processando ? 'Preparando foto…' : 'Adicionar foto'}
       <input type="file" accept="image/*" multiple hidden disabled={processando} onChange={escolher} />
     </label>
   );

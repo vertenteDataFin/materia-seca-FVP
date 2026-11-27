@@ -131,7 +131,7 @@ function EdicaoAmostraMilho({ a, podeExcluir }: { a: AmostraMilho; podeExcluir: 
       <div className="acoes">
         {fotos.length < MAX_FOTOS && <BotaoFoto aoEscolher={(novas) => setFotos((atuais) => [...atuais, ...novas].slice(0, MAX_FOTOS))} />}
         <button type="button" className="primario" disabled={gerando} onClick={exportarImagem}>
-          {gerando ? 'Gerando print…' : fotos.length ? `Compartilhar print com ${fotos.length === 1 ? 'a foto' : `as ${fotos.length} fotos`}` : 'Compartilhar print da coleta'}
+          {gerando ? 'Gerando relatório…' : 'Compartilhar relatório'}
         </button>
         {podeExcluir && (
           <button
