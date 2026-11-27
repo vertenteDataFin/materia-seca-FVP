@@ -5,11 +5,10 @@ import type { AmostraMilho } from './tipos';
 /**
  * "Print" de uma amostra de silagem de milho reidratado, em PNG, para mandar pelo WhatsApp.
  * Mesmo modelo do print da amostra de caminhão (capim), com o cabeçalho e o destaque em amarelo:
- * % retida em cada peneira, as 3 metas (verde dentro / vermelho fora), a MS e as fotos escolhidas na hora.
+ * % retida em cada peneira, as 3 metas (verde dentro / vermelho fora) e a MS; as fotos escolhidas na hora vão ao lado.
  */
 const LARGURA = 1080;
 const MARGEM = 48;
-const ALTURA_MAX_FOTO = 1300;
 const FONTE = '"Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif';
 const COR = {
   fundo: '#f6f5ef',
@@ -49,21 +48,23 @@ function texto(ctx: CanvasRenderingContext2D, s: string, x: number, y: number, t
 }
 
 /** Desenha a imagem e devolve a altura usada (a 1ª passada só mede). */
-function desenhar(ctx: CanvasRenderingContext2D, a: AmostraMilho, fotos: ImageBitmap[]): number {
+function desenhar(ctx: CanvasRenderingContext2D, a: AmostraMilho): number {
   const g = granulometriaMilho(a);
   const ms = msMilho(a);
   const interno = LARGURA - 2 * MARGEM;
   const gap = 20;
+  // Com fotos, a imagem é mais larga (fotos ao lado): fundo e cabeçalho ocupam a largura toda.
+  const total = ctx.canvas.width;
 
   ctx.fillStyle = COR.fundo;
-  ctx.fillRect(0, 0, LARGURA, ctx.canvas.height);
+  ctx.fillRect(0, 0, total, ctx.canvas.height);
 
   // Cabeçalho amarelo
-  retangulo(ctx, 0, 0, LARGURA, 170, 0, COR.amarelo);
+  retangulo(ctx, 0, 0, total, 170, 0, COR.amarelo);
   texto(ctx, 'SILAGEM DE MILHO REIDRATADO', MARGEM, 58, 26, COR.amareloSuave, 700);
   texto(ctx, a.codigo ?? a.silo, MARGEM, 128, 60, COR.amareloTexto, 800);
-  texto(ctx, 'Silagem MS', LARGURA - MARGEM, 58, 26, COR.amareloSuave, 600, 'right');
-  texto(ctx, fmtSaida(a.coletadaEm), LARGURA - MARGEM, 128, 32, COR.amareloTexto, 700, 'right');
+  texto(ctx, 'Silagem MS', total - MARGEM, 58, 26, COR.amareloSuave, 600, 'right');
+  texto(ctx, fmtSaida(a.coletadaEm), total - MARGEM, 128, 32, COR.amareloTexto, 700, 'right');
 
   // Dados da amostra
   const [dataIso, horaIso] = a.coletadaEm.split('T');
@@ -147,29 +148,69 @@ function desenhar(ctx: CanvasRenderingContext2D, a: AmostraMilho, fotos: ImageBi
     500,
     'center',
   );
-  y += hMs;
+  return y + hMs + MARGEM;
+}
 
-  // Fotos da amostra (só no print; não ficam gravadas): uma por linha, na largura toda, com altura limitada.
-  if (fotos.length) {
-    y += 64;
-    texto(ctx, fotos.length === 1 ? 'FOTO DA AMOSTRA' : 'FOTOS DA AMOSTRA', MARGEM, y, 26, COR.mudo, 700);
-    y += 24;
-    for (const foto of fotos) {
-      const escala = Math.min(interno / foto.width, ALTURA_MAX_FOTO / foto.height);
-      const w = foto.width * escala;
-      const h = foto.height * escala;
-      const x = MARGEM + (interno - w) / 2;
-      ctx.save();
-      ctx.beginPath();
-      ctx.roundRect(x, y, w, h, 18);
-      ctx.clip();
-      ctx.drawImage(foto, x, y, w, h);
-      ctx.restore();
-      y += h + gap;
+/** Largura máxima da área de fotos ao lado do relatório. */
+const LARGURA_MAX_FOTOS = 2400;
+const TOPO_FOTOS = 206;
+const GAP_FOTOS = 20;
+
+interface Retangulo {
+  x: number;
+  y: number;
+  w: number;
+  h: number;
+}
+
+/**
+ * Arruma as fotos em linhas (cada uma com a sua proporção, sem sobra entre elas) na altura do relatório,
+ * escolhendo quantas por linha deixa as fotos maiores. Posições relativas ao canto da área de fotos.
+ */
+function arrumarFotos(fotos: ImageBitmap[], alturaUtil: number): { rets: Retangulo[]; largura: number } {
+  // Prefere arrumações em que nenhuma linha precisou encolher (sem faixa vazia em cima e embaixo); entre elas, a de fotos maiores.
+  let melhor = { rets: [] as Retangulo[], largura: 0, area: -1, cabe: false };
+  for (let porLinha = 1; porLinha <= fotos.length; porLinha++) {
+    const linhas = Math.ceil(fotos.length / porLinha);
+    const hLinha = (alturaUtil - (linhas - 1) * GAP_FOTOS) / linhas;
+    const rets: Retangulo[] = [];
+    let largura = 0;
+    let area = 0;
+    let cabe = true;
+    for (let l = 0; l < linhas; l++) {
+      const daLinha = fotos.slice(l * porLinha, (l + 1) * porLinha);
+      const gaps = (daLinha.length - 1) * GAP_FOTOS;
+      const natural = daLinha.reduce((s, f) => s + (hLinha * f.width) / f.height, 0);
+      const e = Math.min(1, (LARGURA_MAX_FOTOS - gaps) / natural);
+      if (e < 1) cabe = false;
+      const h = hLinha * e;
+      let x = 0;
+      for (const f of daLinha) {
+        const w = (h * f.width) / f.height;
+        rets.push({ x, y: l * (hLinha + GAP_FOTOS) + (hLinha - h) / 2, w, h });
+        x += w + GAP_FOTOS;
+        area += w * h;
+      }
+      largura = Math.max(largura, x - GAP_FOTOS);
     }
-    y -= gap;
+    if ((cabe && !melhor.cabe) || (cabe === melhor.cabe && area > melhor.area)) melhor = { rets, largura, area, cabe };
   }
-  return y + MARGEM;
+  return melhor;
+}
+
+/** Fotos ao lado do relatório, do cartão de dados até o fim. */
+function desenharFotos(ctx: CanvasRenderingContext2D, fotos: ImageBitmap[], rets: Retangulo[], x0: number) {
+  fotos.forEach((foto, i) => {
+    const { w, h } = rets[i];
+    const x = x0 + rets[i].x;
+    const y = TOPO_FOTOS + rets[i].y;
+    ctx.save();
+    ctx.beginPath();
+    ctx.roundRect(x, y, w, h, 18);
+    ctx.clip();
+    ctx.drawImage(foto, x, y, w, h);
+    ctx.restore();
+  });
 }
 
 export async function gerarImagemAmostraMilho(a: AmostraMilho, fotos: ImageBitmap[] = []): Promise<Blob> {
@@ -177,10 +218,15 @@ export async function gerarImagemAmostraMilho(a: AmostraMilho, fotos: ImageBitma
   if (!medida) throw new Error('Este navegador não gera imagens.');
   medida.canvas.width = LARGURA;
   medida.canvas.height = 4000;
-  const altura = Math.ceil(desenhar(medida, a, fotos));
+  const altura = Math.ceil(desenhar(medida, a));
+  // Fotos (só no print; não ficam gravadas) à direita, na altura do relatório.
+  const arrumacao = fotos.length ? arrumarFotos(fotos, altura - TOPO_FOTOS - MARGEM) : null;
+  const x0 = LARGURA - MARGEM + 32;
   const canvas = document.createElement('canvas');
-  canvas.width = LARGURA;
+  canvas.width = arrumacao ? Math.ceil(x0 + arrumacao.largura + MARGEM) : LARGURA;
   canvas.height = altura;
-  desenhar(canvas.getContext('2d')!, a, fotos);
+  const ctx = canvas.getContext('2d')!;
+  desenhar(ctx, a);
+  if (arrumacao) desenharFotos(ctx, fotos, arrumacao.rets, x0);
   return new Promise((ok, falha) => canvas.toBlob((b) => (b ? ok(b) : falha(new Error('Falha ao gerar a imagem.'))), 'image/png'));
 }

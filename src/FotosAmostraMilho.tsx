@@ -4,7 +4,7 @@ import { useState, type ChangeEvent } from 'react';
  * Fotos da amostra para o print: não são gravadas em lugar nenhum, só entram na imagem gerada.
  * Ficam na tela até fechar a amostra.
  */
-const LADO_MAX = 1600;
+const LADO_MAX = 2000;
 
 /** Reduz a foto da câmera (respeita a orientação do celular) para desenhar no print sem pesar. */
 export async function prepararFoto(arquivo: Blob): Promise<ImageBitmap> {
