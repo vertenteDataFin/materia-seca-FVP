@@ -5,6 +5,7 @@ import {
   andamentoTalhao,
   camposAreaInformada,
   cargaPesada,
+  colheitaConcluida,
   fmtSaida,
   liquidoKg,
   msColheitaPorTalhao,
@@ -392,7 +393,7 @@ function CartaoAndamento({ a }: { a: AndamentoTalhao }) {
   const posicao = (t: number) => Math.min(100, (t / escala) * 100);
   const barra = emToneladas ? posicao(a.tMV) : pct == null ? 0 : Math.min(100, pct);
   // Colheita concluída: finalizada, ou o agrícola já informou a área toda do talhão.
-  const concluida = a.finalizada || (a.informada != null && a.talhao.areaHa > 0 && a.informada.ha >= a.talhao.areaHa - 0.05);
+  const concluida = colheitaConcluida(a);
   const diasCarga = a.cargas.filter(cargaPesada).map((c) => c.saidaEm.slice(0, 10)).sort();
   const nDias = (n: number) => `${fmt(n, 0)} dia${n === 1 ? '' : 's'}`;
   const [haInformado, setHaInformado] = useState(a.informada ? String(a.informada.ha).replace('.', ',') : '');

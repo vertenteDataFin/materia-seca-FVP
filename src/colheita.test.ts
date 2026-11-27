@@ -8,6 +8,7 @@ import {
   msColheitaPorTalhao,
   msDaCarga,
   referenciaDoTalhao,
+  resultadoColheita,
   resumoColheita,
   sugestoes,
   tarasPorPlaca,
@@ -142,6 +143,24 @@ describe('colheita', () => {
     expect(fim.finalizada).toBe(true);
     expect(fim.diasRestantes).toBeNull();
     expect(fim.tMVhaReal).toBeCloseTo(0.25);
+  });
+
+  it('resultado da colheita: só com a colheita concluída; MN e MS entregues ÷ área, MS ponderada por dia', () => {
+    const ref = referenciaDoTalhao('t1', coletas, amostrasPorColeta(amostras)); // MS de campo 25%
+    const msCol = msColheitaPorTalhao([
+      { id: 'x1', talhaoId: 't1', coletadaEm: '2026-11-14T08:00', placa: 'A', silo: 'S', pesoUmidoG: 100, pesoSecoG: 30 } as AmostraColheita,
+      { id: 'x2', talhaoId: 't1', coletadaEm: '2026-11-15T08:00', placa: 'A', silo: 'S', pesoUmidoG: 100, pesoSecoG: 40 } as AmostraColheita,
+    ]).get('t1')!;
+    // 25 t no dia 14 (30% MS) e 75 t no dia 15 (40% MS): MS ponderada = (7,5 + 30) ÷ 100 = 37,5%
+    const cargas = [carga('k1', '2026-11-14T07:00', 40000, 15000), carga('k2', '2026-11-15T07:00', 90000, 15000)];
+    expect(resultadoColheita(andamentoTalhao(talhao, cargas, ref, msCol))).toBeNull(); // em colheita
+    const r = resultadoColheita(andamentoTalhao({ ...talhao, colheitaFinalizadaEm: '2026-11-15' }, cargas, ref, msCol))!;
+    expect(r.tMVha).toBeCloseTo(1); // 100 t ÷ 100 ha
+    expect(r.msPct).toBeCloseTo(37.5);
+    expect(r.tMSha).toBeCloseTo(0.375);
+    // concluída sem finalizar: o agrícola informou a área toda
+    const informada = andamentoTalhao({ ...talhao, areaColhidaInformada: { ha: 100, data: '2026-11-15' } }, cargas, ref, msCol);
+    expect(resultadoColheita(informada)?.tMVha).toBeCloseTo(1);
   });
 
   it('área colhida informada pelo agrícola: produtividade real, nova estimativa e teto da amostragem', () => {

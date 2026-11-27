@@ -966,3 +966,6 @@ tr.linha-grafico-ms > td { padding: 0.5rem 0.5rem 1rem; text-align: left; backgr
 .miniatura-foto .excluir-foto { position: absolute; top: -0.4rem; right: -0.4rem; width: 1.6rem; height: 1.6rem; min-height: 0; padding: 0; border-radius: 50%; line-height: 1; font-size: 1.1rem; background: var(--perigo); color: #fff; border: 2px solid #fff; }
 .botao-foto { cursor: pointer; }
 .botao-foto.desativado { opacity: 0.6; pointer-events: none; }
+
+/* Painel: talhão já colhido mostra o resultado da colheita */
+.da-colheita { color: var(--verde); font-weight: 600; }

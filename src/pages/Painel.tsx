@@ -11,7 +11,15 @@ import { nomeComSigla } from '../MapaTalhoes';
 import { COR_SEMAFORO, semaforoDe, type Semaforo } from '../semaforo';
 import { seriesMS } from '../evolucaoMS';
 import GraficoMS from '../GraficoMS';
-import { progressoColheita, resumoColheita, textoProgresso, tituloProgresso, type AndamentoTalhao } from '../colheita';
+import {
+  progressoColheita,
+  resultadoColheita,
+  resumoColheita,
+  textoProgresso,
+  tituloProgresso,
+  type AndamentoTalhao,
+  type ResultadoColheita,
+} from '../colheita';
 
 type Coluna = 'nome' | 'capim' | 'data' | 'area' | 'amostras' | 'tMVha' | 'msPct' | 'tMSha' | 'colheita';
 
@@ -34,6 +42,8 @@ interface Linha {
   r: ResumoColeta | null;
   /** Andamento da colheita (só talhões que já tiveram carga). */
   a?: AndamentoTalhao;
+  /** Talhão já colhido: o resultado da colheita substitui a estimativa da amostragem (MN, MS e MS/ha). */
+  res: ResultadoColheita | null;
   /** Pontos de todas as coletas de campo do talhão. */
   nPontos: number;
   nColetas: number;
@@ -48,7 +58,7 @@ function valorColuna(l: Linha, col: Coluna): string | number | null {
     case 'area': return l.t.areaHa;
     case 'amostras': return l.nColetas ? l.nPontos : null;
     case 'colheita': return l.a ? progressoColheita(l.a) : null;
-    default: return l.r?.[col] ?? null;
+    default: return (l.res ? l.res[col] : l.r?.[col]) ?? null;
   }
 }
 
@@ -103,11 +113,18 @@ export default function Painel() {
     const linhas = dados.talhoes.map((t) => {
       const c = ultima.get(t.id);
       const r = c ? resumoColeta(c, porColeta.get(c.id) ?? []) : null;
-      const e = r ? estimativaTalhao(t.areaHa, r, parametros) : null;
+      const a = colheita.porTalhao.get(t.id);
+      // Já colhido: os totais passam a ser o que entrou na balança, não a estimativa da amostragem.
+      const res = resultadoColheita(a);
+      const e = res
+        ? estimativaTalhao(t.areaHa, { ...(r ?? {}), tMVha: res.tMVha, msPct: res.msPct, tMSha: res.tMSha } as ResumoColeta, parametros)
+        : r
+          ? estimativaTalhao(t.areaHa, r, parametros)
+          : null;
       // Pontos = soma dos pontos de todas as coletas de campo do talhão (igual à página Talhões)
       const coletasT = dados.coletas.filter((x) => x.talhaoId === t.id);
       const nPontos = coletasT.reduce((s, x) => s + (porColeta.get(x.id)?.length ?? 0), 0);
-      return { t, c, r, e, a: colheita.porTalhao.get(t.id), nPontos, nColetas: coletasT.length };
+      return { t, c, r, e, a, res, nPontos, nColetas: coletasT.length };
     });
     return { linhas, colheita };
   }, [dados, parametros]);
@@ -334,7 +351,7 @@ export default function Painel() {
           </span>
         </div>
         <p className="dica">
-          Última coleta de cada talhão. Toque no talhão para ver o cadastro ou na data para abrir a coleta.
+          Última coleta de cada talhão. Talhão já colhido mostra o <span className="da-colheita">resultado da colheita</span> (MN e MS entregues ÷ área do talhão). Toque no talhão para ver o cadastro ou na data para abrir a coleta.
           {temFiltro && (
             <>
               {' '}Mostrando <strong>{filtradas.length}</strong> de {linhas.length} talhões.{' '}
@@ -389,7 +406,13 @@ export default function Painel() {
                   <td colSpan={9} className="vazio largo-cel">Nenhum talhão com esses filtros.</td>
                 </tr>
               )}
-              {filtradas.map(({ t, c, r, a, nPontos, nColetas }) => (
+              {filtradas.map(({ t, c, r, a, res, nPontos, nColetas }) => {
+                const v = res ?? r;
+                const dica = res
+                  ? `Resultado da colheita: ${fmt(res.tMV, 1)} t de MN${res.tMS != null ? ` e ${fmt(res.tMS, 1)} t de MS` : ''} entregues ÷ ${fmt(t.areaHa, 1)} ha (MS de cada carga pela análise dos caminhões do mesmo dia)`
+                  : undefined;
+                const cls = res ? 'n da-colheita' : 'n';
+                return (
                 <tr key={t.id}>
                   <td className="nome-talhao largo-cel">
                     <Bolinha cor={semaforoDe(statusMS(r?.msPct ?? null, parametros))} />{' '}
@@ -398,7 +421,7 @@ export default function Painel() {
                       <small>
                         {t.capim || '—'}
                         {c ? <> · <Link to={`/coletas/${c.id}`}>{fmtData(c.data)}</Link></> : <> · sem coleta</>}
-                        {c && r?.msPct == null && <> · MS a aferir</>}
+                        {res ? <> · <span className="da-colheita">resultado da colheita</span></> : c && r?.msPct == null && <> · MS a aferir</>}
                       </small>
                     </div>
                   </td>
@@ -408,14 +431,15 @@ export default function Painel() {
                   <td className="n oculta-cel" title={nColetas ? `${nPontos} ponto(s) em ${nColetas} coleta(s); ${r?.nPontos ?? 0} na última` : undefined}>
                     {nColetas ? nPontos : '—'}
                   </td>
-                  <td className="n" data-rotulo="MN t/ha">{fmt(r?.tMVha)}</td>
-                  <td className="n" data-rotulo="MS %">{fmt(r?.msPct)}</td>
-                  <td className="n" data-rotulo="MS t/ha">{fmt(r?.tMSha)}</td>
+                  <td className={cls} data-rotulo="MN t/ha" title={dica}>{fmt(v?.tMVha)}</td>
+                  <td className={cls} data-rotulo="MS %" title={dica}>{fmt(v?.msPct)}</td>
+                  <td className={cls} data-rotulo="MS t/ha" title={dica}>{fmt(v?.tMSha)}</td>
                   <td className="n col-colheita" data-rotulo="Colheita">
                     <ProgressoColheita a={a} />
                   </td>
                 </tr>
-              ))}
+                );
+              })}
             </tbody>
           </table>
         </div>

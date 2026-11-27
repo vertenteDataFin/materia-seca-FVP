@@ -300,6 +300,36 @@ export function tarasPorPlaca(cargas: Carga[]): Map<string, number> {
 }
 
 /** % colhida para mostrar: talhão finalizado conta 100%; em colheita, a estimativa limitada a 100%. */
+/** Colheita concluída: finalizada, ou o setor agrícola já informou a área toda do talhão. */
+export function colheitaConcluida(a: AndamentoTalhao): boolean {
+  return a.finalizada || (a.informada != null && a.talhao.areaHa > 0 && a.informada.ha >= a.talhao.areaHa - 0.05);
+}
+
+/** Resultado de um talhão já colhido: o que entrou na balança ÷ área do talhão. */
+export interface ResultadoColheita {
+  /** t MN/ha = MN entregue ÷ área do talhão. */
+  tMVha: number;
+  /** MS da colheita (%) = MS entregue ÷ MN entregue (cada carga com a MS dos caminhões amostrados no mesmo dia). */
+  msPct: number | null;
+  /** t MS/ha = MS entregue ÷ área do talhão. */
+  tMSha: number | null;
+  tMV: number;
+  tMS: number | null;
+}
+
+/** Resultado da colheita do talhão; null se ainda não foi concluída (ou sem carga/área). */
+export function resultadoColheita(a: AndamentoTalhao | undefined): ResultadoColheita | null {
+  if (!a || !colheitaConcluida(a) || !(a.talhao.areaHa > 0) || !(a.tMV > 0)) return null;
+  const area = a.talhao.areaHa;
+  return {
+    tMVha: a.tMV / area,
+    msPct: a.tMS != null ? (a.tMS / a.tMV) * 100 : null,
+    tMSha: a.tMS != null ? a.tMS / area : null,
+    tMV: a.tMV,
+    tMS: a.tMS,
+  };
+}
+
 export function progressoColheita(a: AndamentoTalhao): number | null {
   if (a.finalizada) return 100;
   return a.pctColhida == null ? null : Math.min(100, a.pctColhida);
